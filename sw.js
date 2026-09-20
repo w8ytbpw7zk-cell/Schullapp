@@ -1,4 +1,4 @@
-const CACHE_NAME = "schulapp-v24";
+const CACHE_NAME = "schulapp-v26";
 
 const APP_SHELL = [
   "./",
