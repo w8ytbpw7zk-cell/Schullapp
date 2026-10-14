@@ -11,7 +11,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="format-detection" content="telephone=no">
 <title>Schulapp</title>
-<!-- Schulapp V40 – Notion Workspace, Craft-Inbox & Elternkommunikation -->
+<!-- Schulapp V43 – Craft-Schülerkartei, Journal & Notion Workspace -->
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="./icon-192.png">
 <link rel="icon" type="image/png" sizes="192x192" href="./icon-192.png">
@@ -2387,10 +2387,73 @@ body.feedback-pick .main *{cursor:crosshair!important}
 .craft-sync-state{display:inline-flex;align-items:center;gap:5px;font-size:11px;color:var(--ink-3)}.craft-sync-state i{width:6px;height:6px;border-radius:50%;background:#c8c7c4}.craft-sync-state i.on{background:#448361}
 .smart-type{display:inline-flex;align-items:center;gap:5px;padding:3px 6px;border:1px solid var(--line);background:var(--surface-2);font-size:11px;color:var(--ink-2);border-radius:4px}
 
+
+/* ------------------------------------------------------- V43 Today + Kommunikation */
+.today-inbox{margin-top:4px}
+.today-inbox-head{display:flex;align-items:flex-end;justify-content:space-between;gap:18px;margin:0 0 24px;padding-bottom:14px;border-bottom:1px solid var(--line-soft)}
+.today-inbox-head h2{margin:0;font-size:24px;line-height:1.15;letter-spacing:-.035em;font-weight:680}
+.today-inbox-head p{margin:5px 0 0;color:var(--ink-3);font-size:12px}
+.today-section{margin:0 0 32px}
+.today-section-head{display:flex;align-items:center;justify-content:space-between;gap:14px;margin-bottom:8px}
+.today-section-title{display:flex;align-items:center;gap:8px;min-width:0}
+.today-section-title h3{font-size:13px;line-height:1.2;margin:0;font-weight:650;color:var(--ink);letter-spacing:-.01em}
+.today-count{display:inline-flex;align-items:center;justify-content:center;min-width:20px;height:20px;padding:0 6px;border-radius:999px;background:#f1f1ef;color:#787774;font-size:10.5px;font-weight:650}
+.today-section-note{font-size:11.5px;color:var(--ink-3)}
+.parent-list,.task-list{border-top:1px solid var(--line)}
+.parent-item{display:grid;grid-template-columns:1fr auto;gap:12px;padding:13px 3px 12px;border-bottom:1px solid var(--line-soft);align-items:center}
+.parent-item:hover{background:#fbfbfa}
+.parent-person{font-size:14px;font-weight:620;letter-spacing:-.01em;color:var(--ink)}
+.parent-context{margin-top:2px;font-size:11.5px;color:var(--ink-3)}
+.parent-reason{margin-top:7px;font-size:13px;color:var(--ink);font-weight:500}
+.parent-status{margin-top:4px;font-size:11.5px;color:var(--ink-3)}
+.parent-status.positive{color:#448361}
+.parent-actions{display:flex;align-items:center;gap:6px;flex-wrap:wrap;justify-content:flex-end}
+.parent-actions .btn.primary{white-space:nowrap}
+.parent-more{font-size:11.5px;color:var(--ink-3);border:0;background:transparent;padding:6px 5px;cursor:pointer}
+.parent-more:hover{color:var(--ink);text-decoration:underline}
+.today-task{display:flex;align-items:center;gap:10px;padding:9px 3px;border-bottom:1px solid var(--line-soft)}
+.today-task .inbox-open{padding:2px 0}.today-task .inbox-main b{font-size:13.5px}.today-task-actions{display:flex;gap:6px;flex:none}
+.craft-panel{border:1px solid var(--line);background:#f7f7f5;border-radius:7px;padding:14px 15px 12px}
+.craft-panel-head{display:flex;align-items:center;justify-content:space-between;gap:14px}
+.craft-panel-title{display:flex;align-items:center;gap:9px;min-width:0}.craft-panel-title .craft-mark{width:27px;height:27px;background:#fff}
+.craft-panel-title b{display:block;font-size:13px;font-weight:620}.craft-panel-title span{display:block;margin-top:1px;font-size:11px;color:var(--ink-3)}
+.craft-panel-actions{display:flex;gap:6px;align-items:center}
+.craft-ready{margin-top:10px;border-top:1px solid #e3e3e0}
+.craft-ready-row{display:flex;align-items:center;gap:10px;min-height:34px;padding:6px 1px;border-bottom:1px solid #e9e9e6;font-size:11.5px}
+.craft-ready-row:last-child{border-bottom:0}.craft-ready-row span:first-child{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.craft-ready-state{color:var(--ink-3);white-space:nowrap}.craft-ready-state.done{color:#448361}
+.comm-editor{width:100%;min-height:255px;resize:vertical;line-height:1.52;font:inherit;font-size:14px;border:1px solid var(--line);border-radius:6px;background:var(--surface);color:var(--ink);padding:12px 13px;outline:none}
+.comm-editor:focus{border-color:#a8a8a3;box-shadow:0 0 0 1px #a8a8a3}
+.comm-editor-meta{display:flex;align-items:center;justify-content:space-between;gap:10px;margin:-1px 0 12px;font-size:11px;color:var(--ink-3)}
+.comm-learn{display:flex;align-items:flex-start;gap:8px;padding:9px 10px;border:1px solid var(--line-soft);border-radius:6px;background:#fafaf9;margin-top:10px}
+.comm-learn input{margin-top:2px}.comm-learn label{font-size:11.5px;color:var(--ink-2);line-height:1.35}.comm-learn small{display:block;margin-top:2px;color:var(--ink-3)}
+.comm-template-badge{display:inline-flex;align-items:center;gap:5px;font-size:10.5px;color:#448361}.comm-template-badge:before{content:'✓';font-weight:700}
+.search-btn svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
+@media(max-width:620px){
+  .search-btn{min-width:44px!important;width:44px!important;height:44px!important;padding:0!important}
+  .search-btn svg{width:25px;height:25px;stroke-width:2}
+  .today-inbox-head{align-items:flex-start;margin-bottom:20px}.today-inbox-head h2{font-size:22px}
+  .parent-item{grid-template-columns:1fr;gap:9px;padding:13px 2px}.parent-actions{justify-content:flex-start}.parent-actions .btn.primary{flex:1;min-width:150px}
+  .today-task{align-items:flex-start}.today-task-actions{flex-direction:column}.craft-panel-head{align-items:flex-start;flex-direction:column}.craft-panel-actions{width:100%}.craft-panel-actions .btn{flex:1}
+  .comm-editor{min-height:290px;font-size:16px}
+}
+
+
+/* ------------------------------------------------------- V43 Craft-Schülerkartei */
+.kartei-strip{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:11px 0 18px;margin:-8px 0 24px;border-bottom:1px solid var(--line)}
+.kartei-strip-main{display:flex;align-items:center;gap:10px;min-width:0}.kartei-strip-main .craft-mark{flex:none}.kartei-strip-copy{min-width:0}.kartei-strip-copy b{display:block;font-size:13.5px;font-weight:620}.kartei-strip-copy span{display:block;margin-top:2px;font-size:11.5px;color:var(--ink-3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.kartei-strip-actions{display:flex;align-items:center;gap:6px;flex-wrap:wrap;justify-content:flex-end}.kartei-link-btn{border:0;background:transparent;color:var(--ink-2);font:inherit;font-size:11.5px;padding:6px 4px;cursor:pointer}.kartei-link-btn:hover{color:var(--ink);text-decoration:underline}
+.kartei-panel{padding:2px 0}.kartei-state{display:flex;align-items:flex-start;gap:10px;padding:3px 0 13px}.kartei-state-dot{width:8px;height:8px;border-radius:50%;background:#c8c7c4;margin-top:6px;flex:none}.kartei-state-dot.on{background:#448361}.kartei-state-main{min-width:0;flex:1}.kartei-state-main b{display:block;font-size:13px;font-weight:600}.kartei-state-main span{display:block;margin-top:2px;font-size:11.5px;color:var(--ink-3);line-height:1.4}
+.kartei-actions{display:flex;gap:6px;flex-wrap:wrap}.kartei-actions .btn{min-height:32px}.kartei-muted{font-size:11px;color:var(--ink-3);line-height:1.45;margin-top:10px}
+.kartei-setup{display:grid;gap:12px}.kartei-setup-box{border-top:1px solid var(--line-soft);padding-top:12px}.kartei-setup-box:first-child{border-top:0;padding-top:0}.kartei-setup-title{font-size:12px;font-weight:650;margin-bottom:5px}.kartei-setup-sub{font-size:11.5px;color:var(--ink-3);line-height:1.45}.kartei-folder-row{display:flex;align-items:center;gap:8px;margin-top:9px}.kartei-folder-row select{flex:1;min-width:0}.kartei-result{margin-top:10px;padding:9px 10px;border-radius:6px;background:#f7f7f5;border:1px solid var(--line-soft);font-size:11.5px;color:var(--ink-2);line-height:1.45}
+.kartei-doc-list{max-height:360px;overflow:auto;border-top:1px solid var(--line);margin-top:8px}.kartei-doc-row{width:100%;border:0;border-bottom:1px solid var(--line-soft);background:transparent;padding:9px 3px;text-align:left;font:inherit;display:flex;align-items:center;gap:10px;cursor:pointer}.kartei-doc-row:hover{background:#f7f7f5}.kartei-doc-row span{min-width:0;flex:1}.kartei-doc-row b{display:block;font-size:13px;font-weight:550;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.kartei-doc-row small{display:block;margin-top:2px;color:var(--ink-3);font-size:10.5px}.kartei-doc-row em{font-style:normal;color:var(--ink-3);font-size:16px}
+.kartei-note-text{min-height:150px;resize:vertical}.kartei-sync-preview{border:1px solid var(--line-soft);background:#fafaf9;border-radius:6px;padding:10px 11px;font-size:11.5px;color:var(--ink-2);line-height:1.5;white-space:pre-wrap;margin-top:8px}
+.craft-kartei-summary{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:10px;padding-top:10px;border-top:1px solid #e3e3e0}.craft-kartei-summary span{font-size:11.5px;color:var(--ink-2)}
+@media(max-width:620px){.kartei-strip{align-items:flex-start;flex-direction:column}.kartei-strip-actions{width:100%;justify-content:flex-start}.kartei-strip-actions .btn{flex:1}.kartei-actions{display:grid;grid-template-columns:1fr 1fr}.kartei-actions .btn{width:100%}.kartei-folder-row{align-items:stretch;flex-direction:column}.craft-kartei-summary{align-items:flex-start;flex-direction:column}}
+
 @media(prefers-color-scheme:dark){body{background:#191919}.topbar{background:rgba(25,25,25,.94)}.btn.primary{background:#ebebea;border-color:#ebebea;color:#191919}.inbox-item:hover{background:#242424}.inbox-icon,.craft-mark{background:#2a2a2a}.grades th{background:#242424}}
 </style>
 </head>
-<body data-schulapp-version="38">
+<body data-schulapp-version="43">
 
 
 <div id="authGate" class="auth-gate hidden">
@@ -2435,7 +2498,7 @@ body.feedback-pick .main *{cursor:crosshair!important}
       <p>Hier kannst du die App mit erfundenen Testdaten ausprobieren. Es wird keine Verbindung zum Schulapp-Server hergestellt und deine echten Daten werden nicht verändert.</p>
       <button class="btn primary block" type="button" id="previewOpenBtn">Vorschau mit Testdaten öffnen</button>
     </div>
-    <div class="small muted" style="text-align:center;margin-top:14px">Schulapp · Version 40</div>
+    <div class="small muted" style="text-align:center;margin-top:14px">Schulapp · Version 43</div>
   </div>
 </div>
 
@@ -2587,6 +2650,8 @@ var DEFAULT_CFG = {
   rundung: 'kaufmaennisch',
   namensformat: 'nachname',
   farbdesign: 'blau',
+  /* Auf diesem Gerät nur einmal pro Kalendertag Anmeldung bestätigen. */
+  dailyLogin: true,
   /* Sitzpläne je Klasse: { klasseId: { cols: 4, seats: [susId, ...] } } */
   sitzplaene: {},
   pin: '',
@@ -3232,7 +3297,9 @@ var Auth = {
        langsame Apps-Script-Antwort warten muss. */
     var url = CONN.url;
     var sessionToken = CONN.sessionToken;
+    var logoutUserId = CONN.user && CONN.user.id ? String(CONN.user.id) : '';
 
+    if (logoutUserId) LS.del('authDaily.' + logoutUserId);
     LS.del('auth');
     try { sessionStorage.removeItem('schulapp.auth.session'); } catch (e) {}
     try { sessionStorage.removeItem('schulapp.unlocked'); } catch (e2) {}
@@ -4487,6 +4554,25 @@ function biometrieEinrichten() {
     return true;
   });
 }
+function taeglicheAnmeldungAktiv_() {
+  return A.cfg('dailyLogin') !== false;
+}
+function authDailyUserId_() {
+  var u = A.Auth.currentUser ? A.Auth.currentUser() : null;
+  if (u && u.id) return String(u.id);
+  var st = A.Auth._stored ? A.Auth._stored() : null;
+  return st && st.user && st.user.id ? String(st.user.id) : '';
+}
+function anmeldungHeuteBestaetigt_() {
+  if (!taeglicheAnmeldungAktiv_()) return true;
+  var uid = authDailyUserId_();
+  return !!uid && A.LS.get('authDaily.' + uid, '') === A.todayISO();
+}
+function anmeldungHeuteMerken_() {
+  var uid = authDailyUserId_();
+  if (uid) A.LS.set('authDaily.' + uid, A.todayISO());
+}
+
 function biometrieSchnellLogin() {
   if (!biometrieAktiv()) return Promise.reject(new Error('Biometrische Anmeldung ist nicht eingerichtet.'));
   if (location.protocol !== 'https:') {
@@ -4516,6 +4602,7 @@ function biometrieSchnellLogin() {
     if (!A.Auth.restore()) throw new Error('Keine gespeicherte Anmeldung vorhanden.');
     return A.Auth.validate();
   }).then(function () {
+    anmeldungHeuteMerken_();
     startAuthenticatedApp(true);
     return true;
   }).catch(function (err) {
@@ -4569,7 +4656,7 @@ loginForm.addEventListener('submit', function (e) {
   authStatus('Verbindung zum Server …', true);
   authBusy(loginForm, true);
   A.Auth.login($('#loginEmail').value, $('#loginPassword').value, $('#loginRemember').checked, url)
-    .then(function () { $('#loginPassword').value = ''; startAuthenticatedApp(true); })
+    .then(function () { $('#loginPassword').value = ''; anmeldungHeuteMerken_(); startAuthenticatedApp(true); })
     .catch(function (err) { authStatus(err.message || String(err), false); })
     .then(function () { authBusy(loginForm, false); });
 });
@@ -4587,6 +4674,7 @@ registerForm.addEventListener('submit', function (e) {
       $('#registerInvite').value, $('#registerRemember').checked, url)
     .then(function (res) {
       $('#registerPassword').value = ''; $('#registerPassword2').value = ''; $('#registerInvite').value = '';
+      anmeldungHeuteMerken_();
       startAuthenticatedApp(true);
       if (res.legacyClaimed) window.toast('Vorhandene Daten wurden deinem Konto zugeordnet.');
     })
@@ -5045,26 +5133,30 @@ function elternErinnerungDaten(a) {
   var text = 'Liebe Eltern,\n\n' + listenElternText_(a, '', true) + '\n\nVielen Dank und liebe Grüße';
   return { text: text, offen: offen, kurs: kurs, stand: st, art: listenArtErkennen_(a) };
 }
+function listenGruppenVorlagen_(){var x=A.cfg('elternListenVorlagen');return x&&typeof x==='object'?A.clone(x):{};}
+function listenGruppenVorlageAnwenden_(a,fallback){var art=listenArtErkennen_(a),rec=listenGruppenVorlagen_()[art];if(!rec||!rec.text)return fallback;var t=String(rec.text),thema=listenThema_(a,art),frist=a&&a.frist?A.fmtDate(a.frist):'';t=t.split('{{thema}}').join(thema).split('{{frist}}').join(frist);return t;}
+function listenGruppenVorlageSpeichern_(a,text){var art=listenArtErkennen_(a),thema=listenThema_(a,art),frist=a&&a.frist?A.fmtDate(a.frist):'',tpl=String(text||'').trim();if(!tpl)return false;if(thema)tpl=tpl.split(thema).join('{{thema}}');if(frist)tpl=tpl.split(frist).join('{{frist}}');var all=listenGruppenVorlagen_();all[art]={text:tpl,zeit:new Date().toISOString(),label:listenArtLabel_(a)};A.setCfg('elternListenVorlagen',all);return true;}
 function elternErinnerungOeffnen(id) {
   var a = aufgabeById(id);
   if (!a || a.typ !== 'liste') return;
   var d = elternErinnerungDaten(a);
   if (!d.offen.length) { window.toast('Für diese Liste fehlt niemand mehr.'); return; }
-  var emp = d.offen.map(function (x) { return A.susName(x); }).join(', ');
+  d.text=listenGruppenVorlageAnwenden_(a,d.text);
+  var emp = d.offen.map(function (x) { return A.susName(x); }).join(', '),hatVorlage=!!listenGruppenVorlagen_()[listenArtErkennen_(a)];
   Modal.open({
     title: 'Eltern erinnern',
     body: '<div class="hint-box">Die Namen stehen absichtlich nicht im Nachrichtentext. So kannst du denselben Text einzeln an die betreffenden Eltern senden.</div>' +
-      '<div class="eltern-msg" data-eltern-text>' + A.esc(d.text).replace(/\n/g,'<br>') + '</div>' +
+      '<div class="comm-preview-label">Nachricht · direkt bearbeiten</div><textarea class="comm-editor" data-eltern-text spellcheck="true">'+A.esc(d.text)+'</textarea>'+
+      '<div class="comm-editor-meta"><span data-list-template-state>'+(hatVorlage?'<span class="comm-template-badge">Eigene Formulierung wird verwendet</span>':'Standardvorlage')+'</span><span>'+d.offen.length+' Empfänger:innen</span></div>'+
+      '<div class="comm-learn"><input id="listenTextLernen" type="checkbox" checked><label for="listenTextLernen"><b>Meine Änderungen für diese Art von Rücklauf merken</b><small>Das Thema und die Frist werden automatisch als Platzhalter gespeichert.</small></label></div>'+
       '<div class="empfaenger-box"><b>Zu senden an Eltern von:</b><div class="empfaenger-namen">' + A.esc(emp) + '</div></div>',
-    foot: '<button class="btn" data-copy-msg>Text kopieren</button><button class="btn primary" data-share-msg>Teilen</button>',
+    foot: '<button class="btn" data-save-list-template>Formulierung merken</button><button class="btn" data-copy-msg>Text kopieren</button><button class="btn primary" data-share-msg>Teilen</button>',
     after: function (bg) {
-      bg.querySelector('[data-copy-msg]').addEventListener('click', function () {
-        kopieren(d.text).then(function () { window.toast('Nachricht kopiert'); }).catch(function () { window.toast('Kopieren nicht möglich', true); });
-      });
-      bg.querySelector('[data-share-msg]').addEventListener('click', function () {
-        if (navigator.share) navigator.share({ title: a.titel, text: d.text }).catch(function () {});
-        else kopieren(d.text).then(function () { window.toast('Nachricht kopiert'); });
-      });
+      var editor=bg.querySelector('[data-eltern-text]'),lernen=bg.querySelector('#listenTextLernen'),state=bg.querySelector('[data-list-template-state]');editor.dataset.dirty='0';editor.addEventListener('input',function(){editor.dataset.dirty='1';});
+      function save(silent){var ok=listenGruppenVorlageSpeichern_(a,editor.value);if(ok){state.innerHTML='<span class="comm-template-badge">Eigene Formulierung wird verwendet</span>';if(!silent)window.toast('Formulierung für diese Rücklauf-Art gemerkt');}return ok;}
+      bg.querySelector('[data-save-list-template]').addEventListener('click',function(){save(false);});
+      bg.querySelector('[data-copy-msg]').addEventListener('click', function () {if(lernen.checked&&editor.dataset.dirty==='1')save(true);kopieren(editor.value).then(function () { window.toast('Nachricht kopiert'); }).catch(function () { window.toast('Kopieren nicht möglich', true); });});
+      bg.querySelector('[data-share-msg]').addEventListener('click', function () {if(lernen.checked&&editor.dataset.dirty==='1')save(true);if (navigator.share) navigator.share({ title: a.titel, text: editor.value }).catch(function () {});else kopieren(editor.value).then(function () { window.toast('Nachricht kopiert'); });});
     }
   });
 }
@@ -5157,6 +5249,51 @@ function elternGrundLabel_(grund) {
   }
   return grund.label || 'Sonstige Rückmeldung';
 }
+function elternVorlagen_(){var x=A.cfg('elternVorlagen');return x&&typeof x==='object'?A.clone(x):{};}
+function elternVorlageKey_(grund){
+  if(!grund)return 'preset:allgemein';
+  if(grund.typ==='vergessen'){
+    var p=String(grund.punkt||'').toLowerCase();
+    if(/hausauf/.test(p))return 'vergessen:hausaufgaben';
+    if(/material|heft|buch|mappe|ordner|sportsachen|stift|zeug/.test(p))return 'vergessen:material';
+    return 'vergessen:'+p.replace(/[^a-z0-9äöüß]+/gi,'_').slice(0,48);
+  }
+  if(grund.typ==='positiv')return 'positiv:'+(grund.signal||'allgemein');
+  if(grund.typ==='liste'){
+    var a=aufgabeById(grund.aufgabeId)||{titel:grund.titel||'',abgabeArt:grund.abgabeArt||'auto'};
+    return 'liste:'+listenArtErkennen_(a);
+  }
+  if(grund.typ==='preset')return 'preset:'+(grund.key||'allgemein');
+  return 'preset:allgemein';
+}
+function elternVorlageKontext_(sus,grund){
+  var kurs=grund&&grund.kursId?A.byId('Kurse',grund.kursId):null,a=null,thema='';
+  if(grund&&grund.typ==='liste'){a=aufgabeById(grund.aufgabeId)||{titel:grund.titel||''};thema=listenThema_(a,listenArtErkennen_(a));}
+  return {name:sus?A.susName(sus):'',vorname:String((sus&&sus.vorname)||'').trim(),fach:String((kurs&&kurs.fach)||''),anzahl:String((grund&&grund.anzahl)||''),thema:thema};
+}
+function elternVorlageSpeichern_(sus,grund,text){
+  var key=elternVorlageKey_(grund),ctx=elternVorlageKontext_(sus,grund),tpl=String(text||'').trim();if(!tpl)return false;
+  function repl(val,token){if(!val)return;tpl=tpl.split(String(val)).join(token);}
+  repl(ctx.name,'{{name}}');repl(ctx.vorname,'{{vorname}}');repl(ctx.fach,'{{fach}}');repl(ctx.thema,'{{thema}}');
+  if(ctx.anzahl)tpl=tpl.split(ctx.anzahl).join('{{anzahl}}');
+  var all=elternVorlagen_();all[key]={text:tpl,zeit:new Date().toISOString(),label:elternGrundLabel_(grund)};A.setCfg('elternVorlagen',all);return true;
+}
+function elternVorlageAnwenden_(sus,grund,fallback){
+  var rec=elternVorlagen_()[elternVorlageKey_(grund)];if(!rec||!rec.text)return fallback;
+  var ctx=elternVorlageKontext_(sus,grund),t=String(rec.text);
+  [['{{name}}',ctx.name],['{{vorname}}',ctx.vorname],['{{fach}}',ctx.fach],['{{anzahl}}',ctx.anzahl],['{{thema}}',ctx.thema]].forEach(function(p){t=t.split(p[0]).join(p[1]||'');});
+  return t;
+}
+function elternHatEigeneVorlage_(grund){return !!(elternVorlagen_()[elternVorlageKey_(grund)]||{}).text;}
+function elternLetzterKontakt_(h){
+  if(!h)return null;var arr=elternVerlauf_().filter(function(x){
+    if(x.susId!==h.susId)return false;if(h.kursId&&x.kursId!==h.kursId)return false;
+    if(h.typ==='vergessen')return x.typ==='vergessen'&&String(x.punkt||'')===String(h.punkt||'');
+    if(h.typ==='positiv')return x.typ==='positiv';return true;
+  }).sort(function(a,b){return String(b.zeit||'').localeCompare(String(a.zeit||''));});return arr[0]||null;
+}
+function elternKontaktText_(h){var x=elternLetzterKontakt_(h);if(!x)return '';var d=A.fmtDateShort(String(x.zeit||'').slice(0,10)),s=x.status==='besprochen'?'besprochen':'Eltern informiert';if(h&&h.typ==='vergessen'&&x.anzahl)s+=' bei '+x.anzahl+'×';return 'Zuletzt '+d+' · '+s;}
+
 function elternNachrichtText_(sus, grund, ton, anzahlNennen, zusatz) {
   var vorname=String((sus&&sus.vorname)||'').trim();
   var name=vorname||'Ihrem Kind';
@@ -5166,15 +5303,15 @@ function elternNachrichtText_(sus, grund, ton, anzahlNennen, zusatz) {
   if(grund&&grund.typ==='vergessen'){
     var kurs=A.byId('Kurse',grund.kursId), fach=kurs&&kurs.fach?' im Fach '+kurs.fach:'';
     var punktRaw=String(grund.punkt||'Material'), istHA=/hausauf/i.test(punktRaw);
-    var subjekt=istHA?'die Hausaufgaben':'das benötigte Material', verb=istHA?'fehlten':'fehlte';
-    var count=anzahlNennen&&grund.anzahl?' bereits '+grund.anzahl+'-mal':' wiederholt';
+    var count=anzahlNennen&&grund.anzahl?' inzwischen '+grund.anzahl+'-mal':' wiederholt';
     var stufe=Math.max(1,Math.floor(Number(grund.anzahl||0)/Math.max(1,elternNachrichtSchwelle())));
-    var intro=stufe>=3?'ich möchte mich erneut bei Ihnen melden: ':stufe===2?'ich möchte mich noch einmal bei Ihnen melden: ':'ich möchte Ihnen kurz eine Rückmeldung geben: ';
-    mitte=intro+'Bei '+name+' '+verb+fach+count+' '+subjekt+'. ';
-    if(ton==='deutlich') mitte+='Bitte sorgen Sie gemeinsam dafür, dass '+(istHA?'die Hausaufgaben künftig zuverlässig erledigt und mitgebracht werden.':'das benötigte Material künftig vollständig dabei ist.');
+    var intro=stufe>=3?'ich möchte mich noch einmal bei Ihnen melden. ':stufe===2?'ich möchte Ihnen erneut eine kurze Rückmeldung geben. ':'ich möchte Ihnen kurz eine Rückmeldung geben. ';
+    if(istHA) mitte=intro+'Mir ist aufgefallen, dass die Hausaufgaben von '+name+fach+count+' nicht vollständig vorlagen. ';
+    else mitte=intro+'Mir ist aufgefallen, dass '+name+fach+' das benötigte Material'+count+' nicht vollständig dabeihatte. ';
+    if(ton==='deutlich') mitte+='Ich bitte Sie darum, gemeinsam darauf zu achten, dass '+(istHA?'die Hausaufgaben künftig zuverlässig erledigt und mitgebracht werden.':'das benötigte Material künftig vollständig dabei ist.');
     else if(ton==='neutral') mitte+='Bitte unterstützen Sie Ihr Kind dabei, künftig vollständig vorbereitet in den Unterricht zu kommen.';
-    else mitte+='Es wäre schön, wenn Sie gemeinsam noch einmal darauf achten könnten, dass '+(istHA?'die Hausaufgaben erledigt und mitgebracht werden.':'alles Benötigte dabei ist.');
-    if(stufe>=3) mitte+=' Da dies nun wiederholt vorgekommen ist, würde ich mich bei weiterem Auftreten gern kurz mit Ihnen dazu austauschen.';
+    else mitte+='Es wäre hilfreich, wenn Sie gemeinsam noch einmal darauf achten könnten, dass '+(istHA?'die Hausaufgaben zuverlässig erledigt und mitgebracht werden.':'alles Benötigte vollständig dabei ist.');
+    if(stufe>=3) mitte+=' Da das inzwischen mehrfach Thema war, würde ich mich bei weiterem Auftreten gern kurz mit Ihnen dazu austauschen.';
   } else if(grund&&grund.typ==='positiv'){
     positiv=true; var k=A.byId('Kurse',grund.kursId),f=k&&k.fach?' im Fach '+k.fach:'';
     if(grund.signal==='mitarbeit_verbessert') mitte='ich möchte Ihnen gern eine positive Rückmeldung geben: Mir ist aufgefallen, dass sich '+name+f+' in letzter Zeit deutlich aktiver und engagierter am Unterricht beteiligt. Diese Entwicklung finde ich sehr erfreulich.';
@@ -5208,7 +5345,8 @@ function elternNachrichtText_(sus, grund, ton, anzahlNennen, zusatz) {
   }
   if(zusatz)mitte+='\n\n'+zusatz;
   var ende=positiv?'Das wollte ich Ihnen gerne einmal positiv zurückmelden.\n\nLiebe Grüße':(ton==='deutlich'?'Vielen Dank für Ihre Unterstützung.\n\nLiebe Grüße':'Vielen Dank für Ihre Unterstützung und liebe Grüße');
-  return anrede+'\n\n'+mitte+'\n\n'+ende;
+  var standard=anrede+'\n\n'+mitte+'\n\n'+ende;
+  return elternVorlageAnwenden_(sus,grund,standard);
 }
 function elternNachrichtOeffnen(susId, preset) {
   var sus=A.byId('SuS',susId);if(!sus)return;
@@ -5224,22 +5362,37 @@ function elternNachrichtOeffnen(susId, preset) {
   var optionen='';
   if(gruende.length)optionen+='<optgroup label="Aktuelle Anlässe">'+gruende.map(function(g,i){return '<option value="auto:'+i+'">'+A.esc(elternGrundLabel_(g))+'</option>';}).join('')+'</optgroup>';
   optionen+='<optgroup label="Weitere Anlässe">'+ELTERN_ANLAESSE.map(function(x){return '<option value="preset:'+x.key+'">'+A.esc(x.label)+'</option>';}).join('')+'</optgroup>';
-  var body='<div class="comm-head"><div><div class="comm-kicker">Elternkommunikation</div><div class="comm-person">'+A.esc(A.susName(sus))+'</div></div></div>'+
+  var klasse=A.byId('Klassen',sus.klasseId);
+  var body='<div class="comm-head"><div><div class="comm-kicker">Elternkommunikation</div><div class="comm-person">'+A.esc(A.susName(sus))+'</div><div class="small muted" style="margin-top:3px">'+A.esc(klasse?klasse.name:'')+'</div></div></div>'+
     '<div class="field"><label>Anlass</label><select id="elternGrund">'+optionen+'</select></div>'+
     '<div class="comm-grid"><div class="field"><label>Ton</label><select id="elternTon"><option value="freundlich">freundlich</option><option value="neutral">neutral</option><option value="deutlich">deutlich</option></select></div><div class="field check comm-check"><input id="elternAnzahl" type="checkbox" checked><label for="elternAnzahl">Anzahl nennen</label><span class="check-state" aria-hidden="true"></span></div></div>'+
-    '<div class="field"><label>Eigener Zusatz</label><textarea id="elternZusatz" rows="3" placeholder="Optionaler Zusatz …"></textarea></div><div class="comm-preview-label">Vorschau</div><div class="eltern-msg comm-preview" data-comm-preview></div>';
-  Modal.open({title:'Elternnachricht',body:body,foot:'<button class="btn" data-copy-comm>Kopieren</button><button class="btn" data-share-comm>Teilen</button><button class="btn primary" data-sent-comm>Als verschickt markieren</button>',after:function(bg,close){
-    var grundSel=bg.querySelector('#elternGrund'),ton=bg.querySelector('#elternTon'),anz=bg.querySelector('#elternAnzahl'),zus=bg.querySelector('#elternZusatz'),preview=bg.querySelector('[data-comm-preview]');ton.value=String(A.cfg('elternNachrichtTon')||'freundlich');
+    '<div class="comm-preview-label">Nachricht · direkt bearbeiten</div><textarea id="elternText" class="comm-editor" spellcheck="true"></textarea>'+
+    '<div class="comm-editor-meta"><span data-template-state></span><span>Änderungen werden erst gespeichert, wenn du sie bewusst übernimmst.</span></div>'+
+    '<div class="comm-learn"><input id="elternLernen" type="checkbox" checked><label for="elternLernen"><b>Meine Änderungen für diesen Anlass merken</b><small>Name, Fach, Anzahl und Thema werden beim Speichern automatisch durch Platzhalter ersetzt.</small></label></div>';
+  Modal.open({title:'Elternnachricht',body:body,foot:'<button class="btn" data-save-template>Formulierung merken</button><button class="btn" data-copy-comm>Kopieren</button><button class="btn" data-share-comm>Teilen</button><button class="btn primary" data-sent-comm>Als verschickt markieren</button>',after:function(bg,close){
+    var grundSel=bg.querySelector('#elternGrund'),ton=bg.querySelector('#elternTon'),anz=bg.querySelector('#elternAnzahl'),editor=bg.querySelector('#elternText'),lernen=bg.querySelector('#elternLernen'),state=bg.querySelector('[data-template-state]');
+    ton.value=String(A.cfg('elternNachrichtTon')||'freundlich');
     if(presetGrund){var idx=gruende.indexOf(presetGrund);if(idx>=0)grundSel.value='auto:'+idx;}
     function grund(){var v=grundSel.value||'';if(v.indexOf('auto:')===0)return gruende[Number(v.slice(5))]||{typ:'preset',key:'allgemein'};if(v.indexOf('preset:')===0)return {typ:'preset',key:v.slice(7),susId:susId};return {typ:'preset',key:'allgemein',susId:susId};}
-    function text(){return elternNachrichtText_(sus,grund(),ton.value,anz.checked,zus.value);}
-    function update(){var g=grund();anz.closest('.field').style.display=(g.typ==='vergessen')?'flex':'none';if(g.typ==='positiv'||(g.typ==='preset'&&g.key==='lob'))ton.value='freundlich';preview.textContent=text();A.setCfg('elternNachrichtTon',ton.value);}
-    [grundSel,ton,anz,zus].forEach(function(el){el.addEventListener(el===zus?'input':'change',update);});update();
-    bg.querySelector('[data-copy-comm]').addEventListener('click',function(){kopieren(text()).then(function(){window.toast('Nachricht kopiert');});});
-    bg.querySelector('[data-share-comm]').addEventListener('click',function(){var t=text();if(navigator.share)navigator.share({title:'Elternnachricht',text:t}).catch(function(){});else kopieren(t).then(function(){window.toast('Nachricht kopiert');});});
-    bg.querySelector('[data-sent-comm]').addEventListener('click',function(){var g=grund();g.susId=susId;if(g.typ==='vergessen'){var schw=elternNachrichtSchwelle();g.anzahl=Math.floor(Number(g.anzahl||0)/schw)*schw||Number(g.anzahl||0);elternVorgangSet_(g,'verschickt',zus.value);}else if(g.typ==='positiv'){elternVorgangSet_(g,'verschickt',zus.value);}else{var hist=elternVerlauf_();hist.push({id:A.uid('kom'),susId:susId,kursId:g.kursId||'',zeit:new Date().toISOString(),status:'verschickt',anlass:elternGrundLabel_(g),typ:g.typ||'preset',notiz:zus.value||''});A.setCfg('elternVerlauf',hist.slice(-500));}close();render();window.toast('Als verschickt gespeichert');});
+    function generated(){return elternNachrichtText_(sus,grund(),ton.value,anz.checked,'');}
+    function templateState(){var g=grund();state.innerHTML=elternHatEigeneVorlage_(g)?'<span class="comm-template-badge">Eigene Formulierung wird verwendet</span>':'Standardvorlage';}
+    function regenerate(){var g=grund();anz.closest('.field').style.display=(g.typ==='vergessen')?'flex':'none';if(g.typ==='positiv'||(g.typ==='preset'&&g.key==='lob'))ton.value='freundlich';editor.value=generated();editor.dataset.dirty='0';templateState();A.setCfg('elternNachrichtTon',ton.value);}
+    function saveTemplate(silent){if(editor.dataset.dirty!=='1'&&!elternHatEigeneVorlage_(grund())){if(!silent)window.toast('Die Nachricht wurde noch nicht verändert.');return false;}var ok=elternVorlageSpeichern_(sus,grund(),editor.value);templateState();if(ok&&!silent)window.toast('Formulierung für diesen Anlass gemerkt');return ok;}
+    editor.addEventListener('input',function(){editor.dataset.dirty='1';});
+    [grundSel,ton,anz].forEach(function(el){el.addEventListener('change',regenerate);});regenerate();
+    bg.querySelector('[data-save-template]').addEventListener('click',function(){saveTemplate(false);});
+    bg.querySelector('[data-copy-comm]').addEventListener('click',function(){if(lernen.checked&&editor.dataset.dirty==='1')saveTemplate(true);kopieren(editor.value).then(function(){window.toast('Nachricht kopiert');});});
+    bg.querySelector('[data-share-comm]').addEventListener('click',function(){if(lernen.checked&&editor.dataset.dirty==='1')saveTemplate(true);var t=editor.value;if(navigator.share)navigator.share({title:'Elternnachricht',text:t}).catch(function(){});else kopieren(t).then(function(){window.toast('Nachricht kopiert');});});
+    bg.querySelector('[data-sent-comm]').addEventListener('click',function(){
+      var g=grund();g.susId=susId;if(lernen.checked&&editor.dataset.dirty==='1')saveTemplate(true);
+      if(g.typ==='vergessen'){var schw=elternNachrichtSchwelle();g.anzahl=Math.floor(Number(g.anzahl||0)/schw)*schw||Number(g.anzahl||0);elternVorgangSet_(g,'verschickt',editor.value);}
+      else if(g.typ==='positiv'){elternVorgangSet_(g,'verschickt',editor.value);}
+      else{var hist=elternVerlauf_();var hr={id:A.uid('kom'),susId:susId,kursId:g.kursId||'',zeit:new Date().toISOString(),status:'verschickt',anlass:elternGrundLabel_(g),typ:g.typ||'preset',notiz:editor.value||''};hist.push(hr);A.setCfg('elternVerlauf',hist.slice(-500));craftKarteiAutoKommunikation_(hr);}
+      close();render();window.toast('Als verschickt gespeichert');
+    });
   }});
 }
+
 function zeigeElternSchwellenHinweis(h, straf) {
   if(!h)return;var sus=A.byId('SuS',h.susId),kurs=A.byId('Kurse',h.kursId);if(!sus)return;elternHinweisGemeldet(h);elternVorgangEnsure_(h);
   Modal.open({title:'Elternhinweis',body:'<div class="comm-milestone"><div class="comm-milestone-num">'+h.anzahl+'×</div><div class="comm-milestone-text"><b>'+A.esc(h.punkt)+'</b> fehlt bei '+A.esc(A.susName(sus))+' zum '+h.anzahl+'. Mal.'+(kurs&&kurs.fach?'<div class="comm-milestone-meta">'+A.esc(kurs.fach)+'</div>':'')+'</div></div><div class="hint-box">Nächster automatischer Hinweis beim '+(h.anzahl+elternNachrichtSchwelle())+'. Mal.'+(straf?' Zusätzlich ist eine Strafarbeit fällig.':'')+'</div>',foot:'<button class="btn" data-eltern-spaeter>Später</button><button class="btn" data-eltern-besprochen>Besprochen</button><button class="btn primary" data-eltern-direkt>Nachricht erstellen</button>',after:function(bg,close){bg.querySelector('[data-eltern-spaeter]').addEventListener('click',function(){elternVorgangSet_(h,'spaeter');close();render();});bg.querySelector('[data-eltern-besprochen]').addEventListener('click',function(){elternVorgangSet_(h,'besprochen');close();render();window.toast('Als besprochen gespeichert');});bg.querySelector('[data-eltern-direkt]').addEventListener('click',function(){close();setTimeout(function(){elternNachrichtOeffnen(h.susId,h);},0);});}});
@@ -5261,8 +5414,8 @@ function craftLinkSet_(kursId,url){var x=craftLinks_();url=String(url||'').trim(
 function craftLinkGueltig_(url){return /^https?:\/\//i.test(url)||/^craftdocs:\/\//i.test(url);}
 function craftOeffnen_(kursId){var u=craftLinkFuer_(kursId);if(!u){window.toast('Für dieses Fach ist noch kein Craft-Dokument verknüpft.',true);return;}if(/^craftdocs:\/\//i.test(u)){location.href=u;}else window.open(u,'_blank','noopener');}
 function craftApiLocalKey_(){var u=A.Auth.currentUser&&A.Auth.currentUser();return 'craft.api.'+((u&&(u.id||u.email))||'device');}
-function craftApiConfig_(){var c=A.LS.get(craftApiLocalKey_(),null);return c&&typeof c==='object'?c:{url:'',auto:false,namen:true};}
-function craftApiSet_(c){A.LS.set(craftApiLocalKey_(),c);}
+function craftApiConfig_(){var d={url:'',auto:false,namen:true,karteiFolderId:'',karteiFolderName:'',karteiAutoKommunikation:true};var c=A.LS.get(craftApiLocalKey_(),null);return Object.assign(d,(c&&typeof c==='object')?c:{});}
+function craftApiSet_(c){var alt=craftApiConfig_();A.LS.set(craftApiLocalKey_(),Object.assign({},alt,c||{}));}
 function craftApiUrlGueltig_(u){return /^https:\/\/connect\.craft\.do\/links\/[^/]+\/api\/v1\/?$/i.test(String(u||'').trim());}
 function craftSyncMapKey_(){return craftApiLocalKey_()+'.sync';}
 function craftSyncMap_(){var x=A.LS.get(craftSyncMapKey_(),{});return x&&typeof x==='object'?x:{};}
@@ -5277,6 +5430,85 @@ function craftSyncInbox_(datum,onlyKey,silent){
   return craftPostTasks_(items,datum).then(function(res){var made=(res&&res.items)||[];items.forEach(function(it,i){map[it.key]={datum:datum,zeit:new Date().toISOString(),taskId:(made[i]&&made[i].id)||''};});A.LS.set(craftSyncMapKey_(),map);if(!silent)window.toast(items.length+' Aufgabe'+(items.length===1?'':'n')+' nach Craft übertragen');render();return res;}).catch(function(e){if(!silent)window.toast('Craft: '+e.message,true);throw e;});
 }
 function craftAutoSyncHeute_(){if(craftAutoBusy_||VORSCHAU_AKTIV||route.tab!=='heute'||route.stack.length)return;var c=craftApiConfig_();if(!c.auto||!craftApiUrlGueltig_(c.url))return;craftAutoBusy_=true;craftSyncInbox_(A.todayISO(),null,true).catch(function(){}).finally(function(){craftAutoBusy_=false;});}
+
+function craftApiRequest_(path,opt){
+  var c=craftApiConfig_();if(!craftApiUrlGueltig_(c.url))return Promise.reject(new Error('Craft-Verbindung fehlt'));
+  if(VORSCHAU_AKTIV)return Promise.reject(new Error('In der Vorschau werden keine echten Craft-Daten verändert.'));
+  opt=opt||{};var url=String(c.url).replace(/\/$/,'')+'/'+String(path||'').replace(/^\//,'');
+  var init={method:opt.method||'GET',headers:Object.assign({'Accept':'application/json'},opt.headers||{})};
+  if(opt.body!==undefined){init.headers['Content-Type']='application/json';init.body=JSON.stringify(opt.body);}
+  return fetch(url,init).then(function(r){return r.text().then(function(t){var j={};try{j=t?JSON.parse(t):{};}catch(e){j={raw:t};}if(!r.ok)throw new Error((j&&j.message)||('Craft HTTP '+r.status));return j;});});
+}
+function craftKarteiMapKey_(){return craftApiLocalKey_()+'.studentCards';}
+function craftKarteiMap_(){var x=A.LS.get(craftKarteiMapKey_(),{});return x&&typeof x==='object'?x:{};}
+function craftKarteiFuer_(susId){return craftKarteiMap_()[susId]||null;}
+function craftKarteiSet_(susId,rec){var x=craftKarteiMap_();if(rec&&rec.documentId)x[susId]=Object.assign({},x[susId]||{},rec);else delete x[susId];A.LS.set(craftKarteiMapKey_(),x);}
+function craftKarteiSyncKey_(){return craftApiLocalKey_()+'.studentCardSync';}
+function craftKarteiSyncMap_(){var x=A.LS.get(craftKarteiSyncKey_(),{});return x&&typeof x==='object'?x:{};}
+function craftKarteiSyncSet_(key,val){var x=craftKarteiSyncMap_();x[key]=val||new Date().toISOString();A.LS.set(craftKarteiSyncKey_(),x);}
+function craftKarteiNorm_(v){return String(v||'').toLocaleLowerCase('de-DE').normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]+/g,' ').trim().replace(/\s+/g,' ');}
+function craftKarteiVerknuepftAnzahl_(){var m=craftKarteiMap_(),n=0;A.list('SuS',function(s){return String(s.aktiv||'1')!=='0';}).forEach(function(s){if(m[s.id]&&m[s.id].documentId)n++;});return n;}
+function craftKarteiLinkOeffnen_(susId){var r=craftKarteiFuer_(susId);if(!r){window.toast('Für dieses Kind ist noch keine Craft-Karte verknüpft.',true);return;}if(VORSCHAU_AKTIV){window.toast('Vorschau: Hier würde die verknüpfte Craft-Karte geöffnet.');return;}var u=String(r.link||'').trim();if(!u){window.toast('Die Craft-Seite ist verknüpft, aber es ist kein öffnbarer Link gespeichert.',true);return;}if(/^craftdocs:\/\//i.test(u))location.href=u;else window.open(u,'_blank','noopener');}
+function craftKarteiDocIdAusLink_(u){u=String(u||'').trim();if(!u)return '';try{var x=new URL(u);var q=x.searchParams.get('documentId');if(q)return q;var m=x.pathname.match(/\/editor\/d\/[^/]+\/([^/?#]+)/i);if(m)return decodeURIComponent(m[1]);}catch(e){}var m2=u.match(/[?&]documentId=([^&#]+)/i);return m2?decodeURIComponent(m2[1]):'';}
+function craftKarteiFoldersFlatten_(items,prefix,out){out=out||[];prefix=prefix||'';(items||[]).forEach(function(f){if(!f||f.id==='trash')return;var label=(prefix?prefix+' / ':'')+(f.name||f.id);out.push({id:f.id,name:label,count:Number(f.documentCount||0)});if(Array.isArray(f.folders)&&f.folders.length)craftKarteiFoldersFlatten_(f.folders,label,out);});return out;}
+function craftKarteiFolders_(){if(VORSCHAU_AKTIV)return Promise.resolve([{id:'preview-kartei',name:'Schülerkartei',count:A.list('SuS').length},{id:'preview-planung',name:'Unterrichtsplanung',count:8}]);return craftApiRequest_('folders').then(function(r){return craftKarteiFoldersFlatten_(r&&r.items||[]);});}
+function craftKarteiDokumente_(folderId){if(VORSCHAU_AKTIV)return Promise.resolve(A.list('SuS',function(x){return String(x.aktiv||'1')!=='0';}).map(function(x){return {id:'preview-doc-'+x.id,title:A.susName(x),clickableLink:''};}));var p='documents?fetchMetadata=true';if(folderId&&folderId!=='unsorted'&&folderId!=='templates')p+='&folderId='+encodeURIComponent(folderId);else if(folderId==='unsorted'||folderId==='templates')p+='&location='+encodeURIComponent(folderId);return craftApiRequest_(p).then(function(r){return r&&r.items||[];});}
+function craftKarteiInitialMarkdown_(sus){var kl=sus&&sus.klasseId?A.byId('Klassen',sus.klasseId):null;return '## Schulapp-Kartei\n\n*Verknüpft am '+A.fmtDate(A.todayISO())+(kl?' · '+kl.name:'')+'*\n\nDie Schulapp ergänzt hier nur Einträge, die du bewusst synchronisierst, sowie – wenn aktiviert – protokollierte Elternkontakte. Eigene Craft-Notizen bleiben davon unberührt.\n\n---\n';}
+function craftKarteiCreate_(susId){
+  var sus=A.byId('SuS',susId);if(!sus)return Promise.reject(new Error('Schüler:in nicht gefunden'));
+  if(VORSCHAU_AKTIV){craftKarteiSet_(susId,{documentId:'preview-doc-'+susId,title:A.susName(sus),link:'',folderId:'preview-kartei',linkedAt:new Date().toISOString()});return Promise.resolve(craftKarteiFuer_(susId));}
+  var c=craftApiConfig_();if(!craftApiUrlGueltig_(c.url))return Promise.reject(new Error('Craft-Verbindung fehlt'));
+  var body={documents:[{title:A.susName(sus)}]};
+  if(c.karteiFolderId&&c.karteiFolderId!=='unsorted'){if(c.karteiFolderId==='templates')body.destination={destination:'templates'};else body.destination={folderId:c.karteiFolderId};}
+  return craftApiRequest_('documents',{method:'POST',body:body}).then(function(r){var d=r&&r.items&&r.items[0];if(!d||!d.id)throw new Error('Craft hat keine Dokument-ID zurückgegeben.');craftKarteiSet_(susId,{documentId:d.id,title:d.title||A.susName(sus),link:d.clickableLink||'',folderId:c.karteiFolderId||'',linkedAt:new Date().toISOString()});return craftApiRequest_('blocks',{method:'POST',body:{markdown:craftKarteiInitialMarkdown_(sus),position:{position:'end',pageId:d.id}}}).catch(function(){return {};}).then(function(){return craftKarteiFuer_(susId);});});
+}
+function craftKarteiPostMarkdown_(susId,markdown,eventKey){var r=craftKarteiFuer_(susId);if(!r||!r.documentId)return Promise.reject(new Error('Keine Craft-Karte verknüpft'));if(eventKey&&craftKarteiSyncMap_()[eventKey])return Promise.resolve({skipped:true});if(VORSCHAU_AKTIV){if(eventKey)craftKarteiSyncSet_(eventKey,new Date().toISOString());r.lastSyncAt=new Date().toISOString();craftKarteiSet_(susId,r);return Promise.resolve({preview:true});}return craftApiRequest_('blocks',{method:'POST',body:{markdown:String(markdown||''),position:{position:'end',pageId:r.documentId}}}).then(function(res){if(eventKey)craftKarteiSyncSet_(eventKey,new Date().toISOString());r.lastSyncAt=new Date().toISOString();craftKarteiSet_(susId,r);return res;});}
+function craftKarteiSnapshotMarkdown_(susId){
+  var sus=A.byId('SuS',susId),kl=sus&&sus.klasseId?A.byId('Klassen',sus.klasseId):null;if(!sus)return '';
+  var lines=['## '+A.fmtDate(A.todayISO())+' · Schulapp-Stand'];if(kl)lines.push('**Klasse:** '+kl.name);
+  var kurse=A.kurseDerKlasse(sus.klasseId);if(kurse.length){lines.push('','### Lern- und Leistungsstand');kurse.forEach(function(k){var g=A.gesamtnote(k,susId),ma=A.mitarbeitBewertung(k.id,susId),parts=[];if(g&&g.note!==null)parts.push('Gesamt '+A.fmtNote(g.note,1));if(ma&&ma.note!==null)parts.push('Mitarbeit '+A.fmtNote(ma.note,1));var bil=A.checkBilanzSus(k.id,susId),miss=[];Object.keys(bil).forEach(function(p){if(Number(bil[p].f||0)>0)miss.push(p+' '+bil[p].f+'×');});if(miss.length)parts.push('fehlt: '+miss.join(', '));if(parts.length)lines.push('- **'+k.fach+':** '+parts.join(' · '));});}
+  var offen=offeneListenFuerSus(susId);if(offen.length){lines.push('','### Offene Rückläufe');offen.slice(0,12).forEach(function(a){var k=A.byId('Kurse',a.kursId);lines.push('- '+a.titel+(k&&k.fach?' · '+k.fach:'')+(a.frist?' · bis '+A.fmtDate(a.frist):''));});}
+  var hist=elternVerlaufFuerSus_(susId).slice(0,6);if(hist.length){lines.push('','### Letzte Elternkommunikation');hist.forEach(function(x){var k=A.byId('Kurse',x.kursId);lines.push('- '+A.fmtDate(String(x.zeit||'').slice(0,10))+' · '+(x.status==='besprochen'?'besprochen':'Nachricht verschickt')+' · '+(x.anlass||'Rückmeldung')+(k&&k.fach?' · '+k.fach:''));});}
+  lines.push('','---');return lines.join('\n');
+}
+function craftKarteiSnapshotHash_(susId){var t=craftKarteiSnapshotMarkdown_(susId),h=2166136261;for(var i=0;i<t.length;i++){h^=t.charCodeAt(i);h+=(h<<1)+(h<<4)+(h<<7)+(h<<8)+(h<<24);}return String(h>>>0);}
+function craftKarteiSyncSnapshot_(susId){var r=craftKarteiFuer_(susId);if(!r)return Promise.reject(new Error('Keine Craft-Karte verknüpft'));var hash=craftKarteiSnapshotHash_(susId);if(r.lastSnapshotHash===hash)return Promise.resolve({skipped:true,same:true});return craftKarteiPostMarkdown_(susId,craftKarteiSnapshotMarkdown_(susId),'snapshot|'+susId+'|'+A.todayISO()+'|'+hash).then(function(x){var n=craftKarteiFuer_(susId)||{};n.lastSnapshotHash=hash;n.lastSnapshotAt=new Date().toISOString();craftKarteiSet_(susId,n);return x;});}
+function craftKarteiKommunikationMarkdown_(rec){var sus=A.byId('SuS',rec.susId),k=A.byId('Kurse',rec.kursId);return '### '+A.fmtDate(String(rec.zeit||'').slice(0,10))+' · Elternkommunikation\n\n- **'+(rec.status==='besprochen'?'Besprochen':'Nachricht verschickt')+'**'+(rec.anlass?' · '+rec.anlass:'')+(k&&k.fach?' · '+k.fach:'')+(rec.notiz?'\n- Notiz: '+rec.notiz:'')+'\n';}
+function craftKarteiAutoKommunikation_(rec){var c=craftApiConfig_();if(!c.karteiAutoKommunikation||!rec||!rec.susId||!craftKarteiFuer_(rec.susId)||VORSCHAU_AKTIV)return;var key='kommunikation|'+(rec.id||[rec.susId,rec.zeit,rec.status,rec.anlass].join('|'));craftKarteiPostMarkdown_(rec.susId,craftKarteiKommunikationMarkdown_(rec),key).catch(function(){});}
+function craftKarteiAutoMatch_(){var c=craftApiConfig_();if(!c.karteiFolderId)return Promise.reject(new Error('Bitte zuerst einen Kartei-Ordner auswählen.'));return craftKarteiDokumente_(c.karteiFolderId).then(function(docs){var by={};docs.forEach(function(d){var n=craftKarteiNorm_(d.title);if(!by[n])by[n]=[];by[n].push(d);});var matched=0,offen=0;A.list('SuS',function(s){return String(s.aktiv||'1')!=='0';}).forEach(function(s){var name=craftKarteiNorm_(A.susName(s)),hits=by[name]||[];if(hits.length===1){var d=hits[0];craftKarteiSet_(s.id,{documentId:d.id,title:d.title||A.susName(s),link:d.clickableLink||'',folderId:c.karteiFolderId,linkedAt:new Date().toISOString()});matched++;}else offen++;});return {matched:matched,open:offen,total:matched+offen};});}
+function craftKarteiBindDoc_(susId,d){if(!d||!d.id)return;craftKarteiSet_(susId,{documentId:d.id,title:d.title||'',link:d.clickableLink||'',folderId:craftApiConfig_().karteiFolderId||'',linkedAt:new Date().toISOString()});}
+function craftKarteiManualLink_(susId,url){var id=craftKarteiDocIdAusLink_(url);if(!id)throw new Error('Aus diesem Link konnte keine Craft-Dokument-ID gelesen werden.');craftKarteiSet_(susId,{documentId:id,title:'',link:String(url||'').trim(),folderId:'',linkedAt:new Date().toISOString()});}
+function craftKarteiStripHTML_(sus){var r=craftKarteiFuer_(sus.id);if(r)return '<div class="kartei-strip"><div class="kartei-strip-main"><div class="craft-mark">C</div><div class="kartei-strip-copy"><b>Craft-Schülerkartei</b><span>'+A.esc(r.title||A.susName(sus))+(r.lastSyncAt?' · zuletzt synchronisiert '+A.fmtDateShort(String(r.lastSyncAt).slice(0,10)):'')+'</span></div></div><div class="kartei-strip-actions"><button class="btn small" data-act="craft-kartei-open" data-sus="'+sus.id+'">In Craft öffnen</button><button class="btn small" data-act="craft-kartei-sync" data-sus="'+sus.id+'">Stand synchronisieren</button><button class="kartei-link-btn" data-act="craft-kartei-link" data-sus="'+sus.id+'">•••</button></div></div>';return '<div class="kartei-strip"><div class="kartei-strip-main"><div class="craft-mark">C</div><div class="kartei-strip-copy"><b>Craft-Schülerkartei</b><span>Noch nicht verknüpft</span></div></div><div class="kartei-strip-actions"><button class="btn small" data-act="craft-kartei-link" data-sus="'+sus.id+'">Karte verbinden</button></div></div>';}
+function craftKarteiPanelHTML_(susId){var r=craftKarteiFuer_(susId),c=craftApiConfig_();if(r)return '<div class="kartei-panel"><div class="kartei-state"><i class="kartei-state-dot on"></i><div class="kartei-state-main"><b>Mit Craft verknüpft</b><span>'+(A.esc(r.title||'Craft-Seite'))+(r.lastSnapshotAt?' · letzter Stand '+A.fmtDateShort(String(r.lastSnapshotAt).slice(0,10)):'')+'</span></div></div><div class="kartei-actions"><button class="btn" data-act="craft-kartei-open" data-sus="'+susId+'">Öffnen</button><button class="btn" data-act="craft-kartei-sync" data-sus="'+susId+'">Aktuellen Stand</button><button class="btn" data-act="craft-kartei-note" data-sus="'+susId+'">Beobachtung</button><button class="btn" data-act="craft-kartei-link" data-sus="'+susId+'">Verknüpfung</button></div><div class="kartei-muted">Elternkontakte werden '+(c.karteiAutoKommunikation?'automatisch':'nicht automatisch')+' ergänzt. Einzelne Mitarbeitshäkchen werden nicht ungefiltert nach Craft geschrieben; der Stand wird zusammengefasst.</div></div>';return '<div class="kartei-panel"><div class="kartei-state"><i class="kartei-state-dot"></i><div class="kartei-state-main"><b>Noch keine Craft-Karte verknüpft</b><span>Verbinde deine vorhandene Schülerkartei oder lege für dieses Kind eine neue Craft-Seite an.</span></div></div><div class="kartei-actions"><button class="btn primary" data-act="craft-kartei-link" data-sus="'+susId+'">Bestehende Karte verbinden</button><button class="btn" data-act="craft-kartei-create" data-sus="'+susId+'">Neue Karte anlegen</button></div></div>';}
+
+function craftKarteiSettingsOpen_(){
+  var c=craftApiConfig_();if(!craftApiUrlGueltig_(c.url)){window.toast('Richte zuerst die Craft API Connection ein.',true);ACT['craft-api']();return;}
+  var map=craftKarteiMap_(),aktiv=A.list('SuS',function(x){return String(x.aktiv||'1')!=='0';}),verkn=craftKarteiVerknuepftAnzahl_();
+  var body='<div class="kartei-setup"><div class="kartei-setup-box"><div class="kartei-setup-title">Schülerkartei</div><div class="kartei-setup-sub">Die Schulapp kann vorhandene Craft-Seiten mit Schüler:innen verknüpfen oder neue Karten anlegen. Die Zuordnung bleibt lokal auf diesem Gerät.</div><div class="kartei-result">'+verkn+' von '+aktiv.length+' Schüler:innen sind derzeit verknüpft.</div></div>'+ 
+    '<div class="kartei-setup-box"><div class="kartei-setup-title">Kartei-Ordner</div><div class="kartei-setup-sub">Wähle den Craft-Ordner, in dem deine vorhandenen Schülerkarten liegen. Danach kann die App Seiten mit exakt passenden Namen automatisch zuordnen.</div><div class="kartei-folder-row"><select id="karteiFolder"><option value="">Ordner werden geladen …</option></select><button class="btn" data-kartei-reload>Neu laden</button></div><div class="kartei-result" data-kartei-folder-status>'+(c.karteiFolderName?'Aktuell: '+A.esc(c.karteiFolderName):'Noch kein Kartei-Ordner ausgewählt.')+'</div></div>'+ 
+    '<div class="kartei-setup-box"><div class="kartei-setup-title">Automatisch protokollieren</div><label class="auth-check"><input id="karteiAutoComm" type="checkbox" '+(c.karteiAutoKommunikation?'checked':'')+'> Verschickte oder besprochene Elternkontakte automatisch in der verknüpften Craft-Karte ergänzen</label><div class="kartei-setup-sub" style="margin-top:7px">Noten, Material und Rückläufe werden nicht bei jeder Änderung einzeln geschrieben. Über „Aktuellen Stand“ entsteht stattdessen eine lesbare Momentaufnahme.</div></div>'+ 
+    '<div class="kartei-setup-box"><div class="kartei-setup-title">Vorhandene Karten zuordnen</div><div class="kartei-setup-sub">Die automatische Zuordnung ist absichtlich streng: Nur Seiten, deren Titel genau dem Schüler:innen-Namen entspricht, werden verknüpft.</div><button class="btn block" data-kartei-match>Vorhandene Karten automatisch zuordnen</button><div data-kartei-match-result></div></div></div>';
+  Modal.open({title:'Craft-Schülerkartei',body:body,foot:'<button class="btn primary" data-close>Fertig</button>',after:function(bg){var sel=bg.querySelector('#karteiFolder'),status=bg.querySelector('[data-kartei-folder-status]'),res=bg.querySelector('[data-kartei-match-result]'),auto=bg.querySelector('#karteiAutoComm');
+    function load(){sel.innerHTML='<option value="">Ordner werden geladen …</option>';craftKarteiFolders_().then(function(fs){sel.innerHTML='<option value="">Keinen Ordner auswählen</option>'+fs.map(function(f){return '<option value="'+A.esc(f.id)+'" '+(String(f.id)===String(craftApiConfig_().karteiFolderId)?'selected':'')+'>'+A.esc(f.name)+' ('+f.count+')</option>';}).join('');}).catch(function(e){sel.innerHTML='<option value="">Ordner konnten nicht geladen werden</option>';status.textContent='Craft: '+e.message;});}
+    load();bg.querySelector('[data-kartei-reload]').addEventListener('click',load);sel.addEventListener('change',function(){var opt=sel.options[sel.selectedIndex],id=sel.value,name=id?(opt?opt.text.replace(/ \(\d+\)$/,''):''):'';craftApiSet_({karteiFolderId:id,karteiFolderName:name});status.textContent=id?'Ausgewählt: '+name:'Kein Kartei-Ordner ausgewählt.';render();});
+    auto.addEventListener('change',function(){craftApiSet_({karteiAutoKommunikation:!!auto.checked});render();});
+    bg.querySelector('[data-kartei-match]').addEventListener('click',function(){res.innerHTML='<div class="kartei-result">Suche passende Craft-Seiten …</div>';craftKarteiAutoMatch_().then(function(x){res.innerHTML='<div class="kartei-result"><b>'+x.matched+' Karte'+(x.matched===1?'':'n')+' zugeordnet.</b><br>'+x.open+' Schüler:innen bleiben offen und können einzeln verbunden werden.</div>';render();}).catch(function(e){res.innerHTML='<div class="kartei-result">'+A.esc(e.message)+'</div>';});});
+  }});
+}
+function craftKarteiLinkOpen_(susId){
+  var sus=A.byId('SuS',susId);if(!sus)return;var c=craftApiConfig_(),cur=craftKarteiFuer_(susId),folderReady=!!c.karteiFolderId;
+  var body='<div class="kartei-setup"><div class="kartei-setup-box"><div class="kartei-setup-title">'+A.esc(A.susName(sus))+'</div><div class="kartei-setup-sub">'+(cur?'Aktuell verknüpft mit '+A.esc(cur.title||'einer Craft-Seite'):'Noch keine Craft-Seite verknüpft.')+'</div></div>'+ 
+    '<div class="kartei-setup-box"><div class="kartei-setup-title">Vorhandene Seite</div><div class="kartei-setup-sub">'+(folderReady?'Seiten aus „'+A.esc(c.karteiFolderName||'Kartei')+'“ laden und auswählen.':'Lege unter Mehr → Craft zuerst deinen Kartei-Ordner fest oder füge unten direkt einen Link ein.')+'</div>'+(folderReady?'<button class="btn block" data-load-kartei-docs>Seiten aus Kartei-Ordner laden</button><div class="kartei-doc-list" data-kartei-docs></div>':'')+'</div>'+ 
+    '<div class="kartei-setup-box"><div class="kartei-setup-title">Craft-Link direkt einfügen</div><div class="field"><input id="karteiManualLink" type="url" placeholder="craftdocs://… oder https://docs.craft.do/…" value="'+A.esc(cur&&cur.link||'')+'"></div><button class="btn block" data-kartei-manual>Link verknüpfen</button></div>'+ 
+    '<div class="kartei-setup-box"><div class="kartei-setup-title">Neue Karte</div><div class="kartei-setup-sub">Legt eine neue Seite mit dem Namen des Kindes im gewählten Kartei-Ordner an.</div><button class="btn block" data-kartei-create-here>Neue Craft-Karte anlegen</button></div>'+ 
+    (cur?'<div class="kartei-setup-box"><button class="btn danger block" data-kartei-unlink>Verknüpfung auf diesem Gerät lösen</button></div>':'')+'</div>';
+  Modal.open({title:'Craft-Karte verbinden',body:body,after:function(bg,close){var out=bg.querySelector('[data-kartei-docs]');var loadBtn=bg.querySelector('[data-load-kartei-docs]');if(loadBtn)loadBtn.addEventListener('click',function(){out.innerHTML='<div class="kartei-result">Seiten werden geladen …</div>';craftKarteiDokumente_(craftApiConfig_().karteiFolderId).then(function(ds){out.innerHTML=ds.length?ds.map(function(d){return '<button class="kartei-doc-row" data-doc-id="'+A.esc(d.id)+'"><span><b>'+A.esc(d.title||'Ohne Titel')+'</b><small>Craft-Seite</small></span><em>›</em></button>';}).join(''):'<div class="kartei-result">In diesem Ordner wurden keine Seiten gefunden.</div>';out._docs=ds;}).catch(function(e){out.innerHTML='<div class="kartei-result">'+A.esc(e.message)+'</div>';});});
+    if(out)out.addEventListener('click',function(e){var b=e.target.closest('[data-doc-id]');if(!b)return;var d=(out._docs||[]).filter(function(x){return x.id===b.getAttribute('data-doc-id');})[0];if(!d)return;craftKarteiBindDoc_(susId,d);close();render();window.toast('Craft-Karte verknüpft');});
+    bg.querySelector('[data-kartei-manual]').addEventListener('click',function(){try{craftKarteiManualLink_(susId,bg.querySelector('#karteiManualLink').value);close();render();window.toast('Craft-Karte verknüpft');}catch(e){window.toast(e.message,true);}});
+    bg.querySelector('[data-kartei-create-here]').addEventListener('click',function(){if(!craftApiConfig_().karteiFolderId&&!confirm('Es ist kein Kartei-Ordner ausgewählt. Die Seite wird in „Unsorted“ angelegt. Fortfahren?'))return;craftKarteiCreate_(susId).then(function(){close();render();window.toast('Craft-Karte angelegt');}).catch(function(e){window.toast('Craft: '+e.message,true);});});
+    var un=bg.querySelector('[data-kartei-unlink]');if(un)un.addEventListener('click',function(){if(!confirm('Nur die Verknüpfung in der Schulapp lösen? Die Craft-Seite selbst bleibt unverändert.'))return;craftKarteiSet_(susId,null);close();render();window.toast('Verknüpfung gelöst');});
+  }});
+}
 
 function susTimeline_(susId){
   var items=[];
@@ -5325,7 +5557,7 @@ function elternVorgangSet_(h,status,notiz){
   if(status==='spaeter')rec.bis=A.addDays(A.todayISO(),1);else delete rec.bis;
   all[k]=rec;A.setCfg('elternVorgaenge',all);
   if(status==='verschickt'||status==='besprochen'){
-    var hist=elternVerlauf_();hist.push({id:A.uid('kom'),susId:h.susId||'',kursId:h.kursId||'',zeit:now,status:status,anlass:elternGrundLabel_(h),typ:h.typ||'',signal:h.signal||'',punkt:h.punkt||'',anzahl:h.anzahl||0,notiz:notiz||''});A.setCfg('elternVerlauf',hist.slice(-500));
+    var hist=elternVerlauf_();var histRec={id:A.uid('kom'),susId:h.susId||'',kursId:h.kursId||'',zeit:now,status:status,anlass:elternGrundLabel_(h),typ:h.typ||'',signal:h.signal||'',punkt:h.punkt||'',anzahl:h.anzahl||0,notiz:notiz||''};hist.push(histRec);A.setCfg('elternVerlauf',hist.slice(-500));craftKarteiAutoKommunikation_(histRec);
   }
 }
 function elternAktuellerVorgang_(kursId,susId,punkt){
@@ -5349,24 +5581,47 @@ function elternInbox_(){
   });
   return out.sort(function(a,b){if(a.typ==='positiv'&&b.typ!=='positiv')return 1;if(b.typ==='positiv'&&a.typ!=='positiv')return -1;return (b.anzahl||0)-(a.anzahl||0);});
 }
+function inboxKursAmDatum_(kursId, datum) {
+  /* Kursbezogene Hinweise erscheinen in „Heute“ nur an Tagen, an denen
+     dieser Kurs laut Stundenplan tatsächlich stattfindet. So taucht z. B.
+     eine überfällige Rücklauf-Liste erst beim nächsten Termin der Klasse
+     wieder auf – und wird auch nur dann nach Craft synchronisiert. */
+  return !kursId || kursHatUnterrichtAmDatum(kursId, datum);
+}
 function inboxDaten_(datum){
   var heute=datum===A.todayISO(),items=[];
   if(heute){
-    elternInbox_().forEach(function(h){var sus=A.byId('SuS',h.susId),k=A.byId('Kurse',h.kursId);items.push({key:'eltern|'+elternVorgangKey_(h),typ:h.typ,h:h,sus:sus,kurs:k,titel:h.typ==='positiv'?'Positive Rückmeldung möglich':(sus?A.susName(sus):''),sub:h.typ==='positiv'?((h.signal==='mitarbeit_verbessert'?'Mitarbeit deutlich verbessert':'Mitarbeit zuletzt besonders stark')+(k&&k.fach?' · '+k.fach:'')):(h.punkt+' · '+h.anzahl+'×'+(k&&k.fach?' · '+k.fach:''))});});
+    elternInbox_().forEach(function(h){var sus=A.byId('SuS',h.susId),k=A.byId('Kurse',h.kursId);if(k&&!inboxKursAmDatum_(k.id,datum))return;items.push({key:'eltern|'+elternVorgangKey_(h),typ:h.typ,h:h,sus:sus,kurs:k,titel:h.typ==='positiv'?'Positive Rückmeldung möglich':(sus?A.susName(sus):''),sub:h.typ==='positiv'?((h.signal==='mitarbeit_verbessert'?'Mitarbeit deutlich verbessert':'Mitarbeit zuletzt besonders stark')+(k&&k.fach?' · '+k.fach:'')):(h.punkt+' · '+h.anzahl+'×'+(k&&k.fach?' · '+k.fach:''))});});
   }
-  aufgabenAlle().filter(function(a){return a&&!a.erledigt&&a.frist&&a.frist<=datum;}).slice(0,8).forEach(function(a){var k=A.byId('Kurse',a.kursId),st=k&&a.typ==='liste'?listenStand(a,k):null,off=st?Math.max(0,st.gesamt-st.erledigt):undefined;items.push({key:'liste|'+a.id+'|'+(a.frist||''),typ:'liste',a:a,kurs:k,offen:off,titel:a.titel,sub:(a.frist<datum?'überfällig':'heute fällig')+(k?' · '+A.kursLabel(k):'')});});
-  A.alleKurse().forEach(function(k){A.offeneStrafarbeiten(k.id).slice(0,4).forEach(function(x){items.push({key:'straf|'+(x.aufgabe&&x.aufgabe.id||k.id+'|'+x.sus.id),typ:'straf',sus:x.sus,kurs:k,x:x,titel:A.susName(x.sus),sub:'offene Strafarbeit · '+(k.fach||'')});});});
+  aufgabenAlle().filter(function(a){return a&&!a.erledigt&&a.frist&&a.frist<=datum&&inboxKursAmDatum_(a.kursId,datum);}).slice(0,8).forEach(function(a){var k=A.byId('Kurse',a.kursId),st=k&&a.typ==='liste'?listenStand(a,k):null,off=st?Math.max(0,st.gesamt-st.erledigt):undefined;items.push({key:'liste|'+a.id+'|'+(a.frist||''),typ:'liste',a:a,kurs:k,offen:off,titel:a.titel,sub:(a.frist<datum?'seit '+A.fmtDateShort(a.frist)+' fällig':'heute fällig')+(k?' · '+A.kursLabel(k):'')});});
+  A.alleKurse().forEach(function(k){if(!inboxKursAmDatum_(k.id,datum))return;A.offeneStrafarbeiten(k.id).slice(0,4).forEach(function(x){items.push({key:'straf|'+(x.aufgabe&&x.aufgabe.id||k.id+'|'+x.sus.id),typ:'straf',sus:x.sus,kurs:k,x:x,titel:A.susName(x.sus),sub:'offene Strafarbeit · '+(k.fach||'')});});});
   return items;
 }
 function inboxHTML(datum){
-  var items=inboxDaten_(datum),sync=craftSyncMap_(),html=items.map(function(it){var craft='<button class="inbox-craft" data-act="craft-sync-one" data-craft-key="'+A.esc(it.key)+'" title="In heutige Craft-Notiz">'+(sync[it.key]?'Craft ✓':'Craft')+'</button>';
-    if(it.typ==='vergessen')return '<div class="inbox-item"><div class="inbox-icon">↗</div><div class="inbox-main"><b>'+A.esc(it.titel)+'</b><span>'+A.esc(it.sub)+'</span></div><div class="inbox-actions"><button class="btn small" data-act="eltern-spaeter" data-sus="'+it.h.susId+'" data-kurs="'+it.h.kursId+'" data-punkt="'+A.esc(it.h.punkt)+'" data-anzahl="'+it.h.anzahl+'">Später</button><button class="btn small" data-act="eltern-besprochen" data-sus="'+it.h.susId+'" data-kurs="'+it.h.kursId+'" data-punkt="'+A.esc(it.h.punkt)+'" data-anzahl="'+it.h.anzahl+'">Besprochen</button><button class="btn small primary" data-act="eltern-nachricht" data-sus="'+it.h.susId+'" data-kurs="'+it.h.kursId+'" data-punkt="'+A.esc(it.h.punkt)+'">Nachricht</button>'+craft+'</div></div>';
-    if(it.typ==='positiv')return '<div class="inbox-item positive"><div class="inbox-icon">＋</div><div class="inbox-main"><b>'+A.esc(it.titel)+'</b><span class="positive-label">'+A.esc(it.sub)+'</span></div><div class="inbox-actions"><button class="btn small" data-act="positiv-spaeter" data-sus="'+it.h.susId+'" data-kurs="'+it.h.kursId+'">Später</button><button class="btn small" data-act="positiv-ausblenden" data-sus="'+it.h.susId+'" data-kurs="'+it.h.kursId+'">Ausblenden</button><button class="btn small primary" data-act="positiv-nachricht" data-sus="'+it.h.susId+'" data-kurs="'+it.h.kursId+'">Nachricht</button>'+craft+'</div></div>';
-    if(it.typ==='liste')return '<div class="inbox-item"><button class="inbox-open" data-act="aufgabe-open" data-aufgabe="'+A.esc(it.a.id)+'"><div class="inbox-icon">□</div><div class="inbox-main"><b>'+A.esc(it.titel)+'</b><span>'+A.esc(it.sub)+(it.offen!==undefined?' · '+it.offen+' offen':'')+'</span></div><div class="chev">›</div></button>'+craft+'</div>';
-    return '<div class="inbox-item"><button class="inbox-open" data-act="open-sus" data-sus="'+it.sus.id+'"><div class="inbox-icon">!</div><div class="inbox-main"><b>'+A.esc(it.titel)+'</b><span>'+A.esc(it.sub)+'</span></div><div class="chev">›</div></button>'+craft+'</div>';
-  }).join('');
-  var c=craftApiConfig_(),craftStatus=craftApiUrlGueltig_(c.url)?'<span class="craft-sync-state"><i class="on"></i>Craft verbunden</span>':'<span class="craft-sync-state"><i></i>Craft nicht verbunden</span>';
-  return '<section class="workspace-section inbox-section"><div class="workspace-heading"><div><h2>Inbox</h2><p>'+(items.length?items.length+' Dinge brauchen deine Aufmerksamkeit':'Alles erledigt')+' · '+craftStatus+'</p></div><div><button class="ghost-link" data-act="eltern-generator">Elternnachricht</button>'+(items.length?'<button class="ghost-link" data-act="craft-sync-inbox">Nach Craft</button>':'')+'</div></div>'+(items.length?'<div class="inbox-list">'+html+'</div>':'<div class="inbox-empty">Keine offenen Hinweise für heute.</div>')+'</section>';
+  var items=inboxDaten_(datum),sync=craftSyncMap_();
+  var eltern=items.filter(function(x){return x.typ==='vergessen'||x.typ==='positiv';});
+  var aufgaben=items.filter(function(x){return x.typ!=='vergessen'&&x.typ!=='positiv';});
+  function kursKontext(it){var k=it.kurs,kl=k&&k.klasseId?A.byId('Klassen',k.klasseId):null;return [kl&&kl.name,k&&k.fach].filter(Boolean).join(' · ');}
+  function elternRow(it){
+    var h=it.h,person=it.sus?A.susName(it.sus):'',ctx=kursKontext(it),last=elternKontaktText_(h),reason='';
+    if(it.typ==='positiv')reason=h.signal==='mitarbeit_verbessert'?'Mitarbeit in letzter Zeit deutlich verbessert':'Mitarbeit zuletzt besonders zuverlässig und engagiert';
+    else reason=(h.punkt||'Material')+' fehlt · '+h.anzahl+'×';
+    var status=last||((it.typ==='positiv')?'Positive Rückmeldung vorgeschlagen':'Noch nicht zu diesem Anlass kontaktiert');
+    if(it.typ==='positiv')return '<div class="parent-item"><div><div class="parent-person">'+A.esc(person)+'</div><div class="parent-context">'+A.esc(ctx)+'</div><div class="parent-reason">Positive Rückmeldung</div><div class="parent-status positive">'+A.esc(reason)+(last?' · '+A.esc(last):'')+'</div></div><div class="parent-actions"><button class="btn small primary" data-act="positiv-nachricht" data-sus="'+h.susId+'" data-kurs="'+h.kursId+'">Nachricht erstellen</button><button class="parent-more" data-act="positiv-spaeter" data-sus="'+h.susId+'" data-kurs="'+h.kursId+'">Nächste Stunde</button><button class="parent-more" data-act="positiv-ausblenden" data-sus="'+h.susId+'" data-kurs="'+h.kursId+'">Ausblenden</button></div></div>';
+    return '<div class="parent-item"><div><div class="parent-person">'+A.esc(person)+'</div><div class="parent-context">'+A.esc(ctx)+'</div><div class="parent-reason">'+A.esc(reason)+'</div><div class="parent-status">'+A.esc(status)+'</div></div><div class="parent-actions"><button class="btn small primary" data-act="eltern-nachricht" data-sus="'+h.susId+'" data-kurs="'+h.kursId+'" data-punkt="'+A.esc(h.punkt)+'">Nachricht erstellen</button><button class="parent-more" data-act="eltern-spaeter" data-sus="'+h.susId+'" data-kurs="'+h.kursId+'" data-punkt="'+A.esc(h.punkt)+'" data-anzahl="'+h.anzahl+'">Nächste Stunde</button><button class="parent-more" data-act="eltern-besprochen" data-sus="'+h.susId+'" data-kurs="'+h.kursId+'" data-punkt="'+A.esc(h.punkt)+'" data-anzahl="'+h.anzahl+'">Besprochen</button></div></div>';
+  }
+  function taskRow(it){
+    if(it.typ==='liste')return '<div class="today-task"><button class="inbox-open" data-act="aufgabe-open" data-aufgabe="'+A.esc(it.a.id)+'"><div class="inbox-icon">□</div><div class="inbox-main"><b>'+A.esc(it.titel)+'</b><span>'+A.esc(it.sub)+(it.offen!==undefined?' · '+it.offen+' offen':'')+'</span></div><div class="chev">›</div></button><div class="today-task-actions">'+(it.offen>0?'<button class="btn small" data-act="eltern-erinnern" data-aufgabe="'+A.esc(it.a.id)+'">Eltern erinnern</button>':'')+'</div></div>';
+    return '<div class="today-task"><button class="inbox-open" data-act="open-sus" data-sus="'+it.sus.id+'"><div class="inbox-icon">!</div><div class="inbox-main"><b>'+A.esc(it.titel)+'</b><span>'+A.esc(it.sub)+'</span></div><div class="chev">›</div></button></div>';
+  }
+  var c=craftApiConfig_(),verbunden=craftApiUrlGueltig_(c.url),pending=items.filter(function(it){return !sync[it.key];});
+  var craftRows=items.slice(0,6).map(function(it){var done=!!sync[it.key],label=it.typ==='vergessen'?(A.susName(it.sus)+' · '+it.h.punkt+' '+it.h.anzahl+'×'):it.typ==='positiv'?(A.susName(it.sus)+' · positive Rückmeldung'):it.titel;return '<div class="craft-ready-row"><span>'+A.esc(label)+'</span>'+(done?'<span class="craft-ready-state done">✓ in Craft</span>':'<button class="parent-more" data-act="craft-sync-one" data-craft-key="'+A.esc(it.key)+'">übertragen</button>')+'</div>';}).join('');
+  var craftSub=verbunden?(pending.length?pending.length+' Aufgabe'+(pending.length===1?'':'n')+' noch nicht übertragen':'Heute alles synchronisiert'):'Noch nicht verbunden';
+  var elternSection='<section class="today-section"><div class="today-section-head"><div class="today-section-title"><h3>Elternkommunikation</h3><span class="today-count">'+eltern.length+'</span></div><button class="ghost-link" data-act="eltern-generator">Neue Nachricht</button></div>'+(eltern.length?'<div class="parent-list">'+eltern.map(elternRow).join('')+'</div>':'<div class="inbox-empty">Heute ist keine Elternkommunikation offen.</div>')+'</section>';
+  var taskSection='<section class="today-section"><div class="today-section-head"><div class="today-section-title"><h3>Aufgaben & Rückläufe</h3><span class="today-count">'+aufgaben.length+'</span></div><span class="today-section-note">nur für Klassen, die du heute hast</span></div>'+(aufgaben.length?'<div class="task-list">'+aufgaben.map(taskRow).join('')+'</div>':'<div class="inbox-empty">Für heute sind keine Rückläufe oder offenen Aufgaben fällig.</div>')+'</section>';
+  var karteiN=craftKarteiVerknuepftAnzahl_(),karteiGes=A.list('SuS',function(x){return String(x.aktiv||'1')!=='0';}).length;
+  var craftSection='<section class="today-section"><div class="craft-panel"><div class="craft-panel-head"><div class="craft-panel-title"><div class="craft-mark">C</div><div><b>Craft</b><span>'+A.esc(craftSub)+'</span></div></div><div class="craft-panel-actions">'+(items.length?'<button class="btn small '+(verbunden?'primary':'')+'" data-act="craft-sync-inbox">'+(verbunden?'Heute übertragen':'Verbinden')+'</button>':'')+'<button class="btn small" data-act="craft-api">Einstellungen</button></div></div>'+(items.length?'<div class="craft-ready">'+craftRows+(items.length>6?'<div class="craft-ready-row"><span>+'+(items.length-6)+' weitere</span><span class="craft-ready-state"></span></div>':'')+'</div>':'')+'<div class="craft-kartei-summary"><span>Schülerkartei · '+karteiN+'/'+karteiGes+' verknüpft'+(c.karteiAutoKommunikation?' · Elternkontakte automatisch protokollieren':'')+'</span><button class="parent-more" data-act="craft-kartei-settings">Kartei verwalten</button></div></div></section>';
+  return '<section class="workspace-section today-inbox"><div class="today-inbox-head"><div><h2>Für heute</h2><p>'+(items.length?items.length+' offene'+(items.length===1?'r Punkt':' Punkte'):'Alles erledigt')+'</p></div></div>'+elternSection+taskSection+craftSection+'</section>';
 }
 function cockpitHTML(datum) { return inboxHTML(datum); }
 
@@ -6008,7 +6263,7 @@ function wochenAnsichtHTML(datum) {
 VIEWS.heute = {
   title: function () { return 'Heute'; },
   actions: function () {
-    return '<button class="icon-btn" data-act="suche" title="Suchen">⌕</button>' +
+    return '<button class="icon-btn search-btn" data-act="suche" title="Suchen" aria-label="Suchen"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.8" cy="10.8" r="6.3"></circle><path d="m15.6 15.6 4.2 4.2"></path></svg></button>' +
            '<button class="icon-btn" data-act="datum-waehlen">📆</button>' +
            '<button class="icon-btn" data-act="extra-stunde">＋</button>';
   },
@@ -6551,6 +6806,7 @@ VIEWS.sus = {
     var kurse = A.kurseDerKlasse(klasse.id);
 
     var h = '<div class="profile-head"><div class="profile-eyebrow">'+A.esc(klasse.name)+'</div><h1>'+A.esc(A.susName(s))+'</h1><button class="btn" data-act="eltern-nachricht" data-sus="'+s.id+'">Elternnachricht</button></div>';
+    h += craftKarteiStripHTML_(s);
     h += card('Verlauf', susTimelineHTML_(s.id));
     var offeneAbgaben = offeneListenFuerSus(s.id);
     if (offeneAbgaben.length) {
@@ -6562,6 +6818,8 @@ VIEWS.sus = {
     var kommHinweise=kommunikationsHinweiseFuerSus(s.id).filter(function(x){return x.typ==='vergessen';});
     var kommHist=elternVerlaufFuerSus_(s.id).slice(0,8);
     h += card('Elternkommunikation','<div class="comm-profile">'+(kommHinweise.length?kommHinweise.map(function(x){var ku=A.byId('Kurse',x.kursId);return '<button class="comm-suggestion" data-act="eltern-nachricht" data-sus="'+s.id+'" data-kurs="'+x.kursId+'" data-punkt="'+A.esc(x.punkt)+'"><span><b>'+A.esc(x.punkt)+'</b><small>'+x.anzahl+'× vergessen'+(ku&&ku.fach?' · '+A.esc(ku.fach):'')+'</small></span><em>Nachricht</em></button>';}).join(''):'<div class="small muted" style="padding:8px 0">Kein aktueller automatischer Hinweis.</div>')+'<button class="btn comm-create" data-act="eltern-nachricht" data-sus="'+s.id+'">Neue Elternnachricht</button>'+(kommHist.length?'<div class="comm-history-title">Historie</div>'+kommHist.map(function(x){return '<div class="comm-history-row"><span>'+A.fmtDateShort(String(x.zeit||'').slice(0,10))+'</span><b>'+(x.status==='besprochen'?'besprochen':'verschickt')+'</b><em>'+A.esc(x.anlass||'')+'</em></div>';}).join(''):'')+'</div>');
+
+    h += card('Craft-Schülerkartei', craftKarteiPanelHTML_(s.id));
 
     if (!kurse.length) return h + card('', empty('📚', 'Für diese Klasse ist noch kein Fach angelegt.'));
 
@@ -6844,14 +7102,15 @@ VIEWS.mehr = {
       '<button class="row" data-act="eltern-generator"><div class="row-main"><div class="row-title">Elternnachricht erstellen</div><div class="row-sub">Textvorlage für ein Kind generieren und anschließend kopieren oder teilen</div></div><div class="chev">›</div></button>' +
       '<button class="row" data-act="eltern-einstellungen"><div class="row-main"><div class="row-title">Automatische Elternhinweise</div><div class="row-sub">bei ' + elternNachrichtSchwelle() + '×, ' + (elternNachrichtSchwelle()*2) + '×, ' + (elternNachrichtSchwelle()*3) + '× …</div></div><div class="chev">›</div></button>');
 
-    var craftCfg=craftApiConfig_();
+    var craftCfg=craftApiConfig_(), karteiN=craftKarteiVerknuepftAnzahl_(), karteiGes=A.list('SuS',function(x){return String(x.aktiv||'1')!=='0';}).length;
     h += card('Craft',
       '<button class="row" data-act="craft-api"><div class="row-main"><div class="row-title">Craft API Connection</div><div class="row-sub">'+(craftApiUrlGueltig_(craftCfg.url)?'verbunden · '+(craftCfg.auto?'Inbox automatisch → heutige Notiz':'manuell synchronisieren'):'noch nicht verbunden')+'</div></div><div class="chev">›</div></button>'+
+      '<button class="row" data-act="craft-kartei-settings"><div class="row-main"><div class="row-title">Schülerkartei in Craft</div><div class="row-sub">'+karteiN+'/'+karteiGes+' Schüler:innen verknüpft'+(craftCfg.karteiFolderName?' · '+A.esc(craftCfg.karteiFolderName):'')+'</div></div><div class="chev">›</div></button>'+
       '<button class="row" data-act="craft-sync-inbox"><div class="row-main"><div class="row-title">Heutige Inbox nach Craft</div><div class="row-sub">offene Schulapp-Hinweise als Aufgaben in die heutige Craft-Notiz schreiben</div></div><div class="chev">›</div></button>'+
-      '<button class="row" data-act="craft-info"><div class="row-main"><div class="row-title">Craft + Schulapp</div><div class="row-sub">Aufteilung und Verknüpfungen erklären</div></div><div class="chev">›</div></button>');
+      '<button class="row" data-act="craft-info"><div class="row-main"><div class="row-title">Craft + Schulapp</div><div class="row-sub">Planung, Tagesaufgaben und Schülerkartei erklären</div></div><div class="chev">›</div></button>');
 
     h += card('App',
-      '<div class="row" style="cursor:default"><div class="row-main"><div class="row-title">App-Version</div><div class="row-sub">Version 40</div></div></div>' +
+      '<div class="row" style="cursor:default"><div class="row-main"><div class="row-title">App-Version</div><div class="row-sub">Version 43</div></div></div>' +
       '<button class="row" data-act="farbdesign"><div class="row-main"><div class="row-title">Farbdesign</div>' +
         '<div class="row-sub"><span class="farb-punkt" style="--fc:' + aktuelleDesignFarbe() + ';display:inline-block;vertical-align:-2px;margin-right:6px"></span>' +
         A.esc(A.cfg('farbdesignHex') ? 'Eigene Farbe' : (FARBDESIGNS[A.cfg('farbdesign')] || FARBDESIGNS.blau)) +
@@ -6862,6 +7121,7 @@ VIEWS.mehr = {
       '<button class="row" data-act="suche"><div class="row-main"><div class="row-title">Suche</div><div class="row-sub">Klassen, Schüler:innen, Fächer und Listen</div></div><div class="chev">›</div></button>' +
       '<button class="row" data-act="startseite"><div class="row-main"><div class="row-title">Startseite</div><div class="row-sub">' + ({heute:'Heute',plan:'Stundenplan',klassen:'Klassen',noten:'Noten'}[A.cfg('startseite')||'heute']) + '</div></div><div class="chev">›</div></button>' +
       '<button class="row" data-act="auto-lock"><div class="row-main"><div class="row-title">Automatisch sperren</div><div class="row-sub">' + (A.cfg('autoLockMin') ? 'nach ' + A.cfg('autoLockMin') + ' Minute(n) im Hintergrund' : 'aus') + '</div></div><div class="chev">›</div></button>' +
+      '<button class="row" data-act="daily-login"><div class="row-main"><div class="row-title">Anmeldung</div><div class="row-sub">' + (taeglicheAnmeldungAktiv_() ? 'einmal pro Tag bestätigen' : 'gespeicherte Sitzung direkt öffnen') + '</div></div><div class="chev">›</div></button>' +
       '<button class="row" data-act="biometrie"><div class="row-main"><div class="row-title">Face ID / Touch ID</div>' +
         '<div class="row-sub"><span class="security-status"><i class="security-dot ' + (biometrieAktiv() ? 'on' : '') + '"></i>' +
         (biometrieAktiv() ? 'Schnellanmeldung auf diesem Gerät aktiv' : 'nicht eingerichtet') +
@@ -6886,7 +7146,7 @@ VIEWS.mehr = {
       '<div class="kv"><span class="k">Abhak-Einträge</span><span class="v">' + z.c + '</span></div>' +
       '</div>');
 
-    h += '<div class="small muted" style="text-align:center;padding:6px 10px 20px"><b>Schulapp · Version 40</b><br>Deine Daten sind deinem Konto zugeordnet und zusätzlich lokal auf diesem Gerät zwischengespeichert.</div>';
+    h += '<div class="small muted" style="text-align:center;padding:6px 10px 20px"><b>Schulapp · Version 43</b><br>Deine Daten sind deinem Konto zugeordnet und zusätzlich lokal auf diesem Gerät zwischengespeichert.</div>';
     return h;
   }
 };
@@ -8224,7 +8484,7 @@ function notenPdfKopf_(title, subtitle, meta) {
 
 function notenPdfFooter_(seite, gesamt) {
   var W = 841.89;
-  var text = 'Schulapp · Version 40';
+  var text = 'Schulapp · Version 43';
   if (gesamt > 1) text += ' · Seite ' + seite + '/' + gesamt;
   return pdfTextCmd_(text, W - 34, 18, 6.8, 'right');
 }
@@ -9230,8 +9490,9 @@ ACT['eltern-einstellungen'] = function(){
   Modal.form({title:'Elternkommunikation',hinweis:'Die App erinnert dich bei jedem Vielfachen der Schwelle – z. B. beim 5., 10., 15. Mal. Im Hinweis kannst du direkt eine Elternnachricht erstellen. Es wird nichts automatisch versendet.',fields:[
     {key:'ab',label:'Erster Hinweis nach',type:'text',inputmode:'numeric',value:String(elternNachrichtSchwelle()),hint:'Beispiel 5 = Hinweise beim 5., 10., 15. Mal usw.'},
     {key:'ton',label:'Standard-Ton',type:'select',value:String(A.cfg('elternNachrichtTon')||'freundlich'),options:[{value:'freundlich',label:'freundlich'},{value:'neutral',label:'neutral'},{value:'deutlich',label:'deutlich'}]},
-    {key:'reset',label:'Bereits gezeigte Elternhinweise zurücksetzen',type:'checkbox',value:false,hint:'Dann werden bereits erreichte 5er/10er/15er-Stände erneut gemeldet.'}
-  ],validate:function(v){var n=A.num(String(v.ab).replace(',','.'),null);return (n===null||n<1)?'Bitte eine Zahl ab 1 eingeben.':null;},onSave:function(v){A.setCfg('elternNachrichtAb',Math.round(A.num(String(v.ab).replace(',','.'),5)));A.setCfg('elternNachrichtTon',v.ton);if(v.reset)A.setCfg('elternHinweise',{});},focus:false});
+    {key:'reset',label:'Bereits gezeigte Elternhinweise zurücksetzen',type:'checkbox',value:false,hint:'Dann werden bereits erreichte 5er/10er/15er-Stände erneut gemeldet.'},
+    {key:'vorlagenReset',label:'Meine gemerkten Formulierungen zurücksetzen',type:'checkbox',value:false,hint:'Löscht nur die von dir gespeicherten Textvorlieben, nicht die Kommunikationshistorie.'}
+  ],validate:function(v){var n=A.num(String(v.ab).replace(',','.'),null);return (n===null||n<1)?'Bitte eine Zahl ab 1 eingeben.':null;},onSave:function(v){A.setCfg('elternNachrichtAb',Math.round(A.num(String(v.ab).replace(',','.'),5)));A.setCfg('elternNachrichtTon',v.ton);if(v.reset)A.setCfg('elternHinweise',{});if(v.vorlagenReset){A.setCfg('elternVorlagen',{});A.setCfg('elternListenVorlagen',{});}},focus:false});
 };
 
 /* ------------------------------------------------------------- V34 Aktionen */
@@ -9253,20 +9514,27 @@ ACT['suche'] = function(){
 };
 ACT['startseite'] = function(){Modal.form({title:'Startseite',fields:[{key:'s',label:'Beim Öffnen anzeigen',type:'select',value:A.cfg('startseite')||'heute',options:[{value:'heute',label:'Heute'},{value:'plan',label:'Stundenplan'},{value:'klassen',label:'Klassen'},{value:'noten',label:'Noten'}]}],onSave:function(v){A.setCfg('startseite',v.s);},focus:false});};
 ACT['auto-lock'] = function(){Modal.form({title:'Automatisch sperren',hinweis:'Funktioniert zusammen mit der vierstelligen PIN. Wenn die App länger im Hintergrund war, wird beim Zurückkehren erneut gesperrt.',fields:[{key:'m',label:'Nach',type:'select',value:String(A.cfg('autoLockMin')||0),options:[{value:'0',label:'aus'},{value:'1',label:'1 Minute'},{value:'2',label:'2 Minuten'},{value:'5',label:'5 Minuten'},{value:'10',label:'10 Minuten'}]}],onSave:function(v){A.setCfg('autoLockMin',Number(v.m)||0);},focus:false});};
+ACT['daily-login'] = function(){Modal.form({title:'Anmeldung',hinweis:'Die Server-Sitzung bleibt gespeichert. Bei „einmal pro Tag“ bestätigst du deine Anmeldung nur beim ersten Öffnen eines neuen Kalendertags. Manuelles Abmelden wirkt immer sofort; eine PIN-Sperre bleibt davon unabhängig.',fields:[{key:'modus',label:'Auf diesem Gerät',type:'select',value:taeglicheAnmeldungAktiv_()?'daily':'session',options:[{value:'daily',label:'einmal pro Tag bestätigen'},{value:'session',label:'gespeicherte Sitzung direkt öffnen'}]}],onSave:function(v){A.setCfg('dailyLogin',v.modus==='daily');if(v.modus==='daily'&&A.Auth.isLoggedIn())anmeldungHeuteMerken_();},focus:false});};
 
 
 /* ---------------------------------------------------------- V40 Kommunikation & Craft */
-ACT['eltern-spaeter']=function(el){var h={typ:'vergessen',susId:el.getAttribute('data-sus'),kursId:el.getAttribute('data-kurs'),punkt:el.getAttribute('data-punkt'),anzahl:Number(el.getAttribute('data-anzahl')||0)};elternVorgangSet_(h,'spaeter');render();window.toast('Morgen wieder in der Inbox');};
+ACT['eltern-spaeter']=function(el){var h={typ:'vergessen',susId:el.getAttribute('data-sus'),kursId:el.getAttribute('data-kurs'),punkt:el.getAttribute('data-punkt'),anzahl:Number(el.getAttribute('data-anzahl')||0)};elternVorgangSet_(h,'spaeter');render();window.toast('Beim nächsten Unterricht wieder in der Inbox');};
 ACT['eltern-besprochen']=function(el){var h={typ:'vergessen',susId:el.getAttribute('data-sus'),kursId:el.getAttribute('data-kurs'),punkt:el.getAttribute('data-punkt'),anzahl:Number(el.getAttribute('data-anzahl')||0)};elternVorgangSet_(h,'besprochen');render();window.toast('Als besprochen gespeichert');};
-ACT['positiv-spaeter']=function(el){var h=positiveMitarbeitHinweis_(el.getAttribute('data-kurs'),el.getAttribute('data-sus'));if(h){elternVorgangSet_(h,'spaeter');render();window.toast('Morgen wieder in der Inbox');}};
+ACT['positiv-spaeter']=function(el){var h=positiveMitarbeitHinweis_(el.getAttribute('data-kurs'),el.getAttribute('data-sus'));if(h){elternVorgangSet_(h,'spaeter');render();window.toast('Beim nächsten Unterricht wieder in der Inbox');}};
 ACT['positiv-ausblenden']=function(el){var h=positiveMitarbeitHinweis_(el.getAttribute('data-kurs'),el.getAttribute('data-sus'));if(h){elternVorgangSet_(h,'verworfen');render();window.toast('Positive Rückmeldung ausgeblendet');}};
 ACT['positiv-nachricht']=function(el){var h=positiveMitarbeitHinweis_(el.getAttribute('data-kurs'),el.getAttribute('data-sus'));if(h)elternNachrichtOeffnen(h.susId,h);};
 ACT['craft-sync-inbox']=function(){craftSyncInbox_(A.todayISO()).catch(function(){});};
 ACT['craft-sync-one']=function(el){craftSyncInbox_(A.todayISO(),el.getAttribute('data-craft-key')).catch(function(){});};
 ACT['craft-api']=function(){var c=craftApiConfig_();Modal.form({title:'Craft-Verbindung',hinweis:'Füge hier die API-Server-Adresse deiner Craft API Connection ein. Sie bleibt nur lokal auf diesem Gerät und wird weder in GitHub noch in dein Schulapp-Backend synchronisiert.',fields:[{key:'url',label:'Craft API Connection',type:'password',value:c.url||'',placeholder:'https://connect.craft.do/links/…/api/v1',autocap:false,hint:'Die Connection-Adresse ist wie ein Zugangsschlüssel – nicht öffentlich teilen.'},{key:'auto',label:'Neue Inbox-Einträge automatisch in die heutige Craft-Notiz schreiben',type:'checkbox',value:!!c.auto},{key:'namen',label:'Schüler:innennamen in Craft-Aufgaben übernehmen',type:'checkbox',value:c.namen!==false}],validate:function(v){var u=String(v.url||'').trim();return u&&!craftApiUrlGueltig_(u)?'Bitte die vollständige Craft API Connection-Adresse einfügen.':null;},onSave:function(v){craftApiSet_({url:String(v.url||'').trim(),auto:!!v.auto,namen:!!v.namen});render();window.toast(v.url?'Craft-Verbindung gespeichert':'Craft-Verbindung entfernt');},focus:false});};
+ACT['craft-kartei-settings']=function(){craftKarteiSettingsOpen_();};
+ACT['craft-kartei-link']=function(el){craftKarteiLinkOpen_(el.getAttribute('data-sus'));};
+ACT['craft-kartei-create']=function(el){var susId=el.getAttribute('data-sus');if(!craftApiUrlGueltig_(craftApiConfig_().url)){window.toast('Richte zuerst die Craft-Verbindung ein.',true);ACT['craft-api']();return;}if(!craftApiConfig_().karteiFolderId&&!confirm('Es ist kein Kartei-Ordner ausgewählt. Die neue Karte wird in „Unsorted“ angelegt. Fortfahren?'))return;craftKarteiCreate_(susId).then(function(){render();window.toast('Craft-Karte angelegt');}).catch(function(e){window.toast('Craft: '+e.message,true);});};
+ACT['craft-kartei-open']=function(el){craftKarteiLinkOeffnen_(el.getAttribute('data-sus'));};
+ACT['craft-kartei-sync']=function(el){var susId=el.getAttribute('data-sus');if(!craftKarteiFuer_(susId)){craftKarteiLinkOpen_(susId);return;}window.toast('Craft-Karte wird aktualisiert …');craftKarteiSyncSnapshot_(susId).then(function(r){render();window.toast(r&&r.same?'Der aktuelle Stand ist bereits in Craft.':'Aktueller Stand in Craft ergänzt');}).catch(function(e){window.toast('Craft: '+e.message,true);});};
+ACT['craft-kartei-note']=function(el){var susId=el.getAttribute('data-sus'),sus=A.byId('SuS',susId);if(!sus)return;if(!craftKarteiFuer_(susId)){craftKarteiLinkOpen_(susId);return;}Modal.form({title:'Beobachtung in Craft',hinweis:'Der Eintrag wird direkt an die verknüpfte Craft-Schülerkartei angehängt und nicht zusätzlich als eigene Schulapp-Notiz gespeichert.',fields:[{key:'typ',label:'Art',type:'select',value:'Beobachtung',options:['Beobachtung','Lernentwicklung','Gespräch','Organisation','Positiver Moment']},{key:'text',label:'Notiz',type:'textarea',rows:6,value:'',placeholder:'Was möchtest du später zu '+A.susName(sus)+' nachlesen?'}],validate:function(v){return String(v.text||'').trim()?'':'Bitte eine Notiz eingeben.';},saveLabel:'In Craft speichern',onSave:function(v){var md='### '+A.fmtDate(A.todayISO())+' · '+v.typ+'\n\n'+String(v.text||'').trim()+'\n';craftKarteiPostMarkdown_(susId,md).then(function(){render();window.toast('Beobachtung in Craft gespeichert');}).catch(function(e){window.toast('Craft: '+e.message,true);});},focus:true});};
 ACT['craft-open']=function(el){craftOeffnen_(el.getAttribute('data-kurs'));};
 ACT['craft-link']=function(el){var kursId=el.getAttribute('data-kurs'),kurs=A.byId('Kurse',kursId),alt=craftLinkFuer_(kursId);Modal.form({title:'Craft verknüpfen',hinweis:'Füge den Link zu deinem Craft-Planungsdokument für '+A.esc(kurs?A.kursLabel(kurs):'dieses Fach')+' ein. Die Schulapp speichert nur den Link – deine Unterrichtsplanung bleibt in Craft.',fields:[{key:'url',label:'Craft-Link',type:'url',value:alt,placeholder:'https://docs.craft.do/… oder craftdocs://…',hint:'Link leer lassen, um die Verknüpfung zu entfernen.'}],validate:function(v){var u=String(v.url||'').trim();return u&&!craftLinkGueltig_(u)?'Bitte einen gültigen http(s)- oder craftdocs://-Link eingeben.':null;},onSave:function(v){craftLinkSet_(kursId,v.url);render();},focus:true});};
-ACT['craft-info']=function(){Modal.open({title:'Craft + Schulapp',body:'<div class="craft-info"><p><b>Aufteilung:</b> Unterrichtsplanung und Inhalte bleiben in Craft. Die Schulapp kümmert sich um Schüler:innen, Listen, Mitarbeit, Noten, Sitzplan und Elternkommunikation.</p><p><b>Neu in V40:</b> Die Schulapp kann Inbox-Einträge als echte Aufgaben in die heutige Craft-Notiz schreiben. Dafür hinterlegst du einmal deine persönliche Craft API Connection. Die Connection-Adresse wird nur lokal auf diesem Gerät gespeichert.</p><p>Pro Fach kannst du zusätzlich weiterhin ein Craft-Dokument verknüpfen und direkt öffnen.</p></div>',foot:'<button class="btn" data-act="craft-api">Verbindung einrichten</button><button class="btn primary" data-close>Verstanden</button>'});};
+ACT['craft-info']=function(){Modal.open({title:'Craft + Schulapp',body:'<div class="craft-info"><p><b>Unterrichtsplanung:</b> Inhalte und Reihen bleiben in Craft; pro Fach kannst du dein Planungsdokument direkt öffnen.</p><p><b>Heute:</b> Offene Punkte aus der Schulapp können als echte Aufgaben in die heutige Craft-Notiz übertragen werden.</p><p><b>Schülerkartei:</b> Vorhandene Craft-Seiten lassen sich einzelnen Schüler:innen zuordnen. Die Schulapp kann dort auf Wunsch Elternkontakte automatisch protokollieren und über „Aktuellen Stand“ eine lesbare Zusammenfassung aus Noten, Mitarbeit, fehlendem Material und offenen Rückläufen ergänzen. Eigene Craft-Notizen bleiben unberührt.</p><p class="small muted">Die Craft API Connection und die Zuordnung der Kartei-Seiten werden nur lokal auf diesem Gerät gespeichert. Übertrage personenbezogene Daten nur, wenn Craft dafür in deinem schulischen Kontext freigegeben ist.</p></div>',foot:'<button class="btn" data-act="craft-kartei-settings">Schülerkartei</button><button class="btn" data-act="craft-api">Verbindung</button><button class="btn primary" data-close>Verstanden</button>'});};
 
 /* ---------------------------------------------------------- V40 Lokale Vorschau */
 function previewSetting_(key, value) {
@@ -9298,6 +9566,8 @@ function previewDemoSeed_() {
     ['Weber','Ben'],['Nguyen','Sofia'],['Koch','Jonas'],['Braun','Lina'],['Wolf','Oskar']
   ];
   var sus4 = namen4.map(function(n,i){var x={id:'demo_s4_'+i,klasseId:kl4.id,nachname:n[0],vorname:n[1],aktiv:'1',notiz:''};A.put('SuS',x,true);return x;});
+  craftApiSet_({url:'https://connect.craft.do/links/preview/api/v1',auto:false,namen:true,karteiFolderId:'preview-kartei',karteiFolderName:'Schülerkartei',karteiAutoKommunikation:true});
+  craftKarteiSet_(sus4[0].id,{documentId:'preview-doc-'+sus4[0].id,title:A.susName(sus4[0]),link:'',folderId:'preview-kartei',linkedAt:new Date().toISOString(),lastSyncAt:new Date().toISOString()});
   var namen5 = [['Haas','Ida'],['Krüger','Anton'],['Yilmaz','Elif'],['Lorenz','Paul'],['Neumann','Maja'],['Becker','Theo']];
   namen5.forEach(function(n,i){A.put('SuS',{id:'demo_s5_'+i,klasseId:kl5.id,nachname:n[0],vorname:n[1],aktiv:'1',notiz:''},true);});
 
@@ -9376,7 +9646,7 @@ function previewOeffnen_() {
   document.body.classList.add('preview-mode');
   A.Auth._activate({
     url:'', sessionToken:'preview-only',
-    user:{id:'preview-v38',name:'Vorschau',email:'vorschau@lokal',role:'owner'}
+    user:{id:'preview-v43',name:'Vorschau',email:'vorschau@lokal',role:'owner'}
   }, false);
   try { sessionStorage.removeItem('schulapp.auth.session'); } catch(e) {}
   A.Auth.setServerUrl('');
@@ -9800,8 +10070,8 @@ function speichereNote(input) {
 
 /* ---------------------------------------------------- V40 Vorschau-Feedback */
 var previewFeedbackPick=false;
-function feedbackListe_(){try{return JSON.parse(localStorage.getItem('schulapp.preview.feedback.v39')||'[]')||[];}catch(e){return[];}}
-function feedbackSpeichern_(arr){try{localStorage.setItem('schulapp.preview.feedback.v39',JSON.stringify(arr||[]));}catch(e){}}
+function feedbackListe_(){try{return JSON.parse(localStorage.getItem('schulapp.preview.feedback.v41')||'[]')||[];}catch(e){return[];}}
+function feedbackSpeichern_(arr){try{localStorage.setItem('schulapp.preview.feedback.v41',JSON.stringify(arr||[]));}catch(e){}}
 function feedbackLabel_(el){
   if(!el)return 'Element';
   var txt=String(el.innerText||el.textContent||'').replace(/\s+/g,' ').trim();
@@ -9880,15 +10150,18 @@ function pinSetup() {
 if (VORSCHAU_LOKAL) {
   /* Lokale/ChatGPT-Vorschau: direkt mit isolierten Testdaten starten.
      Kein Login und keine Serververbindung. */
-  try { localStorage.removeItem('schulapp.user.preview-v38.db'); } catch (e) {}
-  try { localStorage.removeItem('schulapp.user.preview-v38.queue'); } catch (e2) {}
+  try { localStorage.removeItem('schulapp.user.preview-v43.db'); } catch (e) {}
+  try { localStorage.removeItem('schulapp.user.preview-v43.queue'); } catch (e2) {}
   previewOeffnen_();
 } else {
   var bioStored = A.Auth._stored ? A.Auth._stored() : null;
-  if (biometrieAktiv() && bioStored && bioStored.sessionToken) {
-    A.Sync.update();
-    showAuth('login');
-  } else if (A.Auth.restore()) {
+  var hatGespeichertenLogin = !!(bioStored && bioStored.sessionToken);
+  var restoreOk = hatGespeichertenLogin ? A.Auth.restore() : false;
+  var heuteBestaetigt = restoreOk && anmeldungHeuteBestaetigt_();
+
+  if (restoreOk && heuteBestaetigt) {
+    /* Nach der ersten Bestätigung des Tages öffnet die App auf diesem Gerät
+       für den Rest des Kalendertags direkt. */
     startAuthenticatedApp(false);
     A.Auth.validate().then(function () {
       if (A.Sync.configured()) A.Sync.pull().then(function () { render(); }).catch(function () {});
@@ -9896,6 +10169,18 @@ if (VORSCHAU_LOKAL) {
       /* Offline darf ein auf diesem Gerät gespeicherter Login weiterarbeiten.
          Bei einer echten Auth-Fehlermeldung wird spätestens der nächste Sync abgewiesen. */
     });
+  } else if (restoreOk && taeglicheAnmeldungAktiv_()) {
+    /* Neuer Kalendertag: gespeicherte Sitzung behalten, aber einmal bewusst
+       per Passwort oder Face ID / Touch ID bestätigen lassen. */
+    A.Sync.update();
+    showAuth('login');
+    if (bioStored && bioStored.user && bioStored.user.email) $('#loginEmail').value = bioStored.user.email;
+    biometrieLoginButtonAktualisieren();
+  } else if (restoreOk) {
+    startAuthenticatedApp(false);
+    A.Auth.validate().then(function () {
+      if (A.Sync.configured()) A.Sync.pull().then(function () { render(); }).catch(function () {});
+    }).catch(function () {});
   } else {
     A.Sync.update();
     showAuth('login');
