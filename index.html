@@ -11,7 +11,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="format-detection" content="telephone=no">
 <title>Schulapp</title>
-<!-- Schulapp V39 – Notion Workspace, Eltern-Inbox & Craft -->
+<!-- Schulapp V40 – Notion Workspace, Craft-Inbox & Elternkommunikation -->
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="./icon-192.png">
 <link rel="icon" type="image/png" sizes="192x192" href="./icon-192.png">
@@ -2318,6 +2318,22 @@ button.week-cell { cursor: pointer; font: inherit; }
   .tab.active { background:#2d2d2d; }
 }
 
+/* ------------------------------------------------------- V40 Desktop-Baum */
+.sidebar-disclosure,.sidebar-tree{display:none}
+@media(min-width:820px){
+  .tab{position:relative}
+  .sidebar-disclosure{display:grid;place-items:center;margin-left:auto;width:20px;height:20px;border-radius:4px;color:var(--ink-3);font-size:18px;line-height:1;transition:transform .15s ease}
+  .tab.sidebar-open .sidebar-disclosure{transform:rotate(90deg)}
+  .sidebar-tree{display:none;margin:0 0 4px 27px;padding-left:8px;border-left:1px solid var(--line)}
+  .sidebar-tree.open{display:block}
+  .sidebar-child{display:flex;width:100%;align-items:center;gap:7px;min-height:29px;padding:4px 7px;border:0;border-radius:4px;background:transparent;color:var(--ink-2);font:inherit;font-size:12.5px;text-align:left;cursor:pointer}
+  .sidebar-child:hover{background:#ecece9;color:var(--ink)}
+  .sidebar-child.active{background:#e9e9e7;color:var(--ink);font-weight:550}
+  .sidebar-child-dot{width:6px;height:6px;border-radius:2px;background:var(--child-color,#b8b8b4);flex:none}
+  .sidebar-child-label{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+}
+@media(prefers-color-scheme:dark) and (min-width:820px){.sidebar-child:hover,.sidebar-child.active{background:#2d2d2d}}
+
 /* -------------------------------------------------- V38 Elternkommunikation */
 .comm-alert-intro{padding:8px 8px 10px;font-size:12.5px;color:var(--ink-2);border-bottom:1px solid var(--line-soft);background:transparent}
 .comm-row .comm-dot{width:6px;height:6px;border-radius:50%;background:var(--warn);flex:0 0 auto}.comm-action{font-size:12px;font-weight:550;color:var(--accent);white-space:nowrap}
@@ -2339,7 +2355,7 @@ body.feedback-pick .main *{cursor:crosshair!important}
 @media(min-width:820px){.preview-feedback-btn{bottom:18px;right:18px}}
 
 
-/* ------------------------------------------------------- V39 Notion workspace */
+/* ------------------------------------------------------- V40 Notion workspace */
 @media screen{
   :root{--accent:#37352f;--accent-soft:#f1f1ef;--radius:4px;--radius-sm:4px}
   body{font-size:15px;background:#fff}
@@ -2363,6 +2379,14 @@ body.feedback-pick .main *{cursor:crosshair!important}
 }
 @media(min-width:820px){:root{--sidebar-w:220px}.tabbar{width:var(--sidebar-w);padding:70px 10px 18px;background:#f7f7f5}.topbar{left:var(--sidebar-w)}.main{margin-left:var(--sidebar-w);padding-left:56px;padding-right:56px;max-width:980px}.tab{height:34px}.tab.active{background:#e9e9e7}}
 @media(max-width:620px){.inbox-item{align-items:flex-start}.inbox-actions{flex-direction:column}.profile-head{grid-template-columns:1fr}.profile-head .btn{grid-column:1;grid-row:auto;margin-top:12px}.craft-strip{align-items:flex-start;flex-direction:column}.craft-actions{width:100%}.craft-actions .btn{flex:1}.comm-history-row{grid-template-columns:58px 72px 1fr}}
+/* ------------------------------------------------------------ V40 Extras */
+.inbox-open{display:flex;align-items:center;gap:10px;flex:1;min-width:0;padding:0;border:0;background:transparent;color:inherit;font:inherit;text-align:left;cursor:pointer}
+.inbox-craft{flex:none;border:0;background:transparent;color:var(--ink-3);font:inherit;font-size:11.5px;padding:5px 6px;border-radius:4px;cursor:pointer}
+.inbox-craft:hover{background:var(--surface-2);color:var(--ink)}
+.inbox-item.positive .inbox-icon{background:#edf3ec;color:#448361}.positive-label{color:#448361!important}
+.craft-sync-state{display:inline-flex;align-items:center;gap:5px;font-size:11px;color:var(--ink-3)}.craft-sync-state i{width:6px;height:6px;border-radius:50%;background:#c8c7c4}.craft-sync-state i.on{background:#448361}
+.smart-type{display:inline-flex;align-items:center;gap:5px;padding:3px 6px;border:1px solid var(--line);background:var(--surface-2);font-size:11px;color:var(--ink-2);border-radius:4px}
+
 @media(prefers-color-scheme:dark){body{background:#191919}.topbar{background:rgba(25,25,25,.94)}.btn.primary{background:#ebebea;border-color:#ebebea;color:#191919}.inbox-item:hover{background:#242424}.inbox-icon,.craft-mark{background:#2a2a2a}.grades th{background:#242424}}
 </style>
 </head>
@@ -2411,7 +2435,7 @@ body.feedback-pick .main *{cursor:crosshair!important}
       <p>Hier kannst du die App mit erfundenen Testdaten ausprobieren. Es wird keine Verbindung zum Schulapp-Server hergestellt und deine echten Daten werden nicht verändert.</p>
       <button class="btn primary block" type="button" id="previewOpenBtn">Vorschau mit Testdaten öffnen</button>
     </div>
-    <div class="small muted" style="text-align:center;margin-top:14px">Schulapp · Version 39</div>
+    <div class="small muted" style="text-align:center;margin-top:14px">Schulapp · Version 40</div>
   </div>
 </div>
 
@@ -2442,11 +2466,13 @@ body.feedback-pick .main *{cursor:crosshair!important}
     <span class="tab-ico" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M5 4.5h14v15H5zM8 8h8M8 12h8M8 16h5"/></svg></span><span class="tab-lbl">Plan</span>
   </button>
   <button class="tab" data-tab="klassen" aria-label="Klassen">
-    <span class="tab-ico" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M8.5 11a3 3 0 1 0 0-6 3 3 0 0 0 0 6ZM15.8 10a2.4 2.4 0 1 0 0-4.8M3.8 19c.3-3.2 2-5 4.7-5s4.5 1.8 4.8 5M14 14.5c2.8 0 4.6 1.5 4.9 4.5"/></svg></span><span class="tab-lbl">Klassen</span>
+    <span class="tab-ico" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M8.5 11a3 3 0 1 0 0-6 3 3 0 0 0 0 6ZM15.8 10a2.4 2.4 0 1 0 0-4.8M3.8 19c.3-3.2 2-5 4.7-5s4.5 1.8 4.8 5M14 14.5c2.8 0 4.6 1.5 4.9 4.5"/></svg></span><span class="tab-lbl">Klassen</span><span class="sidebar-disclosure" data-sidebar-toggle="klassen" aria-label="Klassen aufklappen">›</span>
   </button>
+  <div class="sidebar-tree" data-sidebar-tree="klassen"></div>
   <button class="tab" data-tab="noten" aria-label="Noten">
-    <span class="tab-ico" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M5 19V11M10 19V6M15 19v-9M20 19V4"/></svg></span><span class="tab-lbl">Noten</span>
+    <span class="tab-ico" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M5 19V11M10 19V6M15 19v-9M20 19V4"/></svg></span><span class="tab-lbl">Noten</span><span class="sidebar-disclosure" data-sidebar-toggle="noten" aria-label="Noten aufklappen">›</span>
   </button>
+  <div class="sidebar-tree" data-sidebar-tree="noten"></div>
   <button class="tab" data-tab="mehr" aria-label="Einstellungen">
     <span class="tab-ico" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 3.5v2M12 18.5v2M3.5 12h2M18.5 12h2M6 6l1.4 1.4M16.6 16.6 18 18M18 6l-1.4 1.4M7.4 16.6 6 18"/></svg></span><span class="tab-lbl">Mehr</span>
   </button>
@@ -4189,7 +4215,7 @@ var registerForm = $('#registerForm');
 var resetForm = $('#resetForm');
 
 var route = { tab: (A.cfg('startseite') || 'heute'), stack: [] };
-var ui = { datum: A.todayISO(), heuteModus: 'tag', planKursId: '', sitzAuswahl: null, sitzLayout: false, sitzPerspektive: 'raum' };
+var ui = { datum: A.todayISO(), heuteModus: 'tag', planKursId: '', sitzAuswahl: null, sitzLayout: false, sitzPerspektive: 'raum', sidebarKlassen: A.LS.get('sidebar.klassen', true), sidebarNoten: A.LS.get('sidebar.noten', false) };
 
 
 /* ---------------------------------------------------------------- V18 Mobil */
@@ -4961,14 +4987,63 @@ function klassenListenHTML(klasseId) {
       '<div class="row-val">' + st.erledigt + '/' + st.gesamt + '</div><div class="chev">›</div></button>';
   }).join('');
 }
+var LISTEN_ARTEN = [
+  {value:'auto',label:'automatisch erkennen'},
+  {value:'elternbrief',label:'Elternbrief / Rücklauf'},
+  {value:'einverstaendnis',label:'Einverständniserklärung'},
+  {value:'unterschrift',label:'Unterschrift'},
+  {value:'geld',label:'Geld / Beitrag'},
+  {value:'rueckmeldung',label:'Rückmeldung / Anmeldung'},
+  {value:'material',label:'Material'},
+  {value:'unterlage',label:'sonstige Unterlage'}
+];
+function listenArtErkennen_(a) {
+  var fest=String((a&&a.abgabeArt)||'auto');
+  if(fest&&fest!=='auto')return fest;
+  var t=[a&&a.titel,a&&a.notiz,a&&a.elternhinweis].join(' ').toLowerCase();
+  if(/elternabend|elternbrief|elterninfo|infobrief/.test(t))return 'elternbrief';
+  if(/einverst[aä]nd|genehmigung|erlaubnis|zustimmung/.test(t))return 'einverstaendnis';
+  if(/unterschrift|unterschreib|gegenzeichnen/.test(t))return 'unterschrift';
+  if(/geld|euro|€|beitrag|materialgeld|kosten/.test(t))return 'geld';
+  if(/anmeldung|r[üu]ckmeldung|teilnahme|antwortzettel/.test(t))return 'rueckmeldung';
+  if(/material|buch|heft|ordner|mappe/.test(t))return 'material';
+  return 'unterlage';
+}
+function listenThema_(a, art) {
+  var t=String((a&&a.titel)||'').trim();
+  var clean=t.replace(/^\s*(elternbrief|elterninfo|infobrief|einverst[aä]ndniserkl[aä]rung|einverst[aä]ndnis|unterschrift|materialgeld|r[üu]ckmeldung|anmeldung|zettel|brief)\s*[:\-–]?\s*/i,'').trim();
+  return clean||t||'die betreffende Information';
+}
+function listenArtLabel_(a){var art=listenArtErkennen_(a),x=LISTEN_ARTEN.find(function(z){return z.value===art;});return x?x.label:'Unterlage';}
+function listenElternText_(a, personName, gruppenText) {
+  var art=listenArtErkennen_(a), thema=listenThema_(a,art), frist=a&&a.frist?' bis zum '+A.fmtDate(a.frist):'';
+  var who=gruppenText?'':(' von '+personName);
+  var mitte='';
+  if(art==='elternbrief'){
+    mitte='uns fehlt'+who+' noch der unterschriebene Elternbrief zum Thema „'+thema+'“. Bitte unterschreiben Sie den Elternbrief und geben Sie ihn'+frist+' wieder mit.';
+  } else if(art==='einverstaendnis'){
+    mitte='uns fehlt'+who+' noch die unterschriebene Einverständniserklärung zum Thema „'+thema+'“. Bitte unterschreiben Sie die Erklärung und geben Sie sie'+frist+' wieder mit.';
+  } else if(art==='unterschrift'){
+    mitte='uns fehlt'+who+' noch die benötigte Unterschrift zum Thema „'+thema+'“. Bitte unterschreiben Sie die entsprechende Unterlage und geben Sie sie'+frist+' wieder mit.';
+  } else if(art==='geld'){
+    mitte='uns fehlt'+who+' noch der vereinbarte Betrag zum Thema „'+thema+'“. Bitte geben Sie diesen'+frist+' passend und möglichst beschriftet mit.';
+  } else if(art==='rueckmeldung'){
+    mitte='uns fehlt'+who+' noch die Rückmeldung zum Thema „'+thema+'“. Bitte geben Sie die ausgefüllte Rückmeldung'+frist+' wieder mit.';
+  } else if(art==='material'){
+    mitte='uns fehlt'+who+' noch das benötigte Material zum Thema „'+thema+'“. Bitte geben Sie es'+frist+' mit.';
+  } else {
+    mitte='uns fehlt'+who+' noch die Unterlage „'+String((a&&a.titel)||'Abgabe')+'“. Bitte geben Sie sie'+frist+' wieder mit.';
+  }
+  var zusatz=String((a&&(a.elternhinweis||a.notiz))||'').trim();
+  if(zusatz)mitte+='\n\n'+zusatz;
+  return mitte;
+}
+
 function elternErinnerungDaten(a) {
   var kurs = A.byId('Kurse', a.kursId), st = listenStand(a, kurs);
   var offen = st.sus.filter(function (person) { return !st.checks[person.id]; });
-  var frist = a.frist ? ' bis zum ' + A.fmtDate(a.frist) : '';
-  var zusatz = String(a.elternhinweis || a.notiz || '').trim();
-  var text = 'Liebe Eltern,\n\nuns fehlt noch „' + String(a.titel || 'eine Abgabe') + '“. Bitte geben Sie diese' + frist + ' Ihrem Kind wieder mit.' +
-    (zusatz ? '\n\n' + zusatz : '') + '\n\nVielen Dank und liebe Grüße';
-  return { text: text, offen: offen, kurs: kurs, stand: st };
+  var text = 'Liebe Eltern,\n\n' + listenElternText_(a, '', true) + '\n\nVielen Dank und liebe Grüße';
+  return { text: text, offen: offen, kurs: kurs, stand: st, art: listenArtErkennen_(a) };
 }
 function elternErinnerungOeffnen(id) {
   var a = aufgabeById(id);
@@ -5031,15 +5106,16 @@ function kommunikationsHinweiseFuerSus(susId) {
     });
   });
   offeneListenFuerSus(susId).forEach(function (a) {
-    out.push({ typ:'liste', susId:susId, aufgabeId:a.id, kursId:a.kursId, titel:a.titel || 'Abgabe' });
+    out.push({ typ:'liste', susId:susId, aufgabeId:a.id, kursId:a.kursId, titel:a.titel || 'Abgabe', abgabeArt:listenArtErkennen_(a) });
   });
+  positiveHinweiseFuerSus_(susId).forEach(function(h){out.push(h);});
   return out;
 }
 function kommunikationsHinweiseKlasse(klasseId) {
   var out = [];
   A.susDerKlasse(klasseId).forEach(function (sus) {
     kommunikationsHinweiseFuerSus(sus.id).forEach(function (h) {
-      if (h.typ === 'vergessen') out.push(h);
+      if (h.typ === 'vergessen' || h.typ === 'positiv') out.push(h);
     });
   });
   return out.sort(function(a,b){ return (b.anzahl||0)-(a.anzahl||0); });
@@ -5047,7 +5123,10 @@ function kommunikationsHinweiseKlasse(klasseId) {
 var ELTERN_ANLAESSE = [
   {key:'material',label:'Material fehlt / unvollständig'},
   {key:'hausaufgaben',label:'Hausaufgaben fehlen'},
+  {key:'elternbrief',label:'Elternbrief / Rücklauf fehlt'},
+  {key:'einverstaendnis',label:'Einverständniserklärung fehlt'},
   {key:'unterschrift',label:'Unterschrift fehlt'},
+  {key:'geld',label:'Geld / Beitrag fehlt'},
   {key:'abgabe',label:'Abgabe / Unterlagen fehlen'},
   {key:'organisation',label:'Arbeitsorganisation / Vorbereitung'},
   {key:'mitarbeit',label:'Mitarbeit / Beteiligung'},
@@ -5064,7 +5143,14 @@ function elternGrundLabel_(grund) {
     var kurs=A.byId('Kurse',grund.kursId);
     return (grund.punkt || 'Material') + ' · ' + (grund.anzahl || 0) + '×' + (kurs && kurs.fach ? ' · '+kurs.fach : '');
   }
-  if (grund.typ === 'liste') return 'Fehlende Abgabe · ' + (grund.titel || 'Liste');
+  if (grund.typ === 'positiv') {
+    var kp=A.byId('Kurse',grund.kursId);
+    return (grund.signal==='mitarbeit_verbessert'?'Positive Entwicklung':'Positive Mitarbeit') + (kp&&kp.fach?' · '+kp.fach:'');
+  }
+  if (grund.typ === 'liste') {
+    var a=aufgabeById(grund.aufgabeId);
+    return (a?listenArtLabel_(a):'Fehlende Abgabe') + ' · ' + (grund.titel || (a&&a.titel) || 'Liste');
+  }
   if (grund.typ === 'preset') {
     var p=ELTERN_ANLAESSE.find(function(x){return x.key===grund.key;});
     return p ? p.label : 'Sonstige Rückmeldung';
@@ -5072,77 +5158,86 @@ function elternGrundLabel_(grund) {
   return grund.label || 'Sonstige Rückmeldung';
 }
 function elternNachrichtText_(sus, grund, ton, anzahlNennen, zusatz) {
-  var vorname = String((sus && sus.vorname) || '').trim();
-  var name = vorname || 'Ihrem Kind';
-  var anrede = 'Liebe Eltern' + (vorname ? ' von ' + vorname : '') + ',';
-  ton = ton || 'freundlich';
-  zusatz = String(zusatz || '').trim();
-  var mitte = '';
-  if (grund && grund.typ === 'vergessen') {
-    var kurs = A.byId('Kurse', grund.kursId);
-    var fach = kurs && kurs.fach ? ' im Fach ' + kurs.fach : '';
-    var anzahl = anzahlNennen && grund.anzahl ? ' inzwischen ' + grund.anzahl + '-mal' : ' mehrfach';
-    var punktRaw = String(grund.punkt || 'Material');
-    var istHA = /hausauf/i.test(punktRaw);
-    if (ton === 'deutlich') {
-      mitte = 'ich möchte Sie darauf hinweisen, dass bei ' + name + fach + anzahl + ' ' + (istHA ? 'die Hausaufgaben' : 'benötigtes Material') + ' gefehlt haben. Bitte achten Sie darauf, dass dies künftig zuverlässig vollständig mitgebracht wird.';
-    } else if (ton === 'neutral') {
-      mitte = 'bei ' + name + ' haben' + fach + anzahl + ' ' + (istHA ? 'die Hausaufgaben' : 'benötigte Materialien') + ' gefehlt. Bitte unterstützen Sie Ihr Kind dabei, künftig vollständig vorbereitet in den Unterricht zu kommen.';
-    } else {
-      mitte = 'ich möchte Ihnen kurz eine Rückmeldung geben: Bei ' + name + ' haben' + fach + anzahl + ' ' + (istHA ? 'die Hausaufgaben' : 'benötigte Materialien') + ' gefehlt. Es wäre schön, wenn Sie gemeinsam noch einmal darauf achten könnten, dass alles Benötigte dabei ist.';
-    }
-  } else if (grund && grund.typ === 'liste') {
-    var a = aufgabeById(grund.aufgabeId);
-    var frist = a && a.frist ? ' bis zum ' + A.fmtDate(a.frist) : '';
-    var titel = a ? (a.titel || 'eine Abgabe') : (grund.titel || 'eine Abgabe');
-    mitte = 'uns fehlt von ' + name + ' noch „' + titel + '“. Bitte geben Sie die Unterlagen' + frist + ' mit.';
-    var eh = a ? String(a.elternhinweis || a.notiz || '').trim() : '';
-    if (eh) mitte += '\n\n' + eh;
+  var vorname=String((sus&&sus.vorname)||'').trim();
+  var name=vorname||'Ihrem Kind';
+  var anrede='Liebe Eltern'+(vorname?' von '+vorname:'')+',';
+  ton=ton||'freundlich'; zusatz=String(zusatz||'').trim();
+  var mitte='', positiv=false;
+  if(grund&&grund.typ==='vergessen'){
+    var kurs=A.byId('Kurse',grund.kursId), fach=kurs&&kurs.fach?' im Fach '+kurs.fach:'';
+    var punktRaw=String(grund.punkt||'Material'), istHA=/hausauf/i.test(punktRaw);
+    var subjekt=istHA?'die Hausaufgaben':'das benötigte Material', verb=istHA?'fehlten':'fehlte';
+    var count=anzahlNennen&&grund.anzahl?' bereits '+grund.anzahl+'-mal':' wiederholt';
+    var stufe=Math.max(1,Math.floor(Number(grund.anzahl||0)/Math.max(1,elternNachrichtSchwelle())));
+    var intro=stufe>=3?'ich möchte mich erneut bei Ihnen melden: ':stufe===2?'ich möchte mich noch einmal bei Ihnen melden: ':'ich möchte Ihnen kurz eine Rückmeldung geben: ';
+    mitte=intro+'Bei '+name+' '+verb+fach+count+' '+subjekt+'. ';
+    if(ton==='deutlich') mitte+='Bitte sorgen Sie gemeinsam dafür, dass '+(istHA?'die Hausaufgaben künftig zuverlässig erledigt und mitgebracht werden.':'das benötigte Material künftig vollständig dabei ist.');
+    else if(ton==='neutral') mitte+='Bitte unterstützen Sie Ihr Kind dabei, künftig vollständig vorbereitet in den Unterricht zu kommen.';
+    else mitte+='Es wäre schön, wenn Sie gemeinsam noch einmal darauf achten könnten, dass '+(istHA?'die Hausaufgaben erledigt und mitgebracht werden.':'alles Benötigte dabei ist.');
+    if(stufe>=3) mitte+=' Da dies nun wiederholt vorgekommen ist, würde ich mich bei weiterem Auftreten gern kurz mit Ihnen dazu austauschen.';
+  } else if(grund&&grund.typ==='positiv'){
+    positiv=true; var k=A.byId('Kurse',grund.kursId),f=k&&k.fach?' im Fach '+k.fach:'';
+    if(grund.signal==='mitarbeit_verbessert') mitte='ich möchte Ihnen gern eine positive Rückmeldung geben: Mir ist aufgefallen, dass sich '+name+f+' in letzter Zeit deutlich aktiver und engagierter am Unterricht beteiligt. Diese Entwicklung finde ich sehr erfreulich.';
+    else mitte='ich möchte Ihnen gern eine positive Rückmeldung geben: '+name+' beteiligt sich'+f+' in letzter Zeit sehr zuverlässig und engagiert am Unterricht. Das ist mir positiv aufgefallen.';
+  } else if(grund&&grund.typ==='liste'){
+    var a=aufgabeById(grund.aufgabeId)||{titel:grund.titel||'Abgabe',abgabeArt:grund.abgabeArt||'auto'};
+    mitte=listenElternText_(a,name,false);
   } else {
-    var key = grund && grund.typ === 'preset' ? grund.key : 'allgemein';
-    var freundlich = {
-      material:'ich möchte Ihnen kurz eine Rückmeldung geben: In letzter Zeit hat benötigtes Unterrichtsmaterial bei ' + name + ' wiederholt gefehlt. Es wäre hilfreich, wenn Sie gemeinsam noch einmal auf die vollständige Vorbereitung achten könnten.',
-      hausaufgaben:'ich möchte Ihnen kurz eine Rückmeldung geben: Die Hausaufgaben waren bei ' + name + ' zuletzt wiederholt nicht vollständig vorhanden. Bitte unterstützen Sie Ihr Kind dabei, die Aufgaben zuverlässig zu erledigen und mitzubringen.',
-      unterschrift:'uns fehlt von ' + name + ' noch eine benötigte Unterschrift. Bitte schauen Sie die Unterlagen noch einmal durch und geben Sie diese unterschrieben mit.',
-      abgabe:'uns fehlt von ' + name + ' noch eine vereinbarte Abgabe bzw. Unterlage. Bitte geben Sie diese möglichst zeitnah mit.',
-      organisation:'mir ist aufgefallen, dass die Vorbereitung und Arbeitsorganisation bei ' + name + ' derzeit noch nicht zuverlässig gelingt. Es wäre hilfreich, wenn Sie dies zu Hause noch einmal gemeinsam besprechen könnten.',
-      mitarbeit:'ich möchte Ihnen eine kurze Rückmeldung zur Mitarbeit von ' + name + ' geben. Die Beteiligung im Unterricht könnte derzeit noch regelmäßiger bzw. aktiver sein.',
-      verhalten:'ich möchte Ihnen eine kurze Rückmeldung zum Verhalten von ' + name + ' im Unterricht geben. Es gab zuletzt Situationen, die ich gern gemeinsam mit Ihnen in den Blick nehmen möchte.',
-      leistung:'ich möchte Ihnen eine kurze Rückmeldung zur aktuellen Lernentwicklung von ' + name + ' geben. Ich würde den derzeitigen Stand gern transparent mit Ihnen teilen und bei Bedarf gemeinsam nächste Schritte besprechen.',
-      gespraech:'ich würde mich gern kurz mit Ihnen über ' + name + ' austauschen. Melden Sie sich bitte, damit wir einen passenden Gesprächstermin finden können.',
-      lob:'ich möchte Ihnen gern eine positive Rückmeldung geben: ' + name + ' ist mir in letzter Zeit besonders erfreulich aufgefallen. Das wollte ich Ihnen gerne kurz zurückmelden.',
-      termin:'ich möchte Ihnen eine kurze organisatorische Information zu ' + name + ' weitergeben.',
-      allgemein:'ich möchte Ihnen eine kurze Rückmeldung zu ' + name + ' geben.'
+    var key=grund&&grund.typ==='preset'?grund.key:'allgemein';
+    positiv=key==='lob';
+    var freundlich={
+      material:'ich möchte Ihnen kurz eine Rückmeldung geben: In letzter Zeit fehlte bei '+name+' wiederholt benötigtes Unterrichtsmaterial. Es wäre hilfreich, wenn Sie gemeinsam noch einmal auf die vollständige Vorbereitung achten könnten.',
+      hausaufgaben:'ich möchte Ihnen kurz eine Rückmeldung geben: Die Hausaufgaben waren bei '+name+' zuletzt wiederholt nicht vollständig vorhanden. Bitte unterstützen Sie Ihr Kind dabei, die Aufgaben zuverlässig zu erledigen und mitzubringen.',
+      elternbrief:'uns fehlt von '+name+' noch ein unterschriebener Elternbrief. Bitte unterschreiben Sie den betreffenden Brief und geben Sie ihn wieder mit.',
+      einverstaendnis:'uns fehlt von '+name+' noch eine unterschriebene Einverständniserklärung. Bitte unterschreiben Sie die Erklärung und geben Sie sie wieder mit.',
+      unterschrift:'uns fehlt von '+name+' noch eine benötigte Unterschrift. Bitte schauen Sie die Unterlagen noch einmal durch und geben Sie die entsprechende Unterlage unterschrieben mit.',
+      geld:'uns fehlt von '+name+' noch ein vereinbarter Geldbetrag. Bitte geben Sie diesen möglichst passend und beschriftet mit.',
+      abgabe:'uns fehlt von '+name+' noch eine vereinbarte Abgabe bzw. Unterlage. Bitte geben Sie diese möglichst zeitnah mit.',
+      organisation:'mir ist aufgefallen, dass die Vorbereitung und Arbeitsorganisation bei '+name+' derzeit noch nicht zuverlässig gelingt. Es wäre hilfreich, wenn Sie dies zu Hause noch einmal gemeinsam besprechen könnten.',
+      mitarbeit:'ich möchte Ihnen eine kurze Rückmeldung zur Mitarbeit von '+name+' geben. Die Beteiligung im Unterricht könnte derzeit noch regelmäßiger bzw. aktiver sein.',
+      verhalten:'ich möchte Ihnen eine kurze Rückmeldung zum Verhalten von '+name+' im Unterricht geben. Es gab zuletzt Situationen, die ich gern gemeinsam mit Ihnen in den Blick nehmen möchte.',
+      leistung:'ich möchte Ihnen eine kurze Rückmeldung zur aktuellen Lernentwicklung von '+name+' geben. Ich würde den derzeitigen Stand gern transparent mit Ihnen teilen und bei Bedarf gemeinsam nächste Schritte besprechen.',
+      gespraech:'ich würde mich gern kurz mit Ihnen über '+name+' austauschen. Melden Sie sich bitte, damit wir einen passenden Gesprächstermin finden können.',
+      lob:'ich möchte Ihnen gern eine positive Rückmeldung geben: '+name+' ist mir in letzter Zeit besonders erfreulich aufgefallen. Die Mitarbeit und Verlässlichkeit entwickeln sich sehr positiv.',
+      termin:'ich möchte Ihnen eine kurze organisatorische Information zu '+name+' weitergeben.',
+      allgemein:'ich möchte Ihnen eine kurze Rückmeldung zu '+name+' geben.'
     };
-    mitte = freundlich[key] || freundlich.allgemein;
-    if (ton === 'deutlich' && !['lob','termin','gespraech'].includes(key)) {
-      mitte = mitte.replace('ich möchte Ihnen kurz eine Rückmeldung geben:', 'ich möchte Sie auf Folgendes aufmerksam machen:').replace('Es wäre hilfreich', 'Ich bitte Sie darum');
-    } else if (ton === 'neutral') {
-      mitte = mitte.replace('Es wäre hilfreich', 'Bitte unterstützen Sie dabei');
-    }
+    mitte=freundlich[key]||freundlich.allgemein;
+    if(ton==='deutlich'&&!['lob','termin','gespraech'].includes(key))mitte=mitte.replace('ich möchte Ihnen kurz eine Rückmeldung geben:','ich möchte Sie auf Folgendes aufmerksam machen:').replace('Es wäre hilfreich','Ich bitte Sie darum');
+    else if(ton==='neutral')mitte=mitte.replace('Es wäre hilfreich','Bitte unterstützen Sie dabei');
   }
-  if (zusatz) mitte += '\n\n' + zusatz;
-  var ende = ton === 'deutlich' ? 'Vielen Dank für Ihre Unterstützung.\n\nLiebe Grüße' : 'Vielen Dank für Ihre Unterstützung und liebe Grüße';
-  return anrede + '\n\n' + mitte + '\n\n' + ende;
+  if(zusatz)mitte+='\n\n'+zusatz;
+  var ende=positiv?'Das wollte ich Ihnen gerne einmal positiv zurückmelden.\n\nLiebe Grüße':(ton==='deutlich'?'Vielen Dank für Ihre Unterstützung.\n\nLiebe Grüße':'Vielen Dank für Ihre Unterstützung und liebe Grüße');
+  return anrede+'\n\n'+mitte+'\n\n'+ende;
 }
 function elternNachrichtOeffnen(susId, preset) {
   var sus=A.byId('SuS',susId);if(!sus)return;
   var auto=kommunikationsHinweiseFuerSus(susId),gruende=auto.slice(),presetGrund=null;
-  if(preset){gruende.some(function(g){if(preset.typ===g.typ&&((g.typ==='vergessen'&&g.kursId===preset.kursId&&g.punkt===preset.punkt)||(g.typ==='liste'&&g.aufgabeId===preset.aufgabeId))){presetGrund=g;return true;}return false;});if(!presetGrund){gruende.unshift(preset);presetGrund=preset;}}
+  if(preset){
+    gruende.some(function(g){
+      var same=preset.typ===g.typ&&((g.typ==='vergessen'&&g.kursId===preset.kursId&&g.punkt===preset.punkt)||(g.typ==='liste'&&g.aufgabeId===preset.aufgabeId)||(g.typ==='positiv'&&g.kursId===preset.kursId&&g.signal===preset.signal&&g.signature===preset.signature));
+      if(same){presetGrund=g;return true;}return false;
+    });
+    if(!presetGrund){gruende.unshift(preset);presetGrund=preset;}
+  }
   if(!presetGrund&&gruende.length)presetGrund=gruende[0];
   var optionen='';
   if(gruende.length)optionen+='<optgroup label="Aktuelle Anlässe">'+gruende.map(function(g,i){return '<option value="auto:'+i+'">'+A.esc(elternGrundLabel_(g))+'</option>';}).join('')+'</optgroup>';
   optionen+='<optgroup label="Weitere Anlässe">'+ELTERN_ANLAESSE.map(function(x){return '<option value="preset:'+x.key+'">'+A.esc(x.label)+'</option>';}).join('')+'</optgroup>';
-  var body='<div class="comm-head"><div><div class="comm-kicker">Elternkommunikation</div><div class="comm-person">'+A.esc(A.susName(sus))+'</div></div></div>'+ '<div class="field"><label>Anlass</label><select id="elternGrund">'+optionen+'</select></div>'+ '<div class="comm-grid"><div class="field"><label>Ton</label><select id="elternTon"><option value="freundlich">freundlich</option><option value="neutral">neutral</option><option value="deutlich">deutlich</option></select></div><div class="field check comm-check"><input id="elternAnzahl" type="checkbox" checked><label for="elternAnzahl">Anzahl nennen</label><span class="check-state" aria-hidden="true"></span></div></div>'+ '<div class="field"><label>Eigener Zusatz</label><textarea id="elternZusatz" rows="3" placeholder="Optionaler Zusatz …"></textarea></div><div class="comm-preview-label">Vorschau</div><div class="eltern-msg comm-preview" data-comm-preview></div>';
+  var body='<div class="comm-head"><div><div class="comm-kicker">Elternkommunikation</div><div class="comm-person">'+A.esc(A.susName(sus))+'</div></div></div>'+
+    '<div class="field"><label>Anlass</label><select id="elternGrund">'+optionen+'</select></div>'+
+    '<div class="comm-grid"><div class="field"><label>Ton</label><select id="elternTon"><option value="freundlich">freundlich</option><option value="neutral">neutral</option><option value="deutlich">deutlich</option></select></div><div class="field check comm-check"><input id="elternAnzahl" type="checkbox" checked><label for="elternAnzahl">Anzahl nennen</label><span class="check-state" aria-hidden="true"></span></div></div>'+
+    '<div class="field"><label>Eigener Zusatz</label><textarea id="elternZusatz" rows="3" placeholder="Optionaler Zusatz …"></textarea></div><div class="comm-preview-label">Vorschau</div><div class="eltern-msg comm-preview" data-comm-preview></div>';
   Modal.open({title:'Elternnachricht',body:body,foot:'<button class="btn" data-copy-comm>Kopieren</button><button class="btn" data-share-comm>Teilen</button><button class="btn primary" data-sent-comm>Als verschickt markieren</button>',after:function(bg,close){
     var grundSel=bg.querySelector('#elternGrund'),ton=bg.querySelector('#elternTon'),anz=bg.querySelector('#elternAnzahl'),zus=bg.querySelector('#elternZusatz'),preview=bg.querySelector('[data-comm-preview]');ton.value=String(A.cfg('elternNachrichtTon')||'freundlich');
     if(presetGrund){var idx=gruende.indexOf(presetGrund);if(idx>=0)grundSel.value='auto:'+idx;}
     function grund(){var v=grundSel.value||'';if(v.indexOf('auto:')===0)return gruende[Number(v.slice(5))]||{typ:'preset',key:'allgemein'};if(v.indexOf('preset:')===0)return {typ:'preset',key:v.slice(7),susId:susId};return {typ:'preset',key:'allgemein',susId:susId};}
-    function text(){return elternNachrichtText_(sus,grund(),ton.value,anz.checked,zus.value);}function update(){var g=grund();anz.closest('.field').style.display=(g.typ==='vergessen')?'flex':'none';preview.textContent=text();A.setCfg('elternNachrichtTon',ton.value);}
+    function text(){return elternNachrichtText_(sus,grund(),ton.value,anz.checked,zus.value);}
+    function update(){var g=grund();anz.closest('.field').style.display=(g.typ==='vergessen')?'flex':'none';if(g.typ==='positiv'||(g.typ==='preset'&&g.key==='lob'))ton.value='freundlich';preview.textContent=text();A.setCfg('elternNachrichtTon',ton.value);}
     [grundSel,ton,anz,zus].forEach(function(el){el.addEventListener(el===zus?'input':'change',update);});update();
     bg.querySelector('[data-copy-comm]').addEventListener('click',function(){kopieren(text()).then(function(){window.toast('Nachricht kopiert');});});
     bg.querySelector('[data-share-comm]').addEventListener('click',function(){var t=text();if(navigator.share)navigator.share({title:'Elternnachricht',text:t}).catch(function(){});else kopieren(t).then(function(){window.toast('Nachricht kopiert');});});
-    bg.querySelector('[data-sent-comm]').addEventListener('click',function(){var g=grund();g.susId=susId;if(g.typ==='vergessen'){var schw=elternNachrichtSchwelle();g.anzahl=Math.floor(Number(g.anzahl||0)/schw)*schw||Number(g.anzahl||0);elternVorgangSet_(g,'verschickt',zus.value);}else{var hist=elternVerlauf_();hist.push({id:A.uid('kom'),susId:susId,kursId:g.kursId||'',zeit:new Date().toISOString(),status:'verschickt',anlass:elternGrundLabel_(g),notiz:zus.value||''});A.setCfg('elternVerlauf',hist.slice(-500));}close();render();window.toast('Als verschickt gespeichert');});
+    bg.querySelector('[data-sent-comm]').addEventListener('click',function(){var g=grund();g.susId=susId;if(g.typ==='vergessen'){var schw=elternNachrichtSchwelle();g.anzahl=Math.floor(Number(g.anzahl||0)/schw)*schw||Number(g.anzahl||0);elternVorgangSet_(g,'verschickt',zus.value);}else if(g.typ==='positiv'){elternVorgangSet_(g,'verschickt',zus.value);}else{var hist=elternVerlauf_();hist.push({id:A.uid('kom'),susId:susId,kursId:g.kursId||'',zeit:new Date().toISOString(),status:'verschickt',anlass:elternGrundLabel_(g),typ:g.typ||'preset',notiz:zus.value||''});A.setCfg('elternVerlauf',hist.slice(-500));}close();render();window.toast('Als verschickt gespeichert');});
   }});
 }
 function zeigeElternSchwellenHinweis(h, straf) {
@@ -5153,12 +5248,11 @@ function zeigeElternSchwellenHinweis(h, straf) {
 function elternGeneratorGlobalOeffnen() {
   var sus = A.list('SuS', function(s){return String(s.aktiv||'1')!=='0';}).sort(function(a,b){return A.susName(a).localeCompare(A.susName(b),'de');});
   if (!sus.length) { window.toast('Noch keine Schüler:innen angelegt.',true); return; }
-  Modal.open({title:'Elternnachricht',body:'<div class="hint-box">Wähle ein Kind. Danach kannst du einen aktuellen oder freien Anlass auswählen.</div><div class="comm-person-list">'+sus.map(function(s){var k=A.byId('Klassen',s.klasseId),h=kommunikationsHinweiseFuerSus(s.id).filter(function(x){return x.typ==='vergessen';});return '<button class="row" data-comm-sus="'+s.id+'"><div class="row-main"><div class="row-title">'+A.esc(A.susName(s))+'</div><div class="row-sub">'+A.esc(k?k.name:'')+(h.length?' · '+h.length+' aktueller Hinweis'+(h.length===1?'':'e'):'')+'</div></div><div class="chev">›</div></button>';}).join('')+'</div>',after:function(bg,close){bg.addEventListener('click',function(e){var b=e.target.closest('[data-comm-sus]');if(!b)return;var id=b.getAttribute('data-comm-sus');close();setTimeout(function(){elternNachrichtOeffnen(id);},0);});}});
+  Modal.open({title:'Elternnachricht',body:'<div class="hint-box">Wähle ein Kind. Danach kannst du einen aktuellen oder freien Anlass auswählen.</div><div class="comm-person-list">'+sus.map(function(s){var k=A.byId('Klassen',s.klasseId),h=kommunikationsHinweiseFuerSus(s.id).filter(function(x){return x.typ==='vergessen'||x.typ==='positiv';});return '<button class="row" data-comm-sus="'+s.id+'"><div class="row-main"><div class="row-title">'+A.esc(A.susName(s))+'</div><div class="row-sub">'+A.esc(k?k.name:'')+(h.length?' · '+h.length+' aktueller Hinweis'+(h.length===1?'':'e'):'')+'</div></div><div class="chev">›</div></button>';}).join('')+'</div>',after:function(bg,close){bg.addEventListener('click',function(e){var b=e.target.closest('[data-comm-sus]');if(!b)return;var id=b.getAttribute('data-comm-sus');close();setTimeout(function(){elternNachrichtOeffnen(id);},0);});}});
 }
 function kommunikationKlasseHTML(klasseId) {
-  var arr = kommunikationsHinweiseKlasse(klasseId);
-  if (!arr.length) return '';
-  return card('Elternkommunikation', '<div class="comm-alert-intro">Hinweise bei '+elternNachrichtSchwelle()+'×, '+(elternNachrichtSchwelle()*2)+'×, '+(elternNachrichtSchwelle()*3)+'× … fehlendem Material / Hausaufgaben.</div>' + arr.map(function(h){var sus=A.byId('SuS',h.susId),kurs=A.byId('Kurse',h.kursId);return '<button class="row comm-row" data-act="eltern-nachricht" data-sus="'+h.susId+'" data-kurs="'+h.kursId+'" data-punkt="'+A.esc(h.punkt)+'"><div class="comm-dot"></div><div class="row-main"><div class="row-title">'+A.esc(sus?A.susName(sus):'')+'</div><div class="row-sub">'+A.esc(h.punkt)+' '+h.anzahl+'× vergessen'+(kurs&&kurs.fach?' · '+A.esc(kurs.fach):'')+'</div></div><span class="comm-action">Nachricht</span></button>';}).join(''));
+  var arr=kommunikationsHinweiseKlasse(klasseId);if(!arr.length)return '';
+  return card('Elternkommunikation','<div class="comm-alert-intro">Hinweise bei '+elternNachrichtSchwelle()+'×, '+(elternNachrichtSchwelle()*2)+'×, '+(elternNachrichtSchwelle()*3)+'× … sowie gelegentliche positive Rückmeldungen.</div>'+arr.map(function(h){var sus=A.byId('SuS',h.susId),kurs=A.byId('Kurse',h.kursId);if(h.typ==='positiv')return '<button class="row comm-row" data-act="eltern-nachricht" data-positive="1" data-sus="'+h.susId+'" data-kurs="'+h.kursId+'"><div class="comm-dot" style="background:#448361"></div><div class="row-main"><div class="row-title">'+A.esc(sus?A.susName(sus):'')+'</div><div class="row-sub">Positive Rückmeldung möglich'+(kurs&&kurs.fach?' · '+A.esc(kurs.fach):'')+'</div></div><span class="comm-action">Nachricht</span></button>';return '<button class="row comm-row" data-act="eltern-nachricht" data-sus="'+h.susId+'" data-kurs="'+h.kursId+'" data-punkt="'+A.esc(h.punkt)+'"><div class="comm-dot"></div><div class="row-main"><div class="row-title">'+A.esc(sus?A.susName(sus):'')+'</div><div class="row-sub">'+A.esc(h.punkt)+' '+h.anzahl+'× vergessen'+(kurs&&kurs.fach?' · '+A.esc(kurs.fach):'')+'</div></div><span class="comm-action">Nachricht</span></button>';}).join(''));
 }
 
 function craftLinks_(){var x=A.cfg('craftLinks');return x&&typeof x==='object'?A.clone(x):{};}
@@ -5166,6 +5260,24 @@ function craftLinkFuer_(kursId){return String(craftLinks_()[kursId]||'').trim();
 function craftLinkSet_(kursId,url){var x=craftLinks_();url=String(url||'').trim();if(url)x[kursId]=url;else delete x[kursId];A.setCfg('craftLinks',x);}
 function craftLinkGueltig_(url){return /^https?:\/\//i.test(url)||/^craftdocs:\/\//i.test(url);}
 function craftOeffnen_(kursId){var u=craftLinkFuer_(kursId);if(!u){window.toast('Für dieses Fach ist noch kein Craft-Dokument verknüpft.',true);return;}if(/^craftdocs:\/\//i.test(u)){location.href=u;}else window.open(u,'_blank','noopener');}
+function craftApiLocalKey_(){var u=A.Auth.currentUser&&A.Auth.currentUser();return 'craft.api.'+((u&&(u.id||u.email))||'device');}
+function craftApiConfig_(){var c=A.LS.get(craftApiLocalKey_(),null);return c&&typeof c==='object'?c:{url:'',auto:false,namen:true};}
+function craftApiSet_(c){A.LS.set(craftApiLocalKey_(),c);}
+function craftApiUrlGueltig_(u){return /^https:\/\/connect\.craft\.do\/links\/[^/]+\/api\/v1\/?$/i.test(String(u||'').trim());}
+function craftSyncMapKey_(){return craftApiLocalKey_()+'.sync';}
+function craftSyncMap_(){var x=A.LS.get(craftSyncMapKey_(),{});return x&&typeof x==='object'?x:{};}
+function craftTaskText_(it){var c=craftApiConfig_(),name=c.namen!==false&&it.sus?A.susName(it.sus):'ein Kind';if(it.typ==='vergessen')return 'Elternnachricht prüfen: '+name+' · '+it.h.punkt+' '+it.h.anzahl+'×'+(it.kurs&&it.kurs.fach?' · '+it.kurs.fach:'');if(it.typ==='positiv')return 'Positive Elternrückmeldung erwägen: '+name+(it.kurs&&it.kurs.fach?' · '+it.kurs.fach:'');if(it.typ==='liste')return 'Einsammel-Liste prüfen: '+it.a.titel+(it.offen!==undefined?' · '+it.offen+' offen':'');if(it.typ==='straf')return 'Offene Strafarbeit prüfen: '+name+(it.kurs&&it.kurs.fach?' · '+it.kurs.fach:'');return it.titel||'Schulapp-Aufgabe';}
+function craftPostTasks_(items,datum){var c=craftApiConfig_();if(!craftApiUrlGueltig_(c.url))return Promise.reject(new Error('Craft-Verbindung fehlt'));var url=String(c.url).replace(/\/$/,'')+'/tasks';var tasks=items.map(function(it){return {markdown:craftTaskText_(it),taskInfo:{scheduleDate:datum},location:{type:'dailyNote',date:datum}};});return fetch(url,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({tasks:tasks})}).then(function(r){return r.text().then(function(t){var j={};try{j=t?JSON.parse(t):{};}catch(e){}if(!r.ok)throw new Error((j&&j.message)||('Craft HTTP '+r.status));return j;});});}
+var craftAutoBusy_=false;
+function craftSyncInbox_(datum,onlyKey,silent){
+  if(VORSCHAU_AKTIV){if(!silent)window.toast('Vorschau: Es werden keine Aufgaben an Craft gesendet.');return Promise.resolve({preview:true});}
+  var c=craftApiConfig_();if(!craftApiUrlGueltig_(c.url)){if(!silent)ACT['craft-api']();return Promise.reject(new Error('Craft-Verbindung fehlt'));}
+  var map=craftSyncMap_(),items=inboxDaten_(datum).filter(function(it){return (!onlyKey||it.key===onlyKey)&&!map[it.key];});
+  if(!items.length){if(!silent)window.toast('Diese Inbox-Einträge sind bereits in Craft.');return Promise.resolve({items:[]});}
+  return craftPostTasks_(items,datum).then(function(res){var made=(res&&res.items)||[];items.forEach(function(it,i){map[it.key]={datum:datum,zeit:new Date().toISOString(),taskId:(made[i]&&made[i].id)||''};});A.LS.set(craftSyncMapKey_(),map);if(!silent)window.toast(items.length+' Aufgabe'+(items.length===1?'':'n')+' nach Craft übertragen');render();return res;}).catch(function(e){if(!silent)window.toast('Craft: '+e.message,true);throw e;});
+}
+function craftAutoSyncHeute_(){if(craftAutoBusy_||VORSCHAU_AKTIV||route.tab!=='heute'||route.stack.length)return;var c=craftApiConfig_();if(!c.auto||!craftApiUrlGueltig_(c.url))return;craftAutoBusy_=true;craftSyncInbox_(A.todayISO(),null,true).catch(function(){}).finally(function(){craftAutoBusy_=false;});}
+
 function susTimeline_(susId){
   var items=[];
   elternVerlaufFuerSus_(susId).forEach(function(x){items.push({datum:String(x.zeit||'').slice(0,10),sort:x.zeit||'',typ:'kommunikation',titel:x.status==='besprochen'?'Mit Eltern besprochen':'Elternnachricht verschickt',sub:x.anlass||''});});
@@ -5175,28 +5287,45 @@ function susTimeline_(susId){
 }
 function susTimelineHTML_(susId){var arr=susTimeline_(susId);if(!arr.length)return '<div class="timeline-empty">Noch keine Einträge.</div>';return '<div class="timeline">'+arr.map(function(x){return '<div class="timeline-row"><div class="timeline-date">'+(x.datum?A.fmtDateShort(x.datum):'')+'</div><div class="timeline-dot '+x.typ+'"></div><div class="timeline-main"><b>'+A.esc(x.titel)+'</b>'+(x.sub?'<span>'+A.esc(x.sub)+'</span>':'')+'</div></div>';}).join('')+'</div>';}
 
+function positiveMitarbeitHinweis_(kursId,susId){
+  var rows=A.mitarbeitWerte(kursId,susId).slice().sort(function(a,b){var x=String(a.datum||'')+'|'+String(a.stunde||''),y=String(b.datum||'')+'|'+String(b.stunde||'');return x.localeCompare(y);});
+  var vals=rows.map(function(r){return Number(r.wert);}).filter(function(v){return isFinite(v);});
+  if(vals.length<4)return null;
+  var last4=vals.slice(-4),avg4=last4.reduce(function(a,b){return a+b;},0)/4,posCount=last4.filter(function(v){return v>=1;}).length;
+  var signal='';
+  if(avg4>=1&&posCount>=3)signal='mitarbeit_stark';
+  if(vals.length>=6){var l3=vals.slice(-3),p3=vals.slice(-6,-3),la=l3.reduce(function(a,b){return a+b;},0)/3,pa=p3.reduce(function(a,b){return a+b;},0)/3;if(la>=.67&&la-pa>=.85)signal='mitarbeit_verbessert';}
+  if(!signal)return null;
+  var last=rows[rows.length-1],signature=signal+'|'+String(last&&last.datum||'')+'|'+String(last&&last.stunde||'')+'|'+rows.length;
+  var h={typ:'positiv',susId:susId,kursId:kursId,punkt:'Mitarbeit',signal:signal,signature:signature,anzahl:0};
+  var recent=elternVerlauf_().some(function(x){if(x.susId!==susId||x.kursId!==kursId||x.typ!=='positiv')return false;var d=String(x.zeit||'').slice(0,10);return d&&d>=A.addDays(A.todayISO(),-21);});
+  if(recent)return null;
+  var rec=elternVorgaenge_()[elternVorgangKey_(h)];
+  if(rec&&(rec.status==='verschickt'||rec.status==='besprochen'||rec.status==='verworfen'))return null;
+  if(rec&&rec.status==='spaeter'&&String(rec.bis||'')>A.todayISO())return null;
+  return h;
+}
+function positiveHinweiseFuerSus_(susId){var s=A.byId('SuS',susId),out=[];if(!s)return out;A.kurseDerKlasse(s.klasseId).forEach(function(k){var h=positiveMitarbeitHinweis_(k.id,susId);if(h)out.push(h);});return out;}
+
 function elternVorgangKey_(h) {
-  return [h.kursId||'',h.susId||'',h.punkt||'',h.anzahl||0].join('|');
+  if(h&&h.typ==='vergessen')return [h.kursId||'',h.susId||'',h.punkt||'',h.anzahl||0].join('|');
+  return [h&&h.typ||'allgemein',h&&h.kursId||'',h&&h.susId||'',h&&h.signal||h&&h.punkt||'',h&&h.signature||h&&h.anzahl||0].join('|');
 }
 function elternVorgaenge_(){var x=A.cfg('elternVorgaenge');return x&&typeof x==='object'?A.clone(x):{};}
 function elternVerlauf_(){var x=A.cfg('elternVerlauf');return Array.isArray(x)?A.clone(x):[];}
 function elternVerlaufFuerSus_(susId){return elternVerlauf_().filter(function(x){return x.susId===susId;}).sort(function(a,b){return String(b.zeit||'').localeCompare(String(a.zeit||''));});}
 function elternVorgangEnsure_(h){
-  if(!h||h.typ!=='vergessen')return;
-  var all=elternVorgaenge_(),k=elternVorgangKey_(h);
-  if(!all[k]){all[k]={status:'offen',zeit:new Date().toISOString(),susId:h.susId,kursId:h.kursId,punkt:h.punkt,anzahl:h.anzahl};A.setCfg('elternVorgaenge',all);}
+  if(!h)return;var all=elternVorgaenge_(),k=elternVorgangKey_(h);
+  if(!all[k]){all[k]={status:'offen',zeit:new Date().toISOString(),typ:h.typ||'',susId:h.susId||'',kursId:h.kursId||'',punkt:h.punkt||'',anzahl:h.anzahl||0,signal:h.signal||'',signature:h.signature||''};A.setCfg('elternVorgaenge',all);}
 }
 function elternVorgangSet_(h,status,notiz){
-  if(!h)return;
-  var all=elternVorgaenge_(),k=elternVorgangKey_(h),now=new Date().toISOString();
-  var rec=all[k]||{susId:h.susId||'',kursId:h.kursId||'',punkt:h.punkt||'',anzahl:h.anzahl||0};
-  rec.status=status;rec.zeit=now;rec.notiz=notiz||'';
+  if(!h)return;var all=elternVorgaenge_(),k=elternVorgangKey_(h),now=new Date().toISOString();
+  var rec=all[k]||{typ:h.typ||'',susId:h.susId||'',kursId:h.kursId||'',punkt:h.punkt||'',anzahl:h.anzahl||0,signal:h.signal||'',signature:h.signature||''};
+  rec.status=status;rec.zeit=now;rec.notiz=notiz||'';rec.typ=h.typ||rec.typ||'';rec.signal=h.signal||rec.signal||'';rec.signature=h.signature||rec.signature||'';
   if(status==='spaeter')rec.bis=A.addDays(A.todayISO(),1);else delete rec.bis;
   all[k]=rec;A.setCfg('elternVorgaenge',all);
   if(status==='verschickt'||status==='besprochen'){
-    var hist=elternVerlauf_();
-    hist.push({id:A.uid('kom'),susId:h.susId||'',kursId:h.kursId||'',zeit:now,status:status,anlass:elternGrundLabel_(h),punkt:h.punkt||'',anzahl:h.anzahl||0,notiz:notiz||''});
-    A.setCfg('elternVerlauf',hist.slice(-500));
+    var hist=elternVerlauf_();hist.push({id:A.uid('kom'),susId:h.susId||'',kursId:h.kursId||'',zeit:now,status:status,anlass:elternGrundLabel_(h),typ:h.typ||'',signal:h.signal||'',punkt:h.punkt||'',anzahl:h.anzahl||0,notiz:notiz||''});A.setCfg('elternVerlauf',hist.slice(-500));
   }
 }
 function elternAktuellerVorgang_(kursId,susId,punkt){
@@ -5215,18 +5344,29 @@ function elternInbox_(){
     A.kurseDerKlasse(sus.klasseId).forEach(function(kurs){
       var bil=A.checkBilanzSus(kurs.id,sus.id);
       Object.keys(bil).forEach(function(p){var h=elternAktuellerVorgang_(kurs.id,sus.id,p);if(h)out.push(h);});
+      var pos=positiveMitarbeitHinweis_(kurs.id,sus.id);if(pos)out.push(pos);
     });
   });
-  return out.sort(function(a,b){return (b.anzahl||0)-(a.anzahl||0);});
+  return out.sort(function(a,b){if(a.typ==='positiv'&&b.typ!=='positiv')return 1;if(b.typ==='positiv'&&a.typ!=='positiv')return -1;return (b.anzahl||0)-(a.anzahl||0);});
 }
-function inboxHTML(datum){
+function inboxDaten_(datum){
   var heute=datum===A.todayISO(),items=[];
   if(heute){
-    elternInbox_().forEach(function(h){var sus=A.byId('SuS',h.susId),k=A.byId('Kurse',h.kursId);items.push('<div class="inbox-item"><div class="inbox-icon">↗</div><div class="inbox-main"><b>'+A.esc(sus?A.susName(sus):'')+'</b><span>'+A.esc(h.punkt)+' · '+h.anzahl+'×'+(k&&k.fach?' · '+A.esc(k.fach):'')+'</span></div><div class="inbox-actions"><button class="btn small" data-act="eltern-spaeter" data-sus="'+h.susId+'" data-kurs="'+h.kursId+'" data-punkt="'+A.esc(h.punkt)+'" data-anzahl="'+h.anzahl+'">Später</button><button class="btn small" data-act="eltern-besprochen" data-sus="'+h.susId+'" data-kurs="'+h.kursId+'" data-punkt="'+A.esc(h.punkt)+'" data-anzahl="'+h.anzahl+'">Besprochen</button><button class="btn small primary" data-act="eltern-nachricht" data-sus="'+h.susId+'" data-kurs="'+h.kursId+'" data-punkt="'+A.esc(h.punkt)+'">Nachricht</button></div></div>');});
+    elternInbox_().forEach(function(h){var sus=A.byId('SuS',h.susId),k=A.byId('Kurse',h.kursId);items.push({key:'eltern|'+elternVorgangKey_(h),typ:h.typ,h:h,sus:sus,kurs:k,titel:h.typ==='positiv'?'Positive Rückmeldung möglich':(sus?A.susName(sus):''),sub:h.typ==='positiv'?((h.signal==='mitarbeit_verbessert'?'Mitarbeit deutlich verbessert':'Mitarbeit zuletzt besonders stark')+(k&&k.fach?' · '+k.fach:'')):(h.punkt+' · '+h.anzahl+'×'+(k&&k.fach?' · '+k.fach:''))});});
   }
-  aufgabenAlle().filter(function(a){return a&&!a.erledigt&&a.frist&&a.frist<=datum;}).slice(0,8).forEach(function(a){var k=A.byId('Kurse',a.kursId);items.push('<button class="inbox-item clickable" data-act="aufgabe-open" data-aufgabe="'+a.id+'"><div class="inbox-icon">□</div><div class="inbox-main"><b>'+A.esc(a.titel)+'</b><span>'+(a.frist<datum?'überfällig':'heute fällig')+(k?' · '+A.esc(A.kursLabel(k)):'')+'</span></div><div class="chev">›</div></button>');});
-  A.alleKurse().forEach(function(k){A.offeneStrafarbeiten(k.id).slice(0,4).forEach(function(x){items.push('<button class="inbox-item clickable" data-act="open-sus" data-sus="'+x.sus.id+'"><div class="inbox-icon">!</div><div class="inbox-main"><b>'+A.esc(A.susName(x.sus))+'</b><span>offene Strafarbeit · '+A.esc(k.fach||'')+'</span></div><div class="chev">›</div></button>');});});
-  return '<section class="workspace-section inbox-section"><div class="workspace-heading"><div><h2>Inbox</h2><p>'+ (items.length?items.length+' Dinge brauchen deine Aufmerksamkeit':'Alles erledigt') +'</p></div><button class="ghost-link" data-act="eltern-generator">Elternnachricht</button></div>'+(items.length?'<div class="inbox-list">'+items.join('')+'</div>':'<div class="inbox-empty">Keine offenen Hinweise für heute.</div>')+'</section>';
+  aufgabenAlle().filter(function(a){return a&&!a.erledigt&&a.frist&&a.frist<=datum;}).slice(0,8).forEach(function(a){var k=A.byId('Kurse',a.kursId),st=k&&a.typ==='liste'?listenStand(a,k):null,off=st?Math.max(0,st.gesamt-st.erledigt):undefined;items.push({key:'liste|'+a.id+'|'+(a.frist||''),typ:'liste',a:a,kurs:k,offen:off,titel:a.titel,sub:(a.frist<datum?'überfällig':'heute fällig')+(k?' · '+A.kursLabel(k):'')});});
+  A.alleKurse().forEach(function(k){A.offeneStrafarbeiten(k.id).slice(0,4).forEach(function(x){items.push({key:'straf|'+(x.aufgabe&&x.aufgabe.id||k.id+'|'+x.sus.id),typ:'straf',sus:x.sus,kurs:k,x:x,titel:A.susName(x.sus),sub:'offene Strafarbeit · '+(k.fach||'')});});});
+  return items;
+}
+function inboxHTML(datum){
+  var items=inboxDaten_(datum),sync=craftSyncMap_(),html=items.map(function(it){var craft='<button class="inbox-craft" data-act="craft-sync-one" data-craft-key="'+A.esc(it.key)+'" title="In heutige Craft-Notiz">'+(sync[it.key]?'Craft ✓':'Craft')+'</button>';
+    if(it.typ==='vergessen')return '<div class="inbox-item"><div class="inbox-icon">↗</div><div class="inbox-main"><b>'+A.esc(it.titel)+'</b><span>'+A.esc(it.sub)+'</span></div><div class="inbox-actions"><button class="btn small" data-act="eltern-spaeter" data-sus="'+it.h.susId+'" data-kurs="'+it.h.kursId+'" data-punkt="'+A.esc(it.h.punkt)+'" data-anzahl="'+it.h.anzahl+'">Später</button><button class="btn small" data-act="eltern-besprochen" data-sus="'+it.h.susId+'" data-kurs="'+it.h.kursId+'" data-punkt="'+A.esc(it.h.punkt)+'" data-anzahl="'+it.h.anzahl+'">Besprochen</button><button class="btn small primary" data-act="eltern-nachricht" data-sus="'+it.h.susId+'" data-kurs="'+it.h.kursId+'" data-punkt="'+A.esc(it.h.punkt)+'">Nachricht</button>'+craft+'</div></div>';
+    if(it.typ==='positiv')return '<div class="inbox-item positive"><div class="inbox-icon">＋</div><div class="inbox-main"><b>'+A.esc(it.titel)+'</b><span class="positive-label">'+A.esc(it.sub)+'</span></div><div class="inbox-actions"><button class="btn small" data-act="positiv-spaeter" data-sus="'+it.h.susId+'" data-kurs="'+it.h.kursId+'">Später</button><button class="btn small" data-act="positiv-ausblenden" data-sus="'+it.h.susId+'" data-kurs="'+it.h.kursId+'">Ausblenden</button><button class="btn small primary" data-act="positiv-nachricht" data-sus="'+it.h.susId+'" data-kurs="'+it.h.kursId+'">Nachricht</button>'+craft+'</div></div>';
+    if(it.typ==='liste')return '<div class="inbox-item"><button class="inbox-open" data-act="aufgabe-open" data-aufgabe="'+A.esc(it.a.id)+'"><div class="inbox-icon">□</div><div class="inbox-main"><b>'+A.esc(it.titel)+'</b><span>'+A.esc(it.sub)+(it.offen!==undefined?' · '+it.offen+' offen':'')+'</span></div><div class="chev">›</div></button>'+craft+'</div>';
+    return '<div class="inbox-item"><button class="inbox-open" data-act="open-sus" data-sus="'+it.sus.id+'"><div class="inbox-icon">!</div><div class="inbox-main"><b>'+A.esc(it.titel)+'</b><span>'+A.esc(it.sub)+'</span></div><div class="chev">›</div></button>'+craft+'</div>';
+  }).join('');
+  var c=craftApiConfig_(),craftStatus=craftApiUrlGueltig_(c.url)?'<span class="craft-sync-state"><i class="on"></i>Craft verbunden</span>':'<span class="craft-sync-state"><i></i>Craft nicht verbunden</span>';
+  return '<section class="workspace-section inbox-section"><div class="workspace-heading"><div><h2>Inbox</h2><p>'+(items.length?items.length+' Dinge brauchen deine Aufmerksamkeit':'Alles erledigt')+' · '+craftStatus+'</p></div><div><button class="ghost-link" data-act="eltern-generator">Elternnachricht</button>'+(items.length?'<button class="ghost-link" data-act="craft-sync-inbox">Nach Craft</button>':'')+'</div></div>'+(items.length?'<div class="inbox-list">'+html+'</div>':'<div class="inbox-empty">Keine offenen Hinweise für heute.</div>')+'</section>';
 }
 function cockpitHTML(datum) { return inboxHTML(datum); }
 
@@ -5565,12 +5705,39 @@ function back() { route.stack.pop(); window.scrollTo(0, 0); render(); }
 btnBack.addEventListener('click', back);
 
 document.querySelectorAll('.tab').forEach(function (t) {
-  t.addEventListener('click', function () {
+  t.addEventListener('click', function (e) {
+    var toggle = e.target.closest('[data-sidebar-toggle]');
+    if (toggle && window.matchMedia('(min-width:820px)').matches) {
+      e.preventDefault(); e.stopPropagation();
+      var which = toggle.getAttribute('data-sidebar-toggle');
+      if (which === 'klassen') { ui.sidebarKlassen = !ui.sidebarKlassen; A.LS.set('sidebar.klassen', ui.sidebarKlassen); }
+      if (which === 'noten') { ui.sidebarNoten = !ui.sidebarNoten; A.LS.set('sidebar.noten', ui.sidebarNoten); }
+      syncDesktopSidebar_();
+      return;
+    }
     var tab = t.getAttribute('data-tab');
     if (tab === 'heute') ui.datum = A.todayISO();
     go(tab);
   });
 });
+
+tabbar.addEventListener('click', function(e){
+  var b=e.target.closest('[data-sidebar-class],[data-sidebar-course]');
+  if(!b)return;
+  if(b.hasAttribute('data-sidebar-class')){route.tab='klassen';route.stack=[{view:'klasse',p:{id:b.getAttribute('data-sidebar-class')}}];window.scrollTo(0,0);render();}
+  else{route.tab='noten';route.stack=[{view:'kurs',p:{id:b.getAttribute('data-sidebar-course')}}];window.scrollTo(0,0);render();}
+});
+
+function syncDesktopSidebar_(){
+  var kt=document.querySelector('[data-sidebar-tree="klassen"]'),nt=document.querySelector('[data-sidebar-tree="noten"]');
+  var kb=document.querySelector('.tab[data-tab="klassen"]'),nb=document.querySelector('.tab[data-tab="noten"]');
+  if(!kt||!nt||!kb||!nb)return;
+  kb.classList.toggle('sidebar-open',!!ui.sidebarKlassen);nb.classList.toggle('sidebar-open',!!ui.sidebarNoten);
+  kt.classList.toggle('open',!!ui.sidebarKlassen);nt.classList.toggle('open',!!ui.sidebarNoten);
+  var top=route.stack[route.stack.length-1]||null;
+  kt.innerHTML=A.klassen(true).map(function(k){var active=top&&top.view==='klasse'&&top.p.id===k.id;return '<button class="sidebar-child'+(active?' active':'')+'" data-sidebar-class="'+A.esc(k.id)+'"><span class="sidebar-child-dot"></span><span class="sidebar-child-label">'+A.esc(k.name)+'</span></button>';}).join('');
+  nt.innerHTML=A.alleKurse(true).map(function(k){var kl=A.byId('Klassen',k.klasseId),active=top&&top.view==='kurs'&&top.p.id===k.id;return '<button class="sidebar-child'+(active?' active':'')+'" data-sidebar-course="'+A.esc(k.id)+'" style="--child-color:'+A.esc(k.farbe||'#b8b8b4')+'"><span class="sidebar-child-dot"></span><span class="sidebar-child-label">'+A.esc((kl?kl.name+' · ':'')+(k.fach||''))+'</span></button>';}).join('');
+}
 
 btnSync.addEventListener('click', function () {
   if (VORSCHAU_AKTIV) { window.toast('Vorschau: keine Server-Synchronisation'); return; }
@@ -6677,10 +6844,14 @@ VIEWS.mehr = {
       '<button class="row" data-act="eltern-generator"><div class="row-main"><div class="row-title">Elternnachricht erstellen</div><div class="row-sub">Textvorlage für ein Kind generieren und anschließend kopieren oder teilen</div></div><div class="chev">›</div></button>' +
       '<button class="row" data-act="eltern-einstellungen"><div class="row-main"><div class="row-title">Automatische Elternhinweise</div><div class="row-sub">bei ' + elternNachrichtSchwelle() + '×, ' + (elternNachrichtSchwelle()*2) + '×, ' + (elternNachrichtSchwelle()*3) + '× …</div></div><div class="chev">›</div></button>');
 
-    h += card('Craft', '<button class="row" data-act="craft-info"><div class="row-main"><div class="row-title">Craft-Verknüpfung</div><div class="row-sub">Planungsdokumente pro Fach direkt öffnen · Inhalte bleiben in Craft</div></div><div class="chev">›</div></button>');
+    var craftCfg=craftApiConfig_();
+    h += card('Craft',
+      '<button class="row" data-act="craft-api"><div class="row-main"><div class="row-title">Craft API Connection</div><div class="row-sub">'+(craftApiUrlGueltig_(craftCfg.url)?'verbunden · '+(craftCfg.auto?'Inbox automatisch → heutige Notiz':'manuell synchronisieren'):'noch nicht verbunden')+'</div></div><div class="chev">›</div></button>'+
+      '<button class="row" data-act="craft-sync-inbox"><div class="row-main"><div class="row-title">Heutige Inbox nach Craft</div><div class="row-sub">offene Schulapp-Hinweise als Aufgaben in die heutige Craft-Notiz schreiben</div></div><div class="chev">›</div></button>'+
+      '<button class="row" data-act="craft-info"><div class="row-main"><div class="row-title">Craft + Schulapp</div><div class="row-sub">Aufteilung und Verknüpfungen erklären</div></div><div class="chev">›</div></button>');
 
     h += card('App',
-      '<div class="row" style="cursor:default"><div class="row-main"><div class="row-title">App-Version</div><div class="row-sub">Version 39</div></div></div>' +
+      '<div class="row" style="cursor:default"><div class="row-main"><div class="row-title">App-Version</div><div class="row-sub">Version 40</div></div></div>' +
       '<button class="row" data-act="farbdesign"><div class="row-main"><div class="row-title">Farbdesign</div>' +
         '<div class="row-sub"><span class="farb-punkt" style="--fc:' + aktuelleDesignFarbe() + ';display:inline-block;vertical-align:-2px;margin-right:6px"></span>' +
         A.esc(A.cfg('farbdesignHex') ? 'Eigene Farbe' : (FARBDESIGNS[A.cfg('farbdesign')] || FARBDESIGNS.blau)) +
@@ -6715,7 +6886,7 @@ VIEWS.mehr = {
       '<div class="kv"><span class="k">Abhak-Einträge</span><span class="v">' + z.c + '</span></div>' +
       '</div>');
 
-    h += '<div class="small muted" style="text-align:center;padding:6px 10px 20px"><b>Schulapp · Version 39</b><br>Deine Daten sind deinem Konto zugeordnet und zusätzlich lokal auf diesem Gerät zwischengespeichert.</div>';
+    h += '<div class="small muted" style="text-align:center;padding:6px 10px 20px"><b>Schulapp · Version 40</b><br>Deine Daten sind deinem Konto zugeordnet und zusätzlich lokal auf diesem Gerät zwischengespeichert.</div>';
     return h;
   }
 };
@@ -6778,9 +6949,11 @@ function render() {
   if (VORSCHAU_AKTIV) topActions.insertAdjacentHTML('beforeend', '<span class="preview-chip" title="Lokale Testdaten – keine Serververbindung">Vorschau</span>');
   btnBack.hidden = route.stack.length === 0;
   document.querySelectorAll('.tab').forEach(function (t) {
-    t.classList.toggle('active', t.getAttribute('data-tab') === route.tab && route.stack.length === 0);
+    t.classList.toggle('active', t.getAttribute('data-tab') === route.tab);
   });
+  syncDesktopSidebar_();
   setTimeout(planeStundenErinnerungen, 30);
+  setTimeout(craftAutoSyncHeute_, 80);
 }
 window.render = render;
 
@@ -8051,7 +8224,7 @@ function notenPdfKopf_(title, subtitle, meta) {
 
 function notenPdfFooter_(seite, gesamt) {
   var W = 841.89;
-  var text = 'Schulapp · Version 39';
+  var text = 'Schulapp · Version 40';
   if (gesamt > 1) text += ' · Seite ' + seite + '/' + gesamt;
   return pdfTextCmd_(text, W - 34, 18, 6.8, 'right');
 }
@@ -8901,7 +9074,8 @@ ACT['aufgabe-neu'] = function (el) {
         { value: 'liste', label: '📋 Einsammel-Liste' },
         { value: 'todo', label: '✓ To-do' }
       ], value: 'liste' },
-      { key: 'titel', label: 'Titel', placeholder: 'z. B. Elternbrief einsammeln' },
+      { key: 'titel', label: 'Titel', placeholder: 'z. B. Elternabend' },
+      { key: 'abgabeArt', label: 'Art der Rückgabe (bei Listen)', type: 'select', value: 'auto', options: LISTEN_ARTEN, hint: '„automatisch erkennen“ erkennt z. B. bei „Elternabend“ einen unterschriebenen Elternbrief.' },
       { key: 'frist', label: 'Frist (optional)', type: 'date', value: '' },
       { key: 'notiz', label: 'Notiz (optional)', type: 'textarea', rows: 2, placeholder: 'z. B. unterschrieben mitbringen' },
       { key: 'elternhinweis', label: 'Hinweis für Eltern (optional)', type: 'textarea', rows: 2, placeholder: 'z. B. Bitte unterschrieben zurückgeben' }
@@ -8913,6 +9087,7 @@ ACT['aufgabe-neu'] = function (el) {
         typ: v.typ === 'todo' ? 'todo' : 'liste',
         kursId: kurs.id,
         titel: v.titel.trim(),
+        abgabeArt: v.abgabeArt || 'auto',
         frist: v.frist || '',
         notiz: v.notiz.trim(),
         elternhinweis: v.elternhinweis.trim(),
@@ -9034,36 +9209,20 @@ ACT['aufgabe-open'] = function (el) {
 };
 
 function aufgabeBearbeiten(id) {
-  var a = aufgabeById(id);
-  if (!a) return;
-  Modal.form({
-    title: a.typ === 'liste' ? 'Liste bearbeiten' : 'To-do bearbeiten',
-    fields: [
-      { key: 'titel', label: 'Titel', value: a.titel || '' },
-      { key: 'frist', label: 'Frist (optional)', type: 'date', value: a.frist || '' },
-      { key: 'notiz', label: 'Notiz (optional)', type: 'textarea', rows: 2, value: a.notiz || '' },
-      { key: 'elternhinweis', label: 'Hinweis für Eltern (optional)', type: 'textarea', rows: 2, value: a.elternhinweis || '', hint: 'Wird automatisch in die Eltern-Erinnerung übernommen.' }
-    ],
-    validate: function (v) { return v.titel.trim() ? null : 'Bitte einen Titel eingeben.'; },
-    onSave: function (v) {
-      a.titel = v.titel.trim(); a.frist = v.frist || ''; a.notiz = v.notiz.trim(); a.elternhinweis = v.elternhinweis.trim();
-      aufgabeSpeichern(a);
-    },
-    onDelete: function () { aufgabeLoeschen(a.id); },
-    deleteHint: (a.typ === 'liste' ? 'Diese Liste' : 'Dieses To-do') + ' wirklich löschen?'
-  });
+  var a=aufgabeById(id);if(!a)return;
+  var fields=[{key:'titel',label:'Titel',value:a.titel||''}];
+  if(a.typ==='liste')fields.push({key:'abgabeArt',label:'Art der Rückgabe',type:'select',value:a.abgabeArt||'auto',options:LISTEN_ARTEN,hint:'Die automatische Erkennung nutzt Titel und Notiz für passend formulierte Elternnachrichten.'});
+  fields.push({key:'frist',label:'Frist (optional)',type:'date',value:a.frist||''},{key:'notiz',label:'Notiz (optional)',type:'textarea',rows:2,value:a.notiz||''},{key:'elternhinweis',label:'Hinweis für Eltern (optional)',type:'textarea',rows:2,value:a.elternhinweis||'',hint:'Wird zusätzlich in die Eltern-Erinnerung übernommen.'});
+  Modal.form({title:a.typ==='liste'?'Liste bearbeiten':'To-do bearbeiten',fields:fields,validate:function(v){return v.titel.trim()?null:'Bitte einen Titel eingeben.';},onSave:function(v){a.titel=v.titel.trim();if(a.typ==='liste')a.abgabeArt=v.abgabeArt||'auto';a.frist=v.frist||'';a.notiz=v.notiz.trim();a.elternhinweis=v.elternhinweis.trim();aufgabeSpeichern(a);},onDelete:function(){aufgabeLoeschen(a.id);},deleteHint:(a.typ==='liste'?'Diese Liste':'Dieses To-do')+' wirklich löschen?'});
 }
 
 
 
 ACT['eltern-nachricht'] = function(el){
   var susId=el.getAttribute('data-sus'); if(!susId)return;
-  var kursId=el.getAttribute('data-kurs')||'', punkt=el.getAttribute('data-punkt')||'';
-  var preset=null;
-  if(kursId&&punkt){
-    var bil=A.checkBilanzSus(kursId,susId),z=bil[punkt]||{f:0};
-    preset={typ:'vergessen',susId:susId,kursId:kursId,punkt:punkt,anzahl:Number(z.f||0)};
-  }
+  var kursId=el.getAttribute('data-kurs')||'', punkt=el.getAttribute('data-punkt')||'', preset=null;
+  if(el.getAttribute('data-positive')==='1'&&kursId)preset=positiveMitarbeitHinweis_(kursId,susId);
+  else if(kursId&&punkt){var bil=A.checkBilanzSus(kursId,susId),z=bil[punkt]||{f:0};preset={typ:'vergessen',susId:susId,kursId:kursId,punkt:punkt,anzahl:Number(z.f||0)};}
   elternNachrichtOeffnen(susId,preset);
 };
 ACT['eltern-generator'] = function(){elternGeneratorGlobalOeffnen();};
@@ -9096,14 +9255,20 @@ ACT['startseite'] = function(){Modal.form({title:'Startseite',fields:[{key:'s',l
 ACT['auto-lock'] = function(){Modal.form({title:'Automatisch sperren',hinweis:'Funktioniert zusammen mit der vierstelligen PIN. Wenn die App länger im Hintergrund war, wird beim Zurückkehren erneut gesperrt.',fields:[{key:'m',label:'Nach',type:'select',value:String(A.cfg('autoLockMin')||0),options:[{value:'0',label:'aus'},{value:'1',label:'1 Minute'},{value:'2',label:'2 Minuten'},{value:'5',label:'5 Minuten'},{value:'10',label:'10 Minuten'}]}],onSave:function(v){A.setCfg('autoLockMin',Number(v.m)||0);},focus:false});};
 
 
-/* ---------------------------------------------------------- V39 Kommunikation & Craft */
+/* ---------------------------------------------------------- V40 Kommunikation & Craft */
 ACT['eltern-spaeter']=function(el){var h={typ:'vergessen',susId:el.getAttribute('data-sus'),kursId:el.getAttribute('data-kurs'),punkt:el.getAttribute('data-punkt'),anzahl:Number(el.getAttribute('data-anzahl')||0)};elternVorgangSet_(h,'spaeter');render();window.toast('Morgen wieder in der Inbox');};
 ACT['eltern-besprochen']=function(el){var h={typ:'vergessen',susId:el.getAttribute('data-sus'),kursId:el.getAttribute('data-kurs'),punkt:el.getAttribute('data-punkt'),anzahl:Number(el.getAttribute('data-anzahl')||0)};elternVorgangSet_(h,'besprochen');render();window.toast('Als besprochen gespeichert');};
+ACT['positiv-spaeter']=function(el){var h=positiveMitarbeitHinweis_(el.getAttribute('data-kurs'),el.getAttribute('data-sus'));if(h){elternVorgangSet_(h,'spaeter');render();window.toast('Morgen wieder in der Inbox');}};
+ACT['positiv-ausblenden']=function(el){var h=positiveMitarbeitHinweis_(el.getAttribute('data-kurs'),el.getAttribute('data-sus'));if(h){elternVorgangSet_(h,'verworfen');render();window.toast('Positive Rückmeldung ausgeblendet');}};
+ACT['positiv-nachricht']=function(el){var h=positiveMitarbeitHinweis_(el.getAttribute('data-kurs'),el.getAttribute('data-sus'));if(h)elternNachrichtOeffnen(h.susId,h);};
+ACT['craft-sync-inbox']=function(){craftSyncInbox_(A.todayISO()).catch(function(){});};
+ACT['craft-sync-one']=function(el){craftSyncInbox_(A.todayISO(),el.getAttribute('data-craft-key')).catch(function(){});};
+ACT['craft-api']=function(){var c=craftApiConfig_();Modal.form({title:'Craft-Verbindung',hinweis:'Füge hier die API-Server-Adresse deiner Craft API Connection ein. Sie bleibt nur lokal auf diesem Gerät und wird weder in GitHub noch in dein Schulapp-Backend synchronisiert.',fields:[{key:'url',label:'Craft API Connection',type:'password',value:c.url||'',placeholder:'https://connect.craft.do/links/…/api/v1',autocap:false,hint:'Die Connection-Adresse ist wie ein Zugangsschlüssel – nicht öffentlich teilen.'},{key:'auto',label:'Neue Inbox-Einträge automatisch in die heutige Craft-Notiz schreiben',type:'checkbox',value:!!c.auto},{key:'namen',label:'Schüler:innennamen in Craft-Aufgaben übernehmen',type:'checkbox',value:c.namen!==false}],validate:function(v){var u=String(v.url||'').trim();return u&&!craftApiUrlGueltig_(u)?'Bitte die vollständige Craft API Connection-Adresse einfügen.':null;},onSave:function(v){craftApiSet_({url:String(v.url||'').trim(),auto:!!v.auto,namen:!!v.namen});render();window.toast(v.url?'Craft-Verbindung gespeichert':'Craft-Verbindung entfernt');},focus:false});};
 ACT['craft-open']=function(el){craftOeffnen_(el.getAttribute('data-kurs'));};
 ACT['craft-link']=function(el){var kursId=el.getAttribute('data-kurs'),kurs=A.byId('Kurse',kursId),alt=craftLinkFuer_(kursId);Modal.form({title:'Craft verknüpfen',hinweis:'Füge den Link zu deinem Craft-Planungsdokument für '+A.esc(kurs?A.kursLabel(kurs):'dieses Fach')+' ein. Die Schulapp speichert nur den Link – deine Unterrichtsplanung bleibt in Craft.',fields:[{key:'url',label:'Craft-Link',type:'url',value:alt,placeholder:'https://docs.craft.do/… oder craftdocs://…',hint:'Link leer lassen, um die Verknüpfung zu entfernen.'}],validate:function(v){var u=String(v.url||'').trim();return u&&!craftLinkGueltig_(u)?'Bitte einen gültigen http(s)- oder craftdocs://-Link eingeben.':null;},onSave:function(v){craftLinkSet_(kursId,v.url);render();},focus:true});};
-ACT['craft-info']=function(){Modal.open({title:'Craft + Schulapp',body:'<div class="craft-info"><p><b>Empfohlene Aufteilung:</b> Unterrichtsplanung und Inhalte bleiben vollständig in Craft. Die Schulapp kümmert sich um Stundenplan, Listen, Mitarbeit, Noten, Sitzplan und Elternkommunikation.</p><p>Du kannst jedem Fach ein Craft-Dokument zuordnen und es danach mit einem Tipp direkt öffnen.</p><p class="small muted">Craft bietet inzwischen auch eine offizielle API. Eine echte automatische Inhalts-Synchronisierung würde ich aber erst aktivieren, wenn du bewusst festlegst, welche Craft-Dokumente die Schulapp lesen darf – damit keine Unterrichtsinhalte oder Zugangsdaten unnötig in der Web-App landen.</p></div>',foot:'<button class="btn primary" data-close>Verstanden</button>'});};
+ACT['craft-info']=function(){Modal.open({title:'Craft + Schulapp',body:'<div class="craft-info"><p><b>Aufteilung:</b> Unterrichtsplanung und Inhalte bleiben in Craft. Die Schulapp kümmert sich um Schüler:innen, Listen, Mitarbeit, Noten, Sitzplan und Elternkommunikation.</p><p><b>Neu in V40:</b> Die Schulapp kann Inbox-Einträge als echte Aufgaben in die heutige Craft-Notiz schreiben. Dafür hinterlegst du einmal deine persönliche Craft API Connection. Die Connection-Adresse wird nur lokal auf diesem Gerät gespeichert.</p><p>Pro Fach kannst du zusätzlich weiterhin ein Craft-Dokument verknüpfen und direkt öffnen.</p></div>',foot:'<button class="btn" data-act="craft-api">Verbindung einrichten</button><button class="btn primary" data-close>Verstanden</button>'});};
 
-/* ---------------------------------------------------------- V39 Lokale Vorschau */
+/* ---------------------------------------------------------- V40 Lokale Vorschau */
 function previewSetting_(key, value) {
   A.put('Settings', { id: key, value: JSON.stringify(value) }, true);
 }
@@ -9162,15 +9327,16 @@ function previewDemoSeed_() {
     A.put('Mitarbeit',{id:'demo_m1_'+i,datum:A.addDays(heute,-7),stunde:'1',kursId:kDe.id,klasseId:kl4.id,susId:x.id,wert:String(werte[i]),bemerkung:''},true);
     A.put('Mitarbeit',{id:'demo_m2_'+i,datum:heute,stunde:'1',kursId:kDe.id,klasseId:kl4.id,susId:x.id,wert:String(i%4===0?2:(i%4===1?1:0)),bemerkung:''},true);
   });
+  [4,3].forEach(function(d,j){A.put('Mitarbeit',{id:'demo_pos_'+j,datum:A.addDays(heute,-d),stunde:'1',kursId:kDe.id,klasseId:kl4.id,susId:sus4[0].id,wert:j===0?'1':'2',bemerkung:''},true);});
 
   var c1={},c2={},c3={};
   sus4.slice(0,6).forEach(function(x){c1[x.id]=true;});
   sus4.slice(0,7).forEach(function(x){c2[x.id]=true;});
   sus4.slice(0,9).forEach(function(x){c3[x.id]=true;});
   previewSetting_('aufgaben',[
-    {id:'demo_auf1',typ:'liste',kursId:kDe.id,titel:'Einverständniserklärung Ausflug',frist:bald,notiz:'unterschrieben zurückgeben',elternhinweis:'Bitte unterschrieben im Schulranzen mitgeben.',erstellt:new Date().toISOString(),erledigt:'',checks:c1},
-    {id:'demo_auf2',typ:'liste',kursId:kKu.id,titel:'Materialgeld Kunstprojekt',frist:gestern,notiz:'5 € im Umschlag',elternhinweis:'Bitte 5 € passend in einem beschrifteten Umschlag mitgeben.',erstellt:new Date().toISOString(),erledigt:'',checks:c2},
-    {id:'demo_auf3',typ:'liste',kursId:kMa.id,titel:'Unterschrift Lernzielkontrolle',frist:morgen,notiz:'',elternhinweis:'Bitte die Lernzielkontrolle unterschreiben.',erstellt:new Date().toISOString(),erledigt:'',checks:c3},
+    {id:'demo_auf1',typ:'liste',kursId:kDe.id,titel:'Elternabend',abgabeArt:'auto',frist:bald,notiz:'Elternbrief unterschrieben zurückgeben',elternhinweis:'',erstellt:new Date().toISOString(),erledigt:'',checks:c1},
+    {id:'demo_auf2',typ:'liste',kursId:kKu.id,titel:'Materialgeld Kunstprojekt',abgabeArt:'auto',frist:gestern,notiz:'5 € im Umschlag',elternhinweis:'Bitte 5 € passend in einem beschrifteten Umschlag mitgeben.',erstellt:new Date().toISOString(),erledigt:'',checks:c2},
+    {id:'demo_auf3',typ:'liste',kursId:kMa.id,titel:'Unterschrift Lernzielkontrolle',abgabeArt:'auto',frist:morgen,notiz:'',elternhinweis:'Bitte die Lernzielkontrolle unterschreiben.',erstellt:new Date().toISOString(),erledigt:'',checks:c3},
     {id:'demo_todo1',typ:'todo',kursId:kDe.id,titel:'Arbeitsblatt für morgen kopieren',frist:heute,notiz:'25 Exemplare',elternhinweis:'',erstellt:new Date().toISOString(),erledigt:'',checks:{}},
     {id:'demo_done',typ:'liste',kursId:kDe.id,titel:'Elternbrief Schulfest',frist:A.addDays(heute,-8),notiz:'',elternhinweis:'',erstellt:new Date().toISOString(),erledigt:A.addDays(heute,-6)+'T12:00:00.000Z',checks:sus4.reduce(function(o,x){o[x.id]=true;return o;},{})}
   ]);
@@ -9632,7 +9798,7 @@ function speichereNote(input) {
 }
 
 
-/* ---------------------------------------------------- V39 Vorschau-Feedback */
+/* ---------------------------------------------------- V40 Vorschau-Feedback */
 var previewFeedbackPick=false;
 function feedbackListe_(){try{return JSON.parse(localStorage.getItem('schulapp.preview.feedback.v39')||'[]')||[];}catch(e){return[];}}
 function feedbackSpeichern_(arr){try{localStorage.setItem('schulapp.preview.feedback.v39',JSON.stringify(arr||[]));}catch(e){}}
