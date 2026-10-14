@@ -11,7 +11,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="format-detection" content="telephone=no">
 <title>Schulapp</title>
-<!-- Schulapp V45 – automatische Craft-Kartei & Today-Craft -->
+<!-- Schulapp V46 – Standardklasse, SuS-Suche & klassenbasierte Listen -->
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="./icon-192.png">
 <link rel="icon" type="image/png" sizes="192x192" href="./icon-192.png">
@@ -2465,10 +2465,24 @@ body.feedback-pick .main *{cursor:crosshair!important}
 .goal-done{border:0;background:transparent;color:var(--ink-3);font:inherit;font-size:11px;padding:5px;cursor:pointer}.goal-done:hover{color:var(--ink);text-decoration:underline}
 @media(max-width:620px){.today-inbox-head{gap:10px}.today-inbox-actions{align-self:flex-start}.today-inbox-actions .btn{min-height:38px}.ped-tool-grid{grid-template-columns:1fr 1fr}.ped-tool{min-height:62px}.goal-row{grid-template-columns:1fr auto}}
 
+
+
+/* ------------------------------------------------------- V46 Arbeitskontext + Picker */
+.sus-picker-tools{display:grid;grid-template-columns:minmax(120px,.8fr) minmax(180px,1.2fr);gap:8px;margin-bottom:10px}
+.sus-picker-tools select,.sus-picker-tools input{width:100%}
+.sus-picker-list{max-height:300px;overflow:auto;border-top:1px solid var(--line);border-bottom:1px solid var(--line);margin-bottom:12px}
+.sus-picker-row{width:100%;border:0;border-bottom:1px solid var(--line-soft);background:transparent;padding:9px 4px;text-align:left;font:inherit;color:var(--ink);display:flex;align-items:center;gap:10px;cursor:pointer}
+.sus-picker-row:last-child{border-bottom:0}.sus-picker-row:hover{background:#f7f7f5}.sus-picker-row.on{background:#f1f1ef}
+.sus-picker-row .pick-dot{width:16px;height:16px;border:1px solid #b8b8b4;border-radius:50%;display:grid;place-items:center;flex:none}.sus-picker-row.on .pick-dot{background:var(--ink);border-color:var(--ink)}.sus-picker-row.on .pick-dot:after{content:'';width:5px;height:5px;border-radius:50%;background:var(--surface)}
+.sus-picker-main{min-width:0;flex:1}.sus-picker-main b{display:block;font-size:13px;font-weight:570}.sus-picker-main span{display:block;margin-top:2px;font-size:11px;color:var(--ink-3)}
+.reminder-course-hint{font-size:11px;color:var(--ink-3);line-height:1.4;margin:-2px 0 7px}
+.list-scope-line{font-size:11px;color:var(--ink-3);margin-top:3px}
+@media(max-width:620px){.sus-picker-tools{grid-template-columns:1fr}.sus-picker-list{max-height:260px}}
+
 @media(prefers-color-scheme:dark){body{background:#191919}.topbar{background:rgba(25,25,25,.94)}.btn.primary{background:#ebebea;border-color:#ebebea;color:#191919}.inbox-item:hover{background:#242424}.inbox-icon,.craft-mark{background:#2a2a2a}.grades th{background:#242424}}
 </style>
 </head>
-<body data-schulapp-version="45">
+<body data-schulapp-version="46">
 
 
 <div id="authGate" class="auth-gate hidden">
@@ -3523,11 +3537,24 @@ function susDesKurses(kursId) {
 
 function susName(s, format) {
   var f = format || cfg('namensformat');
-  var vn = (s.vorname || '').trim(), nn = (s.nachname || '').trim();
+  var vn = String((s && s.vorname) || '').trim(), nn = String((s && s.nachname) || '').trim();
+  /* Importierte/alte Datensätze enthalten teils den ganzen Namen nur in einem Feld.
+     Dann darf niemals ein führendes Komma entstehen (z. B. „, Julia B“). */
+  if (!nn) return vn;
+  if (!vn) return nn;
   if (f === 'vorname') return (vn + ' ' + nn).trim();
-  if (f === 'kurz') return (nn + (vn ? ', ' + vn.charAt(0) + '.' : '')).trim();
-  return (nn + (vn ? ', ' + vn : '')).trim();
+  if (f === 'kurz') return nn + ', ' + vn.charAt(0) + '.';
+  return nn + ', ' + vn;
 }
+
+function standardKlasseId_() {
+  var gesetzt = String(cfg('klassenleitungId') || '').trim();
+  if (gesetzt && byId('Klassen', gesetzt)) return gesetzt;
+  /* Solange noch nichts eingestellt wurde, ist 6f die gewünschte Vorgabe. */
+  var sechs = klassen(true).filter(function(k){ return String(k.name || '').trim().toLowerCase() === '6f'; })[0];
+  return sechs ? sechs.id : ((klassen(true)[0] || {}).id || '');
+}
+function standardKlasse_(){ var id=standardKlasseId_(); return id ? byId('Klassen',id) : null; }
 
 /** Kurzform für enge Kacheln: „Ahmadi, S.“ oder abgeschnitten. */
 function susKurz(s) {
@@ -4933,9 +4960,39 @@ function aufgabeLoeschen(id) {
   A.setCfg('aufgaben', aufgabenAlle().filter(function (a) { return !a || a.id !== id; }));
 }
 
+function aufgabeKlasseId_(a) {
+  if (!a) return '';
+  if (a.klasseId) return a.klasseId;
+  var k = a.kursId ? A.byId('Kurse', a.kursId) : null;
+  return k ? k.klasseId : '';
+}
+function aufgabeErinnerKursIds_(a) {
+  if (!a) return [];
+  if (a.typ === 'liste' && Array.isArray(a.erinnerKursIds) && a.erinnerKursIds.length) return a.erinnerKursIds.filter(Boolean);
+  return a.kursId ? [a.kursId] : [];
+}
+function aufgabeGiltFuerKurs_(a, kursId) {
+  if (!a || !kursId) return false;
+  if (a.typ !== 'liste') return a.kursId === kursId;
+  return aufgabeErinnerKursIds_(a).indexOf(kursId) >= 0;
+}
+function aufgabeErinnerKursAmDatum_(a, datum) {
+  var ids = aufgabeErinnerKursIds_(a), hit = null;
+  ids.some(function(id){ if(kursHatUnterrichtAmDatum(id,datum)){ hit=A.byId('Kurse',id); return true; } return false; });
+  return hit;
+}
+function aufgabeErinnerungAmDatum_(a, datum) {
+  return !!aufgabeErinnerKursAmDatum_(a, datum);
+}
+function aufgabeErinnerFaecherText_(a) {
+  var seen={},namen=[];
+  aufgabeErinnerKursIds_(a).forEach(function(id){var k=A.byId('Kurse',id);var n=k&&k.fach?String(k.fach):'';if(n&&!seen[n]){seen[n]=true;namen.push(n);}});
+  return namen.join(', ');
+}
+
 function aufgabenOffen(kursId) {
   return aufgabenAlle().filter(function (a) {
-    return a && a.kursId === kursId && !a.erledigt;
+    return a && aufgabeGiltFuerKurs_(a, kursId) && !a.erledigt;
   }).sort(function (a, b) {
     var af = a.frist || '9999-12-31';
     var bf = b.frist || '9999-12-31';
@@ -5014,7 +5071,8 @@ function planKursHinweis(kursId, bezugsdatum) {
 }
 
 function listenStand(a, kurs) {
-  var sus = kurs ? A.susDesKurses(kurs.id) : [];
+  var klasseId = aufgabeKlasseId_(a) || (kurs && kurs.klasseId) || '';
+  var sus = klasseId ? A.susDerKlasse(klasseId) : (kurs ? A.susDesKurses(kurs.id) : []);
   var checks = (a && a.checks && typeof a.checks === 'object') ? a.checks : {};
   var erledigt = sus.filter(function (s) { return !!checks[s.id]; }).length;
   return { erledigt: erledigt, gesamt: sus.length, sus: sus, checks: checks };
@@ -5052,11 +5110,8 @@ function aufgabenRows(kurs, mitNeu, bezugsdatum) {
 
 /* ---------------------------------------------------------- V34 Klassenlisten */
 function listenDerKlasse(klasseId, auchErledigt) {
-  var kurse = A.kurseDerKlasse(klasseId);
-  var ids = {};
-  kurse.forEach(function (k) { ids[k.id] = true; });
   return aufgabenAlle().filter(function (a) {
-    return a && a.typ === 'liste' && ids[a.kursId] && (auchErledigt || !a.erledigt);
+    return a && a.typ === 'liste' && aufgabeKlasseId_(a) === klasseId && (auchErledigt || !a.erledigt);
   }).sort(function (a, b) {
     var af = a.frist || '9999-12-31', bf = b.frist || '9999-12-31';
     if (af !== bf) return af.localeCompare(bf);
@@ -5084,10 +5139,10 @@ function klassenListenHTML(klasseId) {
   var listen = listenDerKlasse(klasseId, false);
   if (!listen.length) return '<div class="card-body small muted">Keine offenen Einsammel-Listen.</div>';
   return listen.map(function (a) {
-    var kurs = A.byId('Kurse', a.kursId), st = listenStand(a, kurs), fehlt = Math.max(0, st.gesamt - st.erledigt), fr = aufgabeFrist(a, null, a.kursId);
+    var ids=aufgabeErinnerKursIds_(a),kurs=ids.length?A.byId('Kurse',ids[0]):A.byId('Kurse',a.kursId),st=listenStand(a,kurs),fehlt=Math.max(0,st.gesamt-st.erledigt),fr=aufgabeFrist(a,null,(kurs&&kurs.id)||a.kursId),faecher=aufgabeErinnerFaecherText_(a);
     return '<button class="row" data-act="aufgabe-open" data-aufgabe="' + A.esc(a.id) + '">' +
       '<div class="row-main"><div class="row-title">' + A.esc(a.titel) + '</div>' +
-      '<div class="row-sub">' + A.esc(kurs ? kurs.fach : '') + (fr.text ? ' · ' + A.esc(fr.text) : '') +
+      '<div class="row-sub">' + (faecher?'Erinnern: '+A.esc(faecher):'Klassenliste') + (fr.text ? ' · ' + A.esc(fr.text) : '') +
       (fehlt ? ' · <span class="klassen-listen-missing">' + fehlt + ' fehlen</span>' : ' · vollständig') + '</div></div>' +
       '<div class="row-val">' + st.erledigt + '/' + st.gesamt + '</div><div class="chev">›</div></button>';
   }).join('');
@@ -5145,7 +5200,7 @@ function listenElternText_(a, personName, gruppenText) {
 }
 
 function elternErinnerungDaten(a) {
-  var kurs = A.byId('Kurse', a.kursId), st = listenStand(a, kurs);
+  var ids=aufgabeErinnerKursIds_(a),kurs=A.byId('Kurse',(ids[0]||a.kursId)),st=listenStand(a,kurs);
   var offen = st.sus.filter(function (person) { return !st.checks[person.id]; });
   var text = 'Liebe Eltern,\n\n' + listenElternText_(a, '', true) + '\n\nVielen Dank und liebe Grüße';
   return { text: text, offen: offen, kurs: kurs, stand: st, art: listenArtErkennen_(a) };
@@ -5520,17 +5575,23 @@ function craftKarteiKommunikationMarkdown_(rec){var sus=A.byId('SuS',rec.susId),
 function craftKarteiAutoKommunikation_(rec){var c=craftApiConfig_();if(!c.karteiAutoKommunikation||!rec||!rec.susId||!craftKarteiFuer_(rec.susId)||VORSCHAU_AKTIV)return;var key='kommunikation|'+(rec.id||[rec.susId,rec.zeit,rec.status,rec.anlass].join('|'));craftKarteiPostMarkdown_(rec.susId,craftKarteiKommunikationMarkdown_(rec),key).catch(function(){});}
 
 
-/* ------------------------------------------------------- V45 Pädagogisches Journal */
+/* ------------------------------------------------------- V46 Pädagogisches Journal */
 function craftAktiveKartenSus_(){return A.list('SuS',function(x){return String(x.aktiv||'1')!=='0'&&!!craftKarteiFuer_(x.id);}).sort(function(a,b){return A.susName(a).localeCompare(A.susName(b),'de');});}
 function craftKarteiQuickNoteOpen_(presetSusId){
-  var sus=craftAktiveKartenSus_();if(!sus.length){window.toast('Verknüpfe zuerst mindestens eine Schüler:innenkarte mit Craft.',true);craftKarteiSettingsOpen_();return;}
-  var opts=sus.map(function(x){var kl=A.byId('Klassen',x.klasseId);return {value:x.id,label:A.susName(x)+(kl?' · '+kl.name:'')};});
-  var start=opts.some(function(x){return x.value===presetSusId;})?presetSusId:opts[0].value;
-  Modal.form({title:'Beobachtung festhalten',hinweis:'Kurze pädagogische Notiz direkt in die verknüpfte Craft-Karte schreiben. Die Schulapp speichert davon keine zusätzliche Kopie.',fields:[
-    {key:'sus',label:'Schüler:in',type:'select',value:start,options:opts},
-    {key:'typ',label:'Art',type:'select',value:'Beobachtung',options:['Beobachtung','Positiver Moment','Lernentwicklung','Sozialverhalten','Selbstständigkeit','Organisation','Gespräch','Für Zeugnis merken']},
-    {key:'text',label:'Notiz',type:'textarea',rows:6,value:'',placeholder:'Was ist dir aufgefallen?'}
-  ],validate:function(v){return String(v.text||'').trim()?'':'Bitte eine Notiz eingeben.';},saveLabel:'In Craft speichern',onSave:function(v){var md='### '+A.fmtDate(A.todayISO())+' · '+v.typ+'\n\n'+String(v.text||'').trim()+'\n';craftKarteiPostMarkdown_(v.sus,md).then(function(){render();window.toast('In der Craft-Karte gespeichert');}).catch(function(e){window.toast('Craft: '+e.message,true);});},focus:true});
+  var alle=A.list('SuS',function(x){return String(x.aktiv||'1')!=='0';}).sort(function(a,b){return A.susName(a,'vorname').localeCompare(A.susName(b,'vorname'),'de');});
+  if(!alle.length){window.toast('Noch keine Schüler:innen angelegt.',true);return;}
+  var preset=A.byId('SuS',presetSusId),defaultKlasse=(preset&&preset.klasseId)||standardKlasseId_(),selectedId=presetSusId||'';
+  var klassen=A.klassen(true),klOpts='<option value="">Alle Klassen</option>'+klassen.map(function(k){return '<option value="'+A.esc(k.id)+'" '+(k.id===defaultKlasse?'selected':'')+'>'+A.esc(k.name)+'</option>';}).join('');
+  var body='<div class="sus-picker-tools"><select id="obsKlasse" aria-label="Klasse filtern">'+klOpts+'</select><input id="obsSearch" type="search" placeholder="Schüler:in suchen …" autocomplete="off"></div><div class="sus-picker-list" id="obsPeople"></div>'+
+    '<div class="field"><label>Art</label><select id="obsTyp"><option>Beobachtung</option><option>Positiver Moment</option><option>Lernentwicklung</option><option>Sozialverhalten</option><option>Selbstständigkeit</option><option>Organisation</option><option>Gespräch</option><option>Für Zeugnis merken</option></select></div>'+
+    '<div class="field"><label>Notiz</label><textarea id="obsText" rows="6" placeholder="Was ist dir aufgefallen?"></textarea></div>';
+  Modal.open({title:'Beobachtung festhalten',body:body,foot:'<button class="btn primary" data-save-observation>In Craft speichern</button>',after:function(bg,close){
+    var klasse=bg.querySelector('#obsKlasse'),search=bg.querySelector('#obsSearch'),out=bg.querySelector('#obsPeople'),txt=bg.querySelector('#obsText'),typ=bg.querySelector('#obsTyp');
+    function draw(){var q=String(search.value||'').trim().toLowerCase(),kid=klasse.value;var arr=alle.filter(function(x){if(kid&&x.klasseId!==kid)return false;if(!q)return true;var n=(A.susName(x,'vorname')+' '+A.susName(x,'nachname')).toLowerCase();return n.indexOf(q)>=0;});out.innerHTML=arr.length?arr.map(function(x){var kl=A.byId('Klassen',x.klasseId);return '<button class="sus-picker-row '+(x.id===selectedId?'on':'')+'" data-obs-sus="'+x.id+'"><span class="pick-dot"></span><span class="sus-picker-main"><b>'+A.esc(A.susName(x,'vorname'))+'</b><span>'+A.esc(kl?kl.name:'')+'</span></span></button>';}).join(''):'<div class="inbox-empty">Keine passenden Schüler:innen.</div>';}
+    klasse.addEventListener('change',function(){selectedId='';draw();});search.addEventListener('input',draw);out.addEventListener('click',function(e){var b=e.target.closest('[data-obs-sus]');if(!b)return;selectedId=b.getAttribute('data-obs-sus');draw();txt.focus();});draw();
+    bg.querySelector('[data-save-observation]').addEventListener('click',function(){var text=String(txt.value||'').trim();if(!selectedId){window.toast('Bitte eine Schüler:in auswählen.',true);return;}if(!text){window.toast('Bitte eine Notiz eingeben.',true);return;}var sus=A.byId('SuS',selectedId),md='### '+A.fmtDate(A.todayISO())+' · '+typ.value+'\n\n'+text+'\n';var ensure=craftKarteiFuer_(selectedId)?Promise.resolve():craftKarteiCreate_(selectedId);ensure.then(function(){return craftKarteiPostMarkdown_(selectedId,md);}).then(function(){close();render();window.toast('Bei '+A.susName(sus,'vorname')+' in Craft gespeichert');}).catch(function(e){window.toast('Craft: '+e.message,true);});});
+    setTimeout(function(){search.focus();},40);
+  }});
 }
 
 function foerderzieleAlle_(){var x=A.cfg('foerderziele');return Array.isArray(x)?A.clone(x):[];}
@@ -5689,7 +5750,7 @@ function inboxDaten_(datum){
   if(heute){
     elternInbox_().forEach(function(h){var sus=A.byId('SuS',h.susId),k=A.byId('Kurse',h.kursId);if(k&&!inboxKursAmDatum_(k.id,datum))return;items.push({key:'eltern|'+elternVorgangKey_(h),typ:h.typ,h:h,sus:sus,kurs:k,titel:h.typ==='positiv'?'Positive Rückmeldung möglich':(sus?A.susName(sus):''),sub:h.typ==='positiv'?((h.signal==='mitarbeit_verbessert'?'Mitarbeit deutlich verbessert':'Mitarbeit zuletzt besonders stark')+(k&&k.fach?' · '+k.fach:'')):(h.punkt+' · '+h.anzahl+'×'+(k&&k.fach?' · '+k.fach:''))});});
   }
-  aufgabenAlle().filter(function(a){return a&&!a.erledigt&&a.frist&&a.frist<=datum&&inboxKursAmDatum_(a.kursId,datum);}).slice(0,8).forEach(function(a){var k=A.byId('Kurse',a.kursId),st=k&&a.typ==='liste'?listenStand(a,k):null,off=st?Math.max(0,st.gesamt-st.erledigt):undefined;items.push({key:'liste|'+a.id+'|'+(a.frist||''),typ:'liste',a:a,kurs:k,offen:off,titel:a.titel,sub:(a.frist<datum?'seit '+A.fmtDateShort(a.frist)+' fällig':'heute fällig')+(k?' · '+A.kursLabel(k):'')});});
+  aufgabenAlle().filter(function(a){if(!a||a.erledigt)return false;if(a.typ==='liste')return aufgabeErinnerungAmDatum_(a,datum);return !!a.frist&&a.frist<=datum&&inboxKursAmDatum_(a.kursId,datum);}).slice(0,12).forEach(function(a){var k=a.typ==='liste'?aufgabeErinnerKursAmDatum_(a,datum):A.byId('Kurse',a.kursId),st=a.typ==='liste'?listenStand(a,k):null,off=st?Math.max(0,st.gesamt-st.erledigt):undefined,fristText='offen';if(a.frist){fristText=a.frist<datum?'seit '+A.fmtDateShort(a.frist)+' fällig':(a.frist===datum?'heute fällig':'bis '+A.fmtDateShort(a.frist));}items.push({key:'liste|'+a.id+'|'+(a.frist||''),typ:'liste',a:a,kurs:k,offen:off,titel:a.titel,sub:fristText+(k?' · '+A.kursLabel(k):'')});});
   A.alleKurse().forEach(function(k){if(!inboxKursAmDatum_(k.id,datum))return;A.offeneStrafarbeiten(k.id).slice(0,4).forEach(function(x){items.push({key:'straf|'+(x.aufgabe&&x.aufgabe.id||k.id+'|'+x.sus.id),typ:'straf',sus:x.sus,kurs:k,x:x,titel:A.susName(x.sus),sub:'offene Strafarbeit · '+(k.fach||'')});});});
   return items;
 }
@@ -7163,6 +7224,10 @@ VIEWS.mehr = {
         '<button class="btn primary" data-act="sync-jetzt">Jetzt abgleichen</button></div>' +
       '</div>');
 
+    var stdKl=standardKlasse_();
+    h += card('Arbeitskontext',
+      '<button class="row" data-act="klassenleitung"><div class="row-main"><div class="row-title">Meine Klasse / Klassenleitung</div><div class="row-sub">'+(stdKl?A.esc(stdKl.name)+' · wird bei Beobachtungen und Auswahlen vorausgewählt':'keine Standardklasse')+'</div></div><div class="chev">›</div></button>');
+
     h += card('Unterricht',
       '<button class="row" data-act="plan-stunden"><div class="row-main"><div class="row-title">Stundenzeiten</div>' +
         '<div class="row-sub">' + A.cfg('stunden').length + ' Stunden pro Tag</div></div><div class="chev">›</div></button>' +
@@ -7212,7 +7277,7 @@ VIEWS.mehr = {
       '<button class="row" data-act="craft-info"><div class="row-main"><div class="row-title">Craft + Schulapp</div><div class="row-sub">Planung, Tagesaufgaben, Kartei und pädagogisches Journal erklären</div></div><div class="chev">›</div></button>');
 
     h += card('App',
-      '<div class="row" style="cursor:default"><div class="row-main"><div class="row-title">App-Version</div><div class="row-sub">Version 45</div></div></div>' +
+      '<div class="row" style="cursor:default"><div class="row-main"><div class="row-title">App-Version</div><div class="row-sub">Version 46</div></div></div>' +
       '<button class="row" data-act="farbdesign"><div class="row-main"><div class="row-title">Farbdesign</div>' +
         '<div class="row-sub"><span class="farb-punkt" style="--fc:' + aktuelleDesignFarbe() + ';display:inline-block;vertical-align:-2px;margin-right:6px"></span>' +
         A.esc(A.cfg('farbdesignHex') ? 'Eigene Farbe' : (FARBDESIGNS[A.cfg('farbdesign')] || FARBDESIGNS.blau)) +
@@ -9418,56 +9483,32 @@ ACT['sync-jetzt'] = function () {
 
 
 ACT['aufgabe-neu-klasse'] = function (el) {
-  var klasseId=el.getAttribute('data-klasse'), kurse=A.kurseDerKlasse(klasseId);
-  if(!kurse.length){window.toast('Lege zuerst ein Fach an.',true);return;}
-  if(kurse.length===1){var fake=document.createElement('button');fake.setAttribute('data-kurs',kurse[0].id);ACT['aufgabe-neu'](fake);return;}
-  Modal.form({title:'Liste anlegen',fields:[{key:'kursId',label:'Fach / Kurs',type:'select',value:kurse[0].id,options:kurse.map(function(k){return{value:k.id,label:A.kursLabel(k)};})}],onSave:function(v){setTimeout(function(){var fake=document.createElement('button');fake.setAttribute('data-kurs',v.kursId);ACT['aufgabe-neu'](fake);},0);},focus:false});
+  var fake=document.createElement('button');fake.setAttribute('data-klasse',el.getAttribute('data-klasse')||standardKlasseId_());ACT['aufgabe-neu'](fake);
 };
 
 ACT['aufgabe-neu'] = function (el) {
-  var kursId = el.getAttribute('data-kurs') || ((currentView().p || {}).kursId) || '';
-  var kurs = A.byId('Kurse', kursId);
-  if (!kurs) { window.toast('Bitte zuerst einen Kurs auswählen.', true); return; }
-  Modal.form({
-    title: 'Liste oder To-do anlegen',
-    hinweis: 'Listen sind zum Einsammeln gedacht und zeigen alle Schüler:innen zum Abhaken. To-dos sind Aufgaben für dich, z. B. „Arbeitsblatt austeilen“.',
-    fields: [
-      { key: 'typ', label: 'Art', type: 'select', options: [
-        { value: 'liste', label: '📋 Einsammel-Liste' },
-        { value: 'todo', label: '✓ To-do' }
-      ], value: 'liste' },
-      { key: 'titel', label: 'Titel', placeholder: 'z. B. Elternabend' },
-      { key: 'abgabeArt', label: 'Art der Rückgabe (bei Listen)', type: 'select', value: 'auto', options: LISTEN_ARTEN, hint: '„automatisch erkennen“ erkennt z. B. bei „Elternabend“ einen unterschriebenen Elternbrief.' },
-      { key: 'frist', label: 'Frist (optional)', type: 'date', value: '' },
-      { key: 'notiz', label: 'Notiz (optional)', type: 'textarea', rows: 2, placeholder: 'z. B. unterschrieben mitbringen' },
-      { key: 'elternhinweis', label: 'Hinweis für Eltern (optional)', type: 'textarea', rows: 2, placeholder: 'z. B. Bitte unterschrieben zurückgeben' }
-    ],
-    validate: function (v) { return v.titel.trim() ? null : 'Bitte einen Titel eingeben.'; },
-    onSave: function (v) {
-      aufgabeSpeichern({
-        id: A.uid('auf'),
-        typ: v.typ === 'todo' ? 'todo' : 'liste',
-        kursId: kurs.id,
-        titel: v.titel.trim(),
-        abgabeArt: v.abgabeArt || 'auto',
-        frist: v.frist || '',
-        notiz: v.notiz.trim(),
-        elternhinweis: v.elternhinweis.trim(),
-        erstellt: new Date().toISOString(),
-        erledigt: '',
-        checks: {}
-      });
-      window.toast(v.typ === 'todo' ? 'To-do angelegt' : 'Liste angelegt');
-    }
-  });
+  var kursId=el.getAttribute('data-kurs')||((currentView().p||{}).kursId)||'',kurs=A.byId('Kurse',kursId),klasseId=el.getAttribute('data-klasse')||(kurs&&kurs.klasseId)||standardKlasseId_(),klasse=A.byId('Klassen',klasseId);
+  if(!klasse){window.toast('Bitte zuerst eine Klasse auswählen.',true);return;}
+  var kurse=A.kurseDerKlasse(klasseId);if(!kurse.length){window.toast('Für diese Klasse ist noch kein Fach/Kurs angelegt.',true);return;}
+  var fields=[
+    {key:'typ',label:'Art',type:'select',options:[{value:'liste',label:'📋 Einsammel-Liste'},{value:'todo',label:'✓ To-do'}],value:'liste'},
+    {key:'titel',label:'Titel',placeholder:'z. B. Elternabend'},
+    {key:'todoKursId',label:'Fach für To-do',type:'select',value:kursId||kurse[0].id,options:kurse.map(function(k){return{value:k.id,label:A.kursLabel(k)};}),hint:'Nur für To-dos relevant. Listen gehören unabhängig vom Fach zur Klasse.'},
+    {key:'abgabeArt',label:'Art der Rückgabe (bei Listen)',type:'select',value:'auto',options:LISTEN_ARTEN,hint:'„automatisch erkennen“ erkennt z. B. bei „Elternabend“ einen unterschriebenen Elternbrief.'},
+    {key:'frist',label:'Frist (optional)',type:'date',value:''},
+    {key:'notiz',label:'Notiz (optional)',type:'textarea',rows:2,placeholder:'z. B. unterschrieben mitbringen'},
+    {key:'elternhinweis',label:'Hinweis für Eltern (optional)',type:'textarea',rows:2,placeholder:'z. B. Bitte unterschrieben zurückgeben'}
+  ];
+  kurse.forEach(function(k,i){fields.push({key:'rem'+i,label:'Bei '+k.fach+' erinnern',type:'checkbox',value:kursId?kursId===k.id:true,hint:i===0?'Für Listen: Die Erinnerung erscheint an Unterrichtstagen der ausgewählten Fächer. So kannst du z. B. Sport bewusst abwählen.':''});});
+  Modal.form({title:'Liste oder To-do anlegen · '+klasse.name,hinweis:'Einsammel-Listen gehören jetzt zur Klasse, nicht zu einem einzelnen Fach. Du bestimmst, in welchen Fächern sie dir unter „Heute“ wieder angezeigt werden.',fields:fields,validate:function(v){if(!String(v.titel||'').trim())return 'Bitte einen Titel eingeben.';if(v.typ!=='todo'){var any=kurse.some(function(k,i){return !!v['rem'+i];});if(!any)return 'Bitte mindestens ein Fach auswählen, in dem du erinnert werden möchtest.';}return null;},onSave:function(v){if(v.typ==='todo'){aufgabeSpeichern({id:A.uid('auf'),typ:'todo',kursId:v.todoKursId,titel:v.titel.trim(),abgabeArt:'auto',frist:v.frist||'',notiz:v.notiz.trim(),elternhinweis:v.elternhinweis.trim(),erstellt:new Date().toISOString(),erledigt:'',checks:{}});window.toast('To-do angelegt');return;}var ids=kurse.filter(function(k,i){return !!v['rem'+i];}).map(function(k){return k.id;});aufgabeSpeichern({id:A.uid('auf'),typ:'liste',klasseId:klasseId,kursId:ids[0]||'',erinnerKursIds:ids,titel:v.titel.trim(),abgabeArt:v.abgabeArt||'auto',frist:v.frist||'',notiz:v.notiz.trim(),elternhinweis:v.elternhinweis.trim(),erstellt:new Date().toISOString(),erledigt:'',checks:{}});window.toast('Klassenliste angelegt');}});
 };
 
 ACT['aufgabe-open'] = function (el) {
   var id = el.getAttribute('data-aufgabe');
   var a = aufgabeById(id);
   if (!a) return;
-  var kurs = A.byId('Kurse', a.kursId);
-  if (!kurs) return;
+  var erinnerIds=aufgabeErinnerKursIds_(a),kurs=A.byId('Kurse',(a.typ==='liste'?(erinnerIds[0]||a.kursId):a.kursId));
+  if (!kurs && a.typ === 'todo') return;
 
   if (a.typ === 'todo') {
     var fr = aufgabeFrist(a);
@@ -9545,7 +9586,7 @@ ACT['aufgabe-open'] = function (el) {
         }
         if (e.target.closest('[data-list-all]')) {
           a.checks = {};
-          A.susDesKurses(kurs.id).forEach(function (person) { a.checks[person.id] = true; });
+          listenStand(a,kurs).sus.forEach(function (person) { a.checks[person.id] = true; });
           aufgabeSpeichern(a);
           refresh();
           automatischAbschliessenWennVoll();
@@ -9572,12 +9613,14 @@ ACT['aufgabe-open'] = function (el) {
 
 function aufgabeBearbeiten(id) {
   var a=aufgabeById(id);if(!a)return;
-  var fields=[{key:'titel',label:'Titel',value:a.titel||''}];
-  if(a.typ==='liste')fields.push({key:'abgabeArt',label:'Art der Rückgabe',type:'select',value:a.abgabeArt||'auto',options:LISTEN_ARTEN,hint:'Die automatische Erkennung nutzt Titel und Notiz für passend formulierte Elternnachrichten.'});
+  var fields=[{key:'titel',label:'Titel',value:a.titel||''}],klasseId=aufgabeKlasseId_(a),kurse=klasseId?A.kurseDerKlasse(klasseId):[],chosen=aufgabeErinnerKursIds_(a);
+  if(a.typ==='liste'){
+    fields.push({key:'abgabeArt',label:'Art der Rückgabe',type:'select',value:a.abgabeArt||'auto',options:LISTEN_ARTEN,hint:'Die automatische Erkennung nutzt Titel und Notiz für passend formulierte Elternnachrichten.'});
+    kurse.forEach(function(k,i){fields.push({key:'rem'+i,label:'Bei '+k.fach+' erinnern',type:'checkbox',value:chosen.indexOf(k.id)>=0,hint:i===0?'Die Liste gehört zur Klasse. Wähle nur die Fächer, in denen sie unter „Heute“ auftauchen soll.':''});});
+  }
   fields.push({key:'frist',label:'Frist (optional)',type:'date',value:a.frist||''},{key:'notiz',label:'Notiz (optional)',type:'textarea',rows:2,value:a.notiz||''},{key:'elternhinweis',label:'Hinweis für Eltern (optional)',type:'textarea',rows:2,value:a.elternhinweis||'',hint:'Wird zusätzlich in die Eltern-Erinnerung übernommen.'});
-  Modal.form({title:a.typ==='liste'?'Liste bearbeiten':'To-do bearbeiten',fields:fields,validate:function(v){return v.titel.trim()?null:'Bitte einen Titel eingeben.';},onSave:function(v){a.titel=v.titel.trim();if(a.typ==='liste')a.abgabeArt=v.abgabeArt||'auto';a.frist=v.frist||'';a.notiz=v.notiz.trim();a.elternhinweis=v.elternhinweis.trim();aufgabeSpeichern(a);},onDelete:function(){aufgabeLoeschen(a.id);},deleteHint:(a.typ==='liste'?'Diese Liste':'Dieses To-do')+' wirklich löschen?'});
+  Modal.form({title:a.typ==='liste'?'Liste bearbeiten':'To-do bearbeiten',fields:fields,validate:function(v){if(!String(v.titel||'').trim())return 'Bitte einen Titel eingeben.';if(a.typ==='liste'&&kurse.length&&!kurse.some(function(k,i){return !!v['rem'+i];}))return 'Bitte mindestens ein Erinnerungsfach auswählen.';return null;},onSave:function(v){a.titel=v.titel.trim();if(a.typ==='liste'){a.abgabeArt=v.abgabeArt||'auto';a.klasseId=klasseId;var ids=kurse.filter(function(k,i){return !!v['rem'+i];}).map(function(k){return k.id;});a.erinnerKursIds=ids;a.kursId=ids[0]||a.kursId||'';}a.frist=v.frist||'';a.notiz=v.notiz.trim();a.elternhinweis=v.elternhinweis.trim();aufgabeSpeichern(a);},onDelete:function(){aufgabeLoeschen(a.id);},deleteHint:(a.typ==='liste'?'Diese Liste':'Dieses To-do')+' wirklich löschen?'});
 }
-
 
 
 ACT['eltern-nachricht'] = function(el){
@@ -9599,7 +9642,7 @@ ACT['eltern-einstellungen'] = function(){
 
 /* ------------------------------------------------------------- V34 Aktionen */
 ACT['eltern-erinnern'] = function(el){elternErinnerungOeffnen(el.getAttribute('data-aufgabe'));};
-ACT['listen-archiv'] = function(el){var klasseId=el.getAttribute('data-klasse'),arr=listenDerKlasse(klasseId,true).filter(function(a){return !!a.erledigt;});Modal.open({title:'Abgeschlossene Listen',body:arr.length?arr.map(function(a){var k=A.byId('Kurse',a.kursId),st=listenStand(a,k);return '<div class="row"><div class="row-main"><div class="row-title">'+A.esc(a.titel)+'</div><div class="row-sub">'+A.esc(k?k.fach:'')+(a.erledigt?' · abgeschlossen '+A.fmtDateShort(String(a.erledigt).slice(0,10)):'')+'</div></div><div class="row-val">'+st.erledigt+'/'+st.gesamt+'</div></div>';}).join(''):'<div class="card-body small muted">Noch keine abgeschlossenen Listen.</div>'});};
+ACT['listen-archiv'] = function(el){var klasseId=el.getAttribute('data-klasse'),arr=listenDerKlasse(klasseId,true).filter(function(a){return !!a.erledigt;});Modal.open({title:'Abgeschlossene Listen',body:arr.length?arr.map(function(a){var ids=aufgabeErinnerKursIds_(a),k=A.byId('Kurse',ids[0]||a.kursId),st=listenStand(a,k),faecher=aufgabeErinnerFaecherText_(a);return '<div class="row"><div class="row-main"><div class="row-title">'+A.esc(a.titel)+'</div><div class="row-sub">'+(faecher?'Erinnert in '+A.esc(faecher):'Klassenliste')+(a.erledigt?' · abgeschlossen '+A.fmtDateShort(String(a.erledigt).slice(0,10)):'')+'</div></div><div class="row-val">'+st.erledigt+'/'+st.gesamt+'</div></div>';}).join(''):'<div class="card-body small muted">Noch keine abgeschlossenen Listen.</div>'});};
 ACT['morgen-vorbereiten'] = function(){ui.datum=A.addDays(A.todayISO(),1);ui.heuteModus='tag';render();};
 
 ACT['sitzregeln'] = function(el){
@@ -9614,6 +9657,7 @@ ACT['sitzplan-vorschlaege'] = function(el){var klasseId=el.getAttribute('data-kl
 ACT['suche'] = function(){
   Modal.open({title:'Suche',body:'<div class="field"><label>Suchen</label><input id="appSearch" type="search" placeholder="Name, Klasse, Fach oder Liste …" autocomplete="off"></div><div class="search-results" id="searchResults"><div class="small muted">Suchbegriff eingeben.</div></div>',after:function(bg,close){var inp=bg.querySelector('#appSearch'),out=bg.querySelector('#searchResults');function draw(){var q=String(inp.value||'').trim().toLowerCase();if(q.length<2){out.innerHTML='<div class="small muted">Mindestens zwei Zeichen eingeben.</div>';return;}var hits=[];A.klassen(true).forEach(function(k){if(String(k.name).toLowerCase().includes(q))hits.push({typ:'Klasse',titel:k.name,sub:'Klasse',view:'klasse',id:k.id});});A.list('SuS').forEach(function(x){var n=A.susName(x),kl=A.byId('Klassen',x.klasseId);if(n.toLowerCase().includes(q))hits.push({typ:'Kind',titel:n,sub:kl?kl.name:'',view:'sus',id:x.id});});A.alleKurse(true).forEach(function(k){var l=A.kursLabel(k);if(l.toLowerCase().includes(q))hits.push({typ:'Kurs',titel:l,sub:'Fach',view:'kurs',id:k.id});});aufgabenAlle().forEach(function(a){if(String(a.titel||'').toLowerCase().includes(q)){var k=A.byId('Kurse',a.kursId);hits.push({typ:a.typ==='liste'?'Liste':'To-do',titel:a.titel,sub:k?A.kursLabel(k):'',aufgabe:a.id});}});out.innerHTML=hits.length?hits.slice(0,30).map(function(h,i){return '<button class="search-hit" data-hit="'+i+'"><span class="search-type">'+A.esc(h.typ)+'</span><span><b>'+A.esc(h.titel)+'</b><small>'+A.esc(h.sub||'')+'</small></span></button>';}).join(''):'<div class="small muted">Nichts gefunden.</div>';out._hits=hits;}inp.addEventListener('input',draw);out.addEventListener('click',function(e){var b=e.target.closest('[data-hit]');if(!b)return;var h=out._hits&&out._hits[Number(b.getAttribute('data-hit'))];if(!h)return;close();setTimeout(function(){if(h.aufgabe){var f=document.createElement('button');f.setAttribute('data-aufgabe',h.aufgabe);ACT['aufgabe-open'](f);}else push(h.view,{id:h.id});},0);});setTimeout(function(){inp.focus();},30);}});
 };
+ACT['klassenleitung'] = function(){var ks=A.klassen(true);if(!ks.length){window.toast('Noch keine Klasse angelegt.',true);return;}var def=standardKlasseId_();Modal.form({title:'Meine Klasse / Klassenleitung',hinweis:'Diese Klasse wird bei Beobachtungen und anderen Schüler:innen-Auswahlen automatisch vorausgewählt. Du kannst den Filter dort jederzeit ändern.',fields:[{key:'klasseId',label:'Standardklasse',type:'select',value:def,options:ks.map(function(k){return{value:k.id,label:k.name};})}],onSave:function(v){A.setCfg('klassenleitungId',v.klasseId||'');render();window.toast('Standardklasse gespeichert');},focus:false});};
 ACT['startseite'] = function(){Modal.form({title:'Startseite',fields:[{key:'s',label:'Beim Öffnen anzeigen',type:'select',value:A.cfg('startseite')||'heute',options:[{value:'heute',label:'Heute'},{value:'plan',label:'Stundenplan'},{value:'klassen',label:'Klassen'},{value:'noten',label:'Noten'}]}],onSave:function(v){A.setCfg('startseite',v.s);},focus:false});};
 ACT['auto-lock'] = function(){Modal.form({title:'Automatisch sperren',hinweis:'Funktioniert zusammen mit der vierstelligen PIN. Wenn die App länger im Hintergrund war, wird beim Zurückkehren erneut gesperrt.',fields:[{key:'m',label:'Nach',type:'select',value:String(A.cfg('autoLockMin')||0),options:[{value:'0',label:'aus'},{value:'1',label:'1 Minute'},{value:'2',label:'2 Minuten'},{value:'5',label:'5 Minuten'},{value:'10',label:'10 Minuten'}]}],onSave:function(v){A.setCfg('autoLockMin',Number(v.m)||0);},focus:false});};
 ACT['daily-login'] = function(){Modal.form({title:'Anmeldung',hinweis:'Die Server-Sitzung bleibt gespeichert. Bei „einmal pro Tag“ bestätigst du deine Anmeldung nur beim ersten Öffnen eines neuen Kalendertags. Manuelles Abmelden wirkt immer sofort; eine PIN-Sperre bleibt davon unabhängig.',fields:[{key:'modus',label:'Auf diesem Gerät',type:'select',value:taeglicheAnmeldungAktiv_()?'daily':'session',options:[{value:'daily',label:'einmal pro Tag bestätigen'},{value:'session',label:'gespeicherte Sitzung direkt öffnen'}]}],onSave:function(v){A.setCfg('dailyLogin',v.modus==='daily');if(v.modus==='daily'&&A.Auth.isLoggedIn())anmeldungHeuteMerken_();},focus:false});};
@@ -9659,7 +9703,7 @@ function previewDemoSeed_() {
   var tag2 = tag >= 5 ? 1 : tag + 1;
 
   var kl4 = { id:'demo_kl4', name:'4a', stufe:'4', fach:'', archiviert:'', notiz:'Testklasse für die Vorschau' };
-  var kl5 = { id:'demo_kl5', name:'5b', stufe:'5', fach:'', archiviert:'', notiz:'' };
+  var kl5 = { id:'demo_kl5', name:'6f', stufe:'6', fach:'', archiviert:'', notiz:'' };
   A.put('Klassen', kl4, true); A.put('Klassen', kl5, true);
 
   var kDe = { id:'demo_de', klasseId:kl4.id, fach:'Deutsch', farbe:'#3f5bd9', kategorien:'', notenschluessel:'', notiz:'', archiviert:'' };
