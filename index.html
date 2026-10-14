@@ -11,7 +11,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="format-detection" content="telephone=no">
 <title>Schulapp</title>
-<!-- Schulapp V46 – Standardklasse, SuS-Suche & klassenbasierte Listen -->
+<!-- Schulapp V47 – stabilisierte Navigation, Standardklasse & Mobile-Unterricht -->
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="./icon-192.png">
 <link rel="icon" type="image/png" sizes="192x192" href="./icon-192.png">
@@ -2479,10 +2479,41 @@ body.feedback-pick .main *{cursor:crosshair!important}
 .list-scope-line{font-size:11px;color:var(--ink-3);margin-top:3px}
 @media(max-width:620px){.sus-picker-tools{grid-template-columns:1fr}.sus-picker-list{max-height:260px}}
 
+
+/* ------------------------------------------------------- V47 Mobile-Unterricht stabil */
+/* Reassert the proven lesson layout on narrow screens and prevent Safari flex/grid overflow. */
+@media (max-width: 559px) {
+  /* Material/HA: auf allen iPhone-Breiten stabil zwei Karten nebeneinander.
+     Das vermeidet den unschönen Sprung zwischen 360 px und 390/393 px. */
+  .kachel-grid { width: 100%; min-width: 0; box-sizing: border-box; }
+  .kachel-grid:not(.mit-grid) { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; padding: 8px 10px; }
+  .kachel, .chk-kachel, .mit-kachel { min-width: 0; max-width: 100%; box-sizing: border-box; }
+  .kachel-felder { min-width: 0; gap: 4px; }
+  .chk { min-width: 0; max-width: 100%; box-sizing: border-box; }
+
+  /* Mitarbeit: Name links, fünf Smileys rechts – ohne Überlauf bei 390/393 px. */
+  .mit-grid { grid-template-columns: 1fr; gap: 6px; }
+  .mit-kachel { display: flex; align-items: center; gap: 7px; padding: 6px 8px; }
+  .mit-kachel .kachel-name { flex: 1 1 0; min-width: 0; display: block; margin-bottom: 0; }
+  .mit-kachel .nn { display: block; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 13px; }
+  .mit-kachel .avg { display: block; }
+  .mit-kachel .smileys {
+    flex: 0 1 190px; width: min(190px, 62%); min-width: 0;
+    display: grid; grid-template-columns: repeat(5, minmax(28px, 1fr)); gap: 3px;
+  }
+  .mit-kachel .sm { width: 100%; min-width: 0; max-width: none; height: 38px; font-size: 17px; }
+}
+@media (max-width: 350px) {
+  .kachel-grid:not(.mit-grid) { padding-left: 8px; padding-right: 8px; }
+  .mit-kachel { gap: 5px; padding-left: 6px; padding-right: 6px; }
+  .mit-kachel .smileys { width: min(166px, 64%); grid-template-columns: repeat(5, minmax(27px, 1fr)); gap: 2px; }
+  .mit-kachel .sm { height: 36px; font-size: 16px; }
+}
+
 @media(prefers-color-scheme:dark){body{background:#191919}.topbar{background:rgba(25,25,25,.94)}.btn.primary{background:#ebebea;border-color:#ebebea;color:#191919}.inbox-item:hover{background:#242424}.inbox-icon,.craft-mark{background:#2a2a2a}.grades th{background:#242424}}
 </style>
 </head>
-<body data-schulapp-version="46">
+<body data-schulapp-version="47">
 
 
 <div id="authGate" class="auth-gate hidden">
@@ -4278,6 +4309,7 @@ global.A = {
   klassen: klassen, kurseDerKlasse: kurseDerKlasse, alleKurse: alleKurse,
   klasseVonKurs: klasseVonKurs, kursLabel: kursLabel, kursFarbe: kursFarbe,
   susDerKlasse: susDerKlasse, susDesKurses: susDesKurses, susName: susName, susKurz: susKurz,
+  standardKlasseId: standardKlasseId_, standardKlasse: standardKlasse_,
   fachVorgabe: fachVorgabe, setFachVorgabe: setFachVorgabe, faecherListe: faecherListe,
   kategorienVon: kategorienVon, schluesselVon: schluesselVon,
   noteLinear: noteLinear, noteAusPunkten: noteAusPunkten, punkteFuerNote: punkteFuerNote,
@@ -5580,7 +5612,7 @@ function craftAktiveKartenSus_(){return A.list('SuS',function(x){return String(x
 function craftKarteiQuickNoteOpen_(presetSusId){
   var alle=A.list('SuS',function(x){return String(x.aktiv||'1')!=='0';}).sort(function(a,b){return A.susName(a,'vorname').localeCompare(A.susName(b,'vorname'),'de');});
   if(!alle.length){window.toast('Noch keine Schüler:innen angelegt.',true);return;}
-  var preset=A.byId('SuS',presetSusId),defaultKlasse=(preset&&preset.klasseId)||standardKlasseId_(),selectedId=presetSusId||'';
+  var preset=A.byId('SuS',presetSusId),defaultKlasse=(preset&&preset.klasseId)||A.standardKlasseId(),selectedId=presetSusId||'';
   var klassen=A.klassen(true),klOpts='<option value="">Alle Klassen</option>'+klassen.map(function(k){return '<option value="'+A.esc(k.id)+'" '+(k.id===defaultKlasse?'selected':'')+'>'+A.esc(k.name)+'</option>';}).join('');
   var body='<div class="sus-picker-tools"><select id="obsKlasse" aria-label="Klasse filtern">'+klOpts+'</select><input id="obsSearch" type="search" placeholder="Schüler:in suchen …" autocomplete="off"></div><div class="sus-picker-list" id="obsPeople"></div>'+
     '<div class="field"><label>Art</label><select id="obsTyp"><option>Beobachtung</option><option>Positiver Moment</option><option>Lernentwicklung</option><option>Sozialverhalten</option><option>Selbstständigkeit</option><option>Organisation</option><option>Gespräch</option><option>Für Zeugnis merken</option></select></div>'+
@@ -7224,7 +7256,7 @@ VIEWS.mehr = {
         '<button class="btn primary" data-act="sync-jetzt">Jetzt abgleichen</button></div>' +
       '</div>');
 
-    var stdKl=standardKlasse_();
+    var stdKl=A.standardKlasse();
     h += card('Arbeitskontext',
       '<button class="row" data-act="klassenleitung"><div class="row-main"><div class="row-title">Meine Klasse / Klassenleitung</div><div class="row-sub">'+(stdKl?A.esc(stdKl.name)+' · wird bei Beobachtungen und Auswahlen vorausgewählt':'keine Standardklasse')+'</div></div><div class="chev">›</div></button>');
 
@@ -7277,7 +7309,7 @@ VIEWS.mehr = {
       '<button class="row" data-act="craft-info"><div class="row-main"><div class="row-title">Craft + Schulapp</div><div class="row-sub">Planung, Tagesaufgaben, Kartei und pädagogisches Journal erklären</div></div><div class="chev">›</div></button>');
 
     h += card('App',
-      '<div class="row" style="cursor:default"><div class="row-main"><div class="row-title">App-Version</div><div class="row-sub">Version 46</div></div></div>' +
+      '<div class="row" style="cursor:default"><div class="row-main"><div class="row-title">App-Version</div><div class="row-sub">Version 47</div></div></div>' +
       '<button class="row" data-act="farbdesign"><div class="row-main"><div class="row-title">Farbdesign</div>' +
         '<div class="row-sub"><span class="farb-punkt" style="--fc:' + aktuelleDesignFarbe() + ';display:inline-block;vertical-align:-2px;margin-right:6px"></span>' +
         A.esc(A.cfg('farbdesignHex') ? 'Eigene Farbe' : (FARBDESIGNS[A.cfg('farbdesign')] || FARBDESIGNS.blau)) +
@@ -9483,11 +9515,11 @@ ACT['sync-jetzt'] = function () {
 
 
 ACT['aufgabe-neu-klasse'] = function (el) {
-  var fake=document.createElement('button');fake.setAttribute('data-klasse',el.getAttribute('data-klasse')||standardKlasseId_());ACT['aufgabe-neu'](fake);
+  var fake=document.createElement('button');fake.setAttribute('data-klasse',el.getAttribute('data-klasse')||A.standardKlasseId());ACT['aufgabe-neu'](fake);
 };
 
 ACT['aufgabe-neu'] = function (el) {
-  var kursId=el.getAttribute('data-kurs')||((currentView().p||{}).kursId)||'',kurs=A.byId('Kurse',kursId),klasseId=el.getAttribute('data-klasse')||(kurs&&kurs.klasseId)||standardKlasseId_(),klasse=A.byId('Klassen',klasseId);
+  var kursId=el.getAttribute('data-kurs')||((currentView().p||{}).kursId)||'',kurs=A.byId('Kurse',kursId),klasseId=el.getAttribute('data-klasse')||(kurs&&kurs.klasseId)||A.standardKlasseId(),klasse=A.byId('Klassen',klasseId);
   if(!klasse){window.toast('Bitte zuerst eine Klasse auswählen.',true);return;}
   var kurse=A.kurseDerKlasse(klasseId);if(!kurse.length){window.toast('Für diese Klasse ist noch kein Fach/Kurs angelegt.',true);return;}
   var fields=[
@@ -9657,7 +9689,7 @@ ACT['sitzplan-vorschlaege'] = function(el){var klasseId=el.getAttribute('data-kl
 ACT['suche'] = function(){
   Modal.open({title:'Suche',body:'<div class="field"><label>Suchen</label><input id="appSearch" type="search" placeholder="Name, Klasse, Fach oder Liste …" autocomplete="off"></div><div class="search-results" id="searchResults"><div class="small muted">Suchbegriff eingeben.</div></div>',after:function(bg,close){var inp=bg.querySelector('#appSearch'),out=bg.querySelector('#searchResults');function draw(){var q=String(inp.value||'').trim().toLowerCase();if(q.length<2){out.innerHTML='<div class="small muted">Mindestens zwei Zeichen eingeben.</div>';return;}var hits=[];A.klassen(true).forEach(function(k){if(String(k.name).toLowerCase().includes(q))hits.push({typ:'Klasse',titel:k.name,sub:'Klasse',view:'klasse',id:k.id});});A.list('SuS').forEach(function(x){var n=A.susName(x),kl=A.byId('Klassen',x.klasseId);if(n.toLowerCase().includes(q))hits.push({typ:'Kind',titel:n,sub:kl?kl.name:'',view:'sus',id:x.id});});A.alleKurse(true).forEach(function(k){var l=A.kursLabel(k);if(l.toLowerCase().includes(q))hits.push({typ:'Kurs',titel:l,sub:'Fach',view:'kurs',id:k.id});});aufgabenAlle().forEach(function(a){if(String(a.titel||'').toLowerCase().includes(q)){var k=A.byId('Kurse',a.kursId);hits.push({typ:a.typ==='liste'?'Liste':'To-do',titel:a.titel,sub:k?A.kursLabel(k):'',aufgabe:a.id});}});out.innerHTML=hits.length?hits.slice(0,30).map(function(h,i){return '<button class="search-hit" data-hit="'+i+'"><span class="search-type">'+A.esc(h.typ)+'</span><span><b>'+A.esc(h.titel)+'</b><small>'+A.esc(h.sub||'')+'</small></span></button>';}).join(''):'<div class="small muted">Nichts gefunden.</div>';out._hits=hits;}inp.addEventListener('input',draw);out.addEventListener('click',function(e){var b=e.target.closest('[data-hit]');if(!b)return;var h=out._hits&&out._hits[Number(b.getAttribute('data-hit'))];if(!h)return;close();setTimeout(function(){if(h.aufgabe){var f=document.createElement('button');f.setAttribute('data-aufgabe',h.aufgabe);ACT['aufgabe-open'](f);}else push(h.view,{id:h.id});},0);});setTimeout(function(){inp.focus();},30);}});
 };
-ACT['klassenleitung'] = function(){var ks=A.klassen(true);if(!ks.length){window.toast('Noch keine Klasse angelegt.',true);return;}var def=standardKlasseId_();Modal.form({title:'Meine Klasse / Klassenleitung',hinweis:'Diese Klasse wird bei Beobachtungen und anderen Schüler:innen-Auswahlen automatisch vorausgewählt. Du kannst den Filter dort jederzeit ändern.',fields:[{key:'klasseId',label:'Standardklasse',type:'select',value:def,options:ks.map(function(k){return{value:k.id,label:k.name};})}],onSave:function(v){A.setCfg('klassenleitungId',v.klasseId||'');render();window.toast('Standardklasse gespeichert');},focus:false});};
+ACT['klassenleitung'] = function(){var ks=A.klassen(true);if(!ks.length){window.toast('Noch keine Klasse angelegt.',true);return;}var def=A.standardKlasseId();Modal.form({title:'Meine Klasse / Klassenleitung',hinweis:'Diese Klasse wird bei Beobachtungen und anderen Schüler:innen-Auswahlen automatisch vorausgewählt. Du kannst den Filter dort jederzeit ändern.',fields:[{key:'klasseId',label:'Standardklasse',type:'select',value:def,options:ks.map(function(k){return{value:k.id,label:k.name};})}],onSave:function(v){A.setCfg('klassenleitungId',v.klasseId||'');render();window.toast('Standardklasse gespeichert');},focus:false});};
 ACT['startseite'] = function(){Modal.form({title:'Startseite',fields:[{key:'s',label:'Beim Öffnen anzeigen',type:'select',value:A.cfg('startseite')||'heute',options:[{value:'heute',label:'Heute'},{value:'plan',label:'Stundenplan'},{value:'klassen',label:'Klassen'},{value:'noten',label:'Noten'}]}],onSave:function(v){A.setCfg('startseite',v.s);},focus:false});};
 ACT['auto-lock'] = function(){Modal.form({title:'Automatisch sperren',hinweis:'Funktioniert zusammen mit der vierstelligen PIN. Wenn die App länger im Hintergrund war, wird beim Zurückkehren erneut gesperrt.',fields:[{key:'m',label:'Nach',type:'select',value:String(A.cfg('autoLockMin')||0),options:[{value:'0',label:'aus'},{value:'1',label:'1 Minute'},{value:'2',label:'2 Minuten'},{value:'5',label:'5 Minuten'},{value:'10',label:'10 Minuten'}]}],onSave:function(v){A.setCfg('autoLockMin',Number(v.m)||0);},focus:false});};
 ACT['daily-login'] = function(){Modal.form({title:'Anmeldung',hinweis:'Die Server-Sitzung bleibt gespeichert. Bei „einmal pro Tag“ bestätigst du deine Anmeldung nur beim ersten Öffnen eines neuen Kalendertags. Manuelles Abmelden wirkt immer sofort; eine PIN-Sperre bleibt davon unabhängig.',fields:[{key:'modus',label:'Auf diesem Gerät',type:'select',value:taeglicheAnmeldungAktiv_()?'daily':'session',options:[{value:'daily',label:'einmal pro Tag bestätigen'},{value:'session',label:'gespeicherte Sitzung direkt öffnen'}]}],onSave:function(v){A.setCfg('dailyLogin',v.modus==='daily');if(v.modus==='daily'&&A.Auth.isLoggedIn())anmeldungHeuteMerken_();},focus:false});};
@@ -9798,7 +9830,7 @@ function previewOeffnen_() {
   document.body.classList.add('preview-mode');
   A.Auth._activate({
     url:'', sessionToken:'preview-only',
-    user:{id:'preview-v45',name:'Vorschau',email:'vorschau@lokal',role:'owner'}
+    user:{id:'preview-v47',name:'Vorschau',email:'vorschau@lokal',role:'owner'}
   }, false);
   try { sessionStorage.removeItem('schulapp.auth.session'); } catch(e) {}
   A.Auth.setServerUrl('');
@@ -10222,8 +10254,8 @@ function speichereNote(input) {
 
 /* ---------------------------------------------------- V40 Vorschau-Feedback */
 var previewFeedbackPick=false;
-function feedbackListe_(){try{return JSON.parse(localStorage.getItem('schulapp.preview.feedback.v44')||'[]')||[];}catch(e){return[];}}
-function feedbackSpeichern_(arr){try{localStorage.setItem('schulapp.preview.feedback.v44',JSON.stringify(arr||[]));}catch(e){}}
+function feedbackListe_(){try{return JSON.parse(localStorage.getItem('schulapp.preview.feedback.v47')||'[]')||[];}catch(e){return[];}}
+function feedbackSpeichern_(arr){try{localStorage.setItem('schulapp.preview.feedback.v47',JSON.stringify(arr||[]));}catch(e){}}
 function feedbackLabel_(el){
   if(!el)return 'Element';
   var txt=String(el.innerText||el.textContent||'').replace(/\s+/g,' ').trim();
@@ -10302,8 +10334,8 @@ function pinSetup() {
 if (VORSCHAU_LOKAL) {
   /* Lokale/ChatGPT-Vorschau: direkt mit isolierten Testdaten starten.
      Kein Login und keine Serververbindung. */
-  try { localStorage.removeItem('schulapp.user.preview-v45.db'); } catch (e) {}
-  try { localStorage.removeItem('schulapp.user.preview-v45.queue'); } catch (e2) {}
+  try { localStorage.removeItem('schulapp.user.preview-v47.db'); } catch (e) {}
+  try { localStorage.removeItem('schulapp.user.preview-v47.queue'); } catch (e2) {}
   previewOeffnen_();
 } else {
   var bioStored = A.Auth._stored ? A.Auth._stored() : null;
