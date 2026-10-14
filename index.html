@@ -11,7 +11,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="format-detection" content="telephone=no">
 <title>Schulapp</title>
-<!-- Schulapp V33 – Noten-PDF-Export -->
+<!-- Schulapp V39 – Notion Workspace, Eltern-Inbox & Craft -->
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="./icon-192.png">
 <link rel="icon" type="image/png" sizes="192x192" href="./icon-192.png">
@@ -2091,14 +2091,287 @@ button.week-cell { cursor: pointer; font: inherit; }
   @page { size: A4 landscape; margin: 10mm; }
 }
 
+
+
+/* ---------------------------------------------------------- V34 Alltag */
+.cockpit-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
+.cockpit-stat{border:1px solid var(--line-soft);background:var(--surface-2);border-radius:14px;padding:11px 9px;text-align:center}
+.cockpit-stat b{display:block;font-size:20px;line-height:1.1}.cockpit-stat span{display:block;margin-top:4px;font-size:11px;color:var(--ink-3)}
+@media(max-width:520px){.cockpit-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+.klassen-listen-row{display:flex;gap:9px;align-items:center;padding:10px 12px;border-bottom:1px solid var(--line-soft)}
+.klassen-listen-row:last-child{border-bottom:0}.klassen-listen-main{min-width:0;flex:1}.klassen-listen-title{font-weight:700}.klassen-listen-sub{font-size:12px;color:var(--ink-3);margin-top:2px}
+.klassen-listen-count{font-variant-numeric:tabular-nums;font-weight:750;white-space:nowrap}.klassen-listen-missing{color:var(--bad)}
+.eltern-msg{white-space:pre-wrap;border:1px solid var(--line-soft);background:var(--surface-2);border-radius:14px;padding:13px;line-height:1.45}.empfaenger-box{margin-top:12px;border-radius:14px;padding:12px;background:color-mix(in srgb,var(--accent) 8%,var(--surface));border:1px solid color-mix(in srgb,var(--accent) 18%,var(--line-soft))}.empfaenger-box b{display:block;margin-bottom:5px}.empfaenger-namen{line-height:1.5}
+.sitz-regel-status{display:flex;gap:8px;flex-wrap:wrap;margin:0 0 10px}.sitz-regel-chip{border:1px solid var(--line-soft);background:var(--surface-2);border-radius:999px;padding:5px 9px;font-size:12px}.sitz-regel-chip.bad{color:var(--bad);border-color:color-mix(in srgb,var(--bad) 30%,var(--line-soft));background:color-mix(in srgb,var(--bad) 8%,var(--surface))}.sitz-regel-chip.good{color:var(--good)}
+.regel-liste{display:grid;gap:7px;margin-top:10px}.regel-row{display:flex;align-items:center;gap:8px;border:1px solid var(--line-soft);border-radius:12px;padding:9px 10px;background:var(--surface-2)}.regel-row>span{flex:1;min-width:0}.regel-row button{border:0;background:transparent;color:var(--bad);font-size:18px;padding:2px 6px}
+.vorschlag-box{border:1px solid var(--line-soft);border-radius:14px;padding:12px;margin-top:10px}.vorschlag-box.best{border-color:color-mix(in srgb,var(--good) 45%,var(--line-soft));background:color-mix(in srgb,var(--good) 6%,var(--surface))}.vorschlag-tische{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:7px;margin:9px 0}.vorschlag-tisch{font-size:12px;padding:8px;border-radius:10px;background:var(--surface-2);border:1px solid var(--line-soft)}
+.search-results{display:grid;gap:6px;margin-top:10px}.search-hit{width:100%;display:flex;align-items:center;gap:10px;border:1px solid var(--line-soft);background:var(--surface);border-radius:12px;padding:10px;text-align:left;font:inherit}.search-hit small{display:block;color:var(--ink-3);margin-top:2px}.search-type{font-size:11px;font-weight:750;color:var(--accent);min-width:52px}
+.weiter-box{display:flex;align-items:center;gap:10px}.weiter-box>div{flex:1}.weiter-text{font-weight:650}.weiter-meta{font-size:11px;color:var(--ink-3);margin-top:3px}
+.offene-abgaben-list{display:grid;gap:7px}.offene-abgabe{border:1px solid var(--line-soft);border-radius:12px;padding:9px 10px;background:var(--surface-2)}.offene-abgabe b{display:block}.offene-abgabe span{font-size:12px;color:var(--ink-3)}
+
+
+/* ----------------------------------------------------- V38 Notion-like UI */
+@media screen {
+  :root {
+    --bg:#ffffff;
+    --surface:#ffffff;
+    --surface-2:#f7f7f5;
+    --line:#e9e9e7;
+    --line-soft:#f0f0ee;
+    --ink:#37352f;
+    --ink-2:#787774;
+    --ink-3:#9b9a97;
+    --accent:#2383e2;
+    --accent-ink:#ffffff;
+    --accent-soft:#e7f3ff;
+    --radius:7px;
+    --radius-sm:6px;
+    --topbar-h:50px;
+    --tabbar-h:58px;
+  }
+  body {
+    background:var(--bg);
+    color:var(--ink);
+    font-family:-apple-system,BlinkMacSystemFont,"Inter","Segoe UI",system-ui,sans-serif;
+    letter-spacing:-.006em;
+  }
+  .main {
+    max-width:1040px;
+    padding-top:calc(var(--topbar-h) + var(--sat) + 22px);
+    padding-left:18px;
+    padding-right:18px;
+  }
+  .topbar {
+    background:color-mix(in srgb,var(--surface) 97%,transparent);
+    border-bottom:1px solid var(--line);
+    backdrop-filter:blur(10px);
+    -webkit-backdrop-filter:blur(10px);
+    padding-left:calc(12px + var(--sal));
+    padding-right:calc(12px + var(--sar));
+  }
+  .topbar-title { font-size:15px; font-weight:600; letter-spacing:-.01em; }
+  .icon-btn { color:var(--ink-2); border-radius:5px; min-width:36px; height:36px; }
+  .icon-btn:active,.icon-btn:hover { background:var(--surface-2); color:var(--ink); }
+  #btnBack { font-size:25px; }
+
+  .card {
+    background:transparent;
+    border:0;
+    border-radius:0;
+    box-shadow:none;
+    margin:0 0 28px;
+    overflow:visible;
+  }
+  .card-head {
+    padding:0 2px 8px;
+    font-size:14px;
+    line-height:1.25;
+    font-weight:650;
+    letter-spacing:-.01em;
+    text-transform:none;
+    color:var(--ink);
+  }
+  .card-body { padding:10px 0 0; }
+  .card-body.tight { padding:0; }
+  .section-title {
+    margin:24px 2px 8px;
+    font-size:14px;
+    font-weight:650;
+    text-transform:none;
+    letter-spacing:-.01em;
+    color:var(--ink);
+  }
+  .row {
+    min-height:46px;
+    padding:8px 8px;
+    border-bottom:1px solid var(--line-soft);
+    background:transparent;
+    border-radius:5px;
+    gap:10px;
+  }
+  .row:last-child { border-bottom-color:transparent; }
+  .row:hover,.row:active { background:var(--surface-2); }
+  .row-title { font-size:14px; font-weight:520; letter-spacing:-.008em; }
+  .row-sub { font-size:12.5px; color:var(--ink-2); margin-top:2px; line-height:1.35; }
+  .row-val { font-size:13px; }
+  .chev { color:var(--ink-3); font-size:17px; font-weight:400; }
+
+  .btn {
+    min-height:36px;
+    border-radius:5px;
+    border:1px solid var(--line);
+    background:var(--surface);
+    color:var(--ink);
+    padding:7px 11px;
+    font-size:13px;
+    font-weight:520;
+    box-shadow:none;
+  }
+  .btn:hover,.btn:active { background:var(--surface-2); }
+  .btn.primary {
+    background:var(--ink);
+    border-color:var(--ink);
+    color:var(--surface);
+    box-shadow:none;
+  }
+  .btn.primary:hover,.btn.primary:active { opacity:.9; background:var(--ink); }
+  .btn.danger { border-color:color-mix(in srgb,var(--bad) 35%,var(--line)); }
+  .btn-row { gap:7px; }
+
+  .field { margin-bottom:14px; }
+  .field > label { font-size:12px; font-weight:550; color:var(--ink-2); letter-spacing:0; margin-bottom:5px; }
+  .field input:not([type=checkbox]), .field select, .field textarea {
+    min-height:38px;
+    border-radius:5px;
+    border:1px solid var(--line);
+    background:var(--surface);
+    box-shadow:none;
+    padding:8px 10px;
+  }
+  .field input:focus,.field select:focus,.field textarea:focus {
+    border-color:#b8b8b5;
+    box-shadow:0 0 0 1px #b8b8b5;
+    outline:0;
+  }
+  .hint-box {
+    border:0;
+    border-left:3px solid var(--line);
+    border-radius:0;
+    background:var(--surface-2);
+    color:var(--ink-2);
+    padding:10px 12px;
+    font-size:12.5px;
+  }
+  .modal-card {
+    border-radius:10px 10px 0 0;
+    border:1px solid var(--line);
+    box-shadow:0 -12px 40px rgba(0,0,0,.12);
+  }
+  .modal-head { border-bottom:1px solid var(--line); }
+  .modal-foot { border-top:1px solid var(--line); background:var(--surface); }
+
+  .tabbar {
+    background:color-mix(in srgb,var(--surface) 97%,transparent);
+    border-top:1px solid var(--line);
+    backdrop-filter:blur(12px);
+    -webkit-backdrop-filter:blur(12px);
+  }
+  .tab { color:var(--ink-3); gap:2px; }
+  .tab:hover { background:var(--surface-2); }
+  .tab.active { color:var(--ink); }
+  .tab-ico { width:20px; height:20px; display:flex; align-items:center; justify-content:center; filter:none; }
+  .tab-ico svg { width:19px; height:19px; fill:none; stroke:currentColor; stroke-width:1.65; stroke-linecap:round; stroke-linejoin:round; }
+  .tab-lbl { font-size:10px; font-weight:520; letter-spacing:0; }
+
+  .kachel,.cockpit-stat,.offene-abgabe,.search-hit,.vorschlag-box,.comm-suggestion,.comm-person-list {
+    border-radius:6px !important;
+    box-shadow:none !important;
+  }
+  .cockpit-stat { background:var(--surface-2); border:1px solid transparent; }
+  .search-hit { border-color:var(--line); }
+  .empty .big { display:none; }
+  .empty { padding:18px 10px; color:var(--ink-2); }
+  .badge,.pill,.chip,.preview-chip,.comm-badge { border-radius:4px !important; }
+  .preview-box { border-radius:6px; border-color:var(--line); background:var(--surface-2); }
+}
+
+@media (min-width:820px) {
+  :root { --sidebar-w:184px; }
+  .tabbar {
+    top:0; bottom:0; right:auto; width:var(--sidebar-w); height:100dvh;
+    padding:64px 8px 18px; flex-direction:column; gap:2px;
+    border-top:0; border-right:1px solid var(--line);
+    background:#f7f7f5;
+  }
+  .tab {
+    flex:none; width:100%; height:38px; flex-direction:row; justify-content:flex-start;
+    padding:0 10px; gap:9px; border-radius:5px; color:var(--ink-2);
+  }
+  .tab.active { background:#ecece9; color:var(--ink); }
+  .tab-lbl { font-size:13px; font-weight:520; }
+  .tab-ico,.tab-ico svg { width:18px; height:18px; }
+  .topbar { left:var(--sidebar-w); }
+  .main {
+    margin-left:var(--sidebar-w);
+    margin-right:auto;
+    max-width:1000px;
+    padding-left:42px;
+    padding-right:42px;
+    padding-bottom:50px;
+  }
+}
+
+@media (prefers-color-scheme:dark) {
+  :root {
+    --bg:#191919;
+    --surface:#202020;
+    --surface-2:#2a2a2a;
+    --line:#353535;
+    --line-soft:#2f2f2f;
+    --ink:#ebebea;
+    --ink-2:#aaa9a5;
+    --ink-3:#777671;
+  }
+}
+@media (prefers-color-scheme:dark) and (min-width:820px) {
+  .tabbar { background:#202020; }
+  .tab.active { background:#2d2d2d; }
+}
+
+/* -------------------------------------------------- V38 Elternkommunikation */
+.comm-alert-intro{padding:8px 8px 10px;font-size:12.5px;color:var(--ink-2);border-bottom:1px solid var(--line-soft);background:transparent}
+.comm-row .comm-dot{width:6px;height:6px;border-radius:50%;background:var(--warn);flex:0 0 auto}.comm-action{font-size:12px;font-weight:550;color:var(--accent);white-space:nowrap}
+.comm-profile{display:grid;gap:7px}.comm-profile-title{font-size:12px;font-weight:550;color:var(--ink-2);margin-bottom:1px}.comm-suggestion{display:flex;width:100%;align-items:center;gap:10px;text-align:left;border:1px solid var(--line);background:var(--surface);border-radius:6px;padding:9px 10px;font:inherit;color:inherit}.comm-suggestion:hover{background:var(--surface-2)}.comm-suggestion>span{flex:1;min-width:0}.comm-suggestion b{display:block;font-size:13.5px;font-weight:550}.comm-suggestion small{display:block;margin-top:2px;color:var(--ink-3)}.comm-suggestion em{font-style:normal;font-size:11.5px;font-weight:550;color:var(--accent);white-space:nowrap}.comm-create{margin-top:2px}
+.comm-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:14px}.comm-kicker{font-size:11px;font-weight:550;color:var(--ink-3);text-transform:none;letter-spacing:0}.comm-person{font-size:21px;font-weight:650;letter-spacing:-.025em;margin-top:2px}.comm-badge{font-size:11px;font-weight:550;border:1px solid var(--line);background:var(--surface-2);padding:4px 7px;color:var(--ink-2)}
+.comm-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;align-items:end}.comm-check{min-height:42px;margin-bottom:14px;padding:0 2px;align-items:center}.comm-preview-label{font-size:11px;font-weight:550;color:var(--ink-3);text-transform:none;letter-spacing:0;margin:5px 0 6px}.comm-preview{font-size:14px;line-height:1.55;background:var(--surface-2);border:1px solid var(--line);border-radius:6px;padding:12px;white-space:pre-wrap}.comm-person-list{border:1px solid var(--line);overflow:hidden}.comm-person-list .row:last-child{border-bottom:0}
+.comm-milestone{display:grid;grid-template-columns:auto 1fr;gap:12px;align-items:center;padding:2px 0 12px}.comm-milestone-num{font-size:28px;font-weight:650;letter-spacing:-.04em;min-width:58px}.comm-milestone-text{font-size:14px;line-height:1.45}.comm-milestone-meta{font-size:12px;color:var(--ink-2);margin-top:3px}.comm-reason-group{font-size:11px;color:var(--ink-3);font-weight:550}
+@media(max-width:520px){.comm-grid{grid-template-columns:1fr}.comm-check{margin-top:-5px}.comm-suggestion{align-items:flex-start;flex-direction:column;gap:4px}.comm-suggestion em{align-self:flex-start}}
+
+/* ---------------------------------------------------------- V38 Vorschau */
+.preview-box{margin:14px 0 4px;padding:12px;border:1px solid var(--line);background:var(--surface-2);border-radius:6px}
+.preview-box b{display:block;margin-bottom:4px}.preview-box p{margin:0 0 10px;font-size:13px;line-height:1.45;color:var(--ink-2)}
+.preview-chip{display:inline-flex;align-items:center;height:24px;padding:0 7px;background:var(--surface-2);border:1px solid var(--line);color:var(--ink-2);font-size:11px;font-weight:550;white-space:nowrap}
+body.preview-mode #btnSync{opacity:.35}
+.preview-feedback-btn{display:none;position:fixed;right:12px;bottom:calc(var(--tabbar-h) + var(--sab) + 12px);z-index:46;border:1px solid var(--line);background:var(--ink);color:var(--surface);border-radius:6px;padding:8px 11px;font:inherit;font-size:12px;font-weight:550;box-shadow:0 4px 16px rgba(0,0,0,.14)}
+body.preview-mode .preview-feedback-btn{display:block}
+body.feedback-pick .main *{cursor:crosshair!important}
+.feedback-picked{outline:2px solid var(--accent)!important;outline-offset:2px!important}
+@media(min-width:820px){.preview-feedback-btn{bottom:18px;right:18px}}
+
+
+/* ------------------------------------------------------- V39 Notion workspace */
+@media screen{
+  :root{--accent:#37352f;--accent-soft:#f1f1ef;--radius:4px;--radius-sm:4px}
+  body{font-size:15px;background:#fff}
+  .main{max-width:940px;padding-top:calc(var(--topbar-h) + var(--sat) + 34px);padding-left:24px;padding-right:24px}
+  .topbar{border-bottom:0;background:rgba(255,255,255,.94)}
+  .topbar-title{font-size:13px;font-weight:500;color:var(--ink-2)}
+  .card{margin-bottom:34px}
+  .card-head{font-size:12px;color:var(--ink-2);font-weight:600;padding-bottom:7px;border-bottom:1px solid var(--line-soft)}
+  .row{min-height:42px;padding:7px 5px;border-radius:4px}
+  .row-title{font-size:14px;font-weight:500}.row-sub{font-size:12px}
+  .btn{min-height:34px;border-color:var(--line);font-size:12.5px}.btn.primary{background:#37352f;border-color:#37352f;color:#fff}
+  .hint-box{background:#f7f7f5;border-left:3px solid #d3d3d0;color:#6f6e69}
+  .workspace-section{margin:0 0 32px}.workspace-heading{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;margin-bottom:8px}.workspace-heading h2{font-size:18px;margin:0;font-weight:650;letter-spacing:-.02em}.workspace-heading p{margin:3px 0 0;font-size:12px;color:var(--ink-2)}.ghost-link{border:0;background:transparent;color:var(--ink-2);font:inherit;font-size:12px;padding:5px 0}.ghost-link:hover{color:var(--ink);text-decoration:underline}
+  .inbox-list{border-top:1px solid var(--line)}.inbox-item{display:flex;align-items:center;gap:10px;min-height:50px;padding:8px 4px;border-bottom:1px solid var(--line-soft);background:transparent;text-align:left;width:100%;font:inherit}.inbox-item.clickable{border-left:0;border-right:0;border-top:0;cursor:pointer}.inbox-item:hover{background:#f7f7f5}.inbox-icon{width:24px;height:24px;display:grid;place-items:center;border-radius:4px;background:#f1f1ef;color:#6f6e69;font-size:13px}.inbox-main{min-width:0;flex:1}.inbox-main b{display:block;font-size:13.5px;font-weight:550}.inbox-main span{display:block;font-size:11.5px;color:var(--ink-2);margin-top:2px}.inbox-actions{display:flex;gap:5px}.inbox-empty{padding:18px 2px;color:var(--ink-3);font-size:13px;border-top:1px solid var(--line)}
+  .profile-head{display:grid;grid-template-columns:1fr auto;align-items:end;column-gap:15px;margin-bottom:34px}.profile-head h1{grid-column:1;margin:3px 0 0;font-size:30px;line-height:1.1;letter-spacing:-.035em;font-weight:700}.profile-eyebrow{font-size:12px;color:var(--ink-2)}.profile-head .btn{grid-column:2;grid-row:1/3}
+  .timeline{border-top:1px solid var(--line)}.timeline-row{display:grid;grid-template-columns:62px 10px 1fr;gap:9px;align-items:start;padding:8px 2px;border-bottom:1px solid var(--line-soft)}.timeline-date{font-size:11px;color:var(--ink-3);padding-top:2px}.timeline-dot{width:7px;height:7px;border-radius:50%;background:#c8c7c4;margin-top:5px}.timeline-dot.kommunikation{background:#2383e2}.timeline-dot.note{background:#448361}.timeline-dot.check{background:#d9730d}.timeline-main b{display:block;font-size:13px;font-weight:520}.timeline-main span{display:block;font-size:11.5px;color:var(--ink-2);margin-top:1px}.timeline-empty{padding:12px 2px;color:var(--ink-3);font-size:12px}
+  .comm-profile{padding-top:2px}.comm-history-title{margin-top:18px;padding-top:10px;border-top:1px solid var(--line);font-size:11px;color:var(--ink-3);text-transform:uppercase;letter-spacing:.04em}.comm-history-row{display:grid;grid-template-columns:62px 82px 1fr;gap:8px;padding:6px 2px;border-bottom:1px solid var(--line-soft);font-size:11.5px}.comm-history-row span,.comm-history-row em{color:var(--ink-2);font-style:normal}.comm-history-row b{font-weight:520}.comm-create{margin-top:8px}
+  .craft-strip{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:10px 0 20px;margin-bottom:24px;border-bottom:1px solid var(--line)}.craft-strip>div:first-child{display:flex;align-items:center;gap:10px}.craft-mark{width:28px;height:28px;display:grid;place-items:center;background:#f1f1ef;border:1px solid var(--line);border-radius:4px;font-family:Georgia,serif;font-weight:700}.craft-strip b{display:block;font-size:13.5px;font-weight:600}.craft-strip small{display:block;color:var(--ink-2);font-size:11.5px;margin-top:1px}.craft-actions{display:flex;gap:6px}.craft-info p{line-height:1.5}
+  .cockpit-grid{display:none}
+  .grades{border-collapse:collapse}.grades th{background:#f7f7f5}.grades th,.grades td{border-color:var(--line-soft)}
+}
+@media(min-width:820px){:root{--sidebar-w:220px}.tabbar{width:var(--sidebar-w);padding:70px 10px 18px;background:#f7f7f5}.topbar{left:var(--sidebar-w)}.main{margin-left:var(--sidebar-w);padding-left:56px;padding-right:56px;max-width:980px}.tab{height:34px}.tab.active{background:#e9e9e7}}
+@media(max-width:620px){.inbox-item{align-items:flex-start}.inbox-actions{flex-direction:column}.profile-head{grid-template-columns:1fr}.profile-head .btn{grid-column:1;grid-row:auto;margin-top:12px}.craft-strip{align-items:flex-start;flex-direction:column}.craft-actions{width:100%}.craft-actions .btn{flex:1}.comm-history-row{grid-template-columns:58px 72px 1fr}}
+@media(prefers-color-scheme:dark){body{background:#191919}.topbar{background:rgba(25,25,25,.94)}.btn.primary{background:#ebebea;border-color:#ebebea;color:#191919}.inbox-item:hover{background:#242424}.inbox-icon,.craft-mark{background:#2a2a2a}.grades th{background:#242424}}
 </style>
 </head>
-<body data-schulapp-version="31">
+<body data-schulapp-version="38">
 
 
 <div id="authGate" class="auth-gate hidden">
   <div class="auth-card">
-    <div class="auth-mark">🏫</div>
+    <div class="auth-mark" aria-hidden="true">S</div>
     <div class="auth-title">Schulapp</div>
     <div class="auth-sub" id="authSub">Mit deinem Konto anmelden</div>
 
@@ -2133,7 +2406,12 @@ button.week-cell { cursor: pointer; font: inherit; }
     </form>
 
     <div id="authError" class="auth-error"></div>
-    <div class="small muted" style="text-align:center;margin-top:14px">Schulapp · Version 33</div>
+    <div id="previewModeBox" class="preview-box" hidden>
+      <b>Lokale Vorschau</b>
+      <p>Hier kannst du die App mit erfundenen Testdaten ausprobieren. Es wird keine Verbindung zum Schulapp-Server hergestellt und deine echten Daten werden nicht verändert.</p>
+      <button class="btn primary block" type="button" id="previewOpenBtn">Vorschau mit Testdaten öffnen</button>
+    </div>
+    <div class="small muted" style="text-align:center;margin-top:14px">Schulapp · Version 39</div>
   </div>
 </div>
 
@@ -2158,24 +2436,25 @@ button.week-cell { cursor: pointer; font: inherit; }
 
 <nav class="tabbar" id="tabbar">
   <button class="tab" data-tab="heute" aria-label="Heute">
-    <span class="tab-ico">📅</span><span class="tab-lbl">Heute</span>
+    <span class="tab-ico" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M7 3v3M17 3v3M4.5 9h15M5 5.5h14a1 1 0 0 1 1 1V19a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1V6.5a1 1 0 0 1 1-1Z"/></svg></span><span class="tab-lbl">Heute</span>
   </button>
   <button class="tab" data-tab="plan" aria-label="Stundenplan">
-    <span class="tab-ico">🗓️</span><span class="tab-lbl">Plan</span>
+    <span class="tab-ico" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M5 4.5h14v15H5zM8 8h8M8 12h8M8 16h5"/></svg></span><span class="tab-lbl">Plan</span>
   </button>
   <button class="tab" data-tab="klassen" aria-label="Klassen">
-    <span class="tab-ico">👥</span><span class="tab-lbl">Klassen</span>
+    <span class="tab-ico" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M8.5 11a3 3 0 1 0 0-6 3 3 0 0 0 0 6ZM15.8 10a2.4 2.4 0 1 0 0-4.8M3.8 19c.3-3.2 2-5 4.7-5s4.5 1.8 4.8 5M14 14.5c2.8 0 4.6 1.5 4.9 4.5"/></svg></span><span class="tab-lbl">Klassen</span>
   </button>
   <button class="tab" data-tab="noten" aria-label="Noten">
-    <span class="tab-ico">📊</span><span class="tab-lbl">Noten</span>
+    <span class="tab-ico" aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M5 19V11M10 19V6M15 19v-9M20 19V4"/></svg></span><span class="tab-lbl">Noten</span>
   </button>
   <button class="tab" data-tab="mehr" aria-label="Einstellungen">
-    <span class="tab-ico">⚙️</span><span class="tab-lbl">Mehr</span>
+    <span class="tab-ico" aria-hidden="true"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M12 3.5v2M12 18.5v2M3.5 12h2M18.5 12h2M6 6l1.4 1.4M16.6 16.6 18 18M18 6l-1.4 1.4M7.4 16.6 6 18"/></svg></span><span class="tab-lbl">Mehr</span>
   </button>
 </nav>
 
 <div id="modalHost"></div>
 <div id="toastHost" class="toast-host"></div>
+<button id="previewFeedbackBtn" class="preview-feedback-btn" type="button">Feedback</button>
 
 <script>
 /* =====================================================================
@@ -2292,6 +2571,10 @@ var DEFAULT_CFG = {
   /* Ab wie vielen Vergessen (alle Punkte zusammen) gibt es eine Strafarbeit?
      0 schaltet den Hinweis ab. */
   strafarbeitAb: 5,
+  elternNachrichtAb: 5,
+  elternNachrichtTon: 'freundlich',
+  /* Merkt sich je Kurs, Kind und Anlass den zuletzt gezeigten Eltern-Hinweis (5/10/15 …). */
+  elternHinweise: {},
   /* Merkt sich je Kurs und Kind, bis zu welchem Stand schon gemeldet wurde. */
   strafHinweise: {},
   /* Abgehakte Strafarbeiten: kursId|susId|laufendeNr -> { datum } */
@@ -3881,6 +4164,10 @@ global.A = {
 
 })(window);
 
+var VORSCHAU_LOKAL = (location.hostname !== 'w8ytbpw7zk-cell.github.io') || (new URLSearchParams(location.search).get('preview') === '1');
+var VORSCHAU_AKTIV = false;
+
+
 /* =====================================================================
    Schulapp – Oberfläche
    ===================================================================== */
@@ -3901,7 +4188,7 @@ var loginForm = $('#loginForm');
 var registerForm = $('#registerForm');
 var resetForm = $('#resetForm');
 
-var route = { tab: 'heute', stack: [] };
+var route = { tab: (A.cfg('startseite') || 'heute'), stack: [] };
 var ui = { datum: A.todayISO(), heuteModus: 'tag', planKursId: '', sitzAuswahl: null, sitzLayout: false, sitzPerspektive: 'raum' };
 
 
@@ -4212,6 +4499,7 @@ function biometrieSchnellLogin() {
 }
 
 /* Push-Benachrichtigungen wurden in V32 aus der App entfernt. */
+function pushEchtAktiv() { return false; }
 
 function startAuthenticatedApp(pullNow) {
   hideAuth();
@@ -4630,6 +4918,379 @@ function aufgabenRows(kurs, mitNeu, bezugsdatum) {
 }
 
 
+
+/* ---------------------------------------------------------- V34 Klassenlisten */
+function listenDerKlasse(klasseId, auchErledigt) {
+  var kurse = A.kurseDerKlasse(klasseId);
+  var ids = {};
+  kurse.forEach(function (k) { ids[k.id] = true; });
+  return aufgabenAlle().filter(function (a) {
+    return a && a.typ === 'liste' && ids[a.kursId] && (auchErledigt || !a.erledigt);
+  }).sort(function (a, b) {
+    var af = a.frist || '9999-12-31', bf = b.frist || '9999-12-31';
+    if (af !== bf) return af.localeCompare(bf);
+    return String(a.titel || '').localeCompare(String(b.titel || ''), 'de');
+  });
+}
+function offeneListenFuerSus(susId) {
+  var sus = A.byId('SuS', susId);
+  if (!sus) return [];
+  return listenDerKlasse(sus.klasseId, false).filter(function (a) {
+    var checks = a.checks && typeof a.checks === 'object' ? a.checks : {};
+    return !checks[susId];
+  });
+}
+function listenKlassenStat(klasseId) {
+  var listen = listenDerKlasse(klasseId, false), offen = 0, ueber = 0;
+  listen.forEach(function (a) {
+    var kurs = A.byId('Kurse', a.kursId), st = listenStand(a, kurs);
+    offen += Math.max(0, st.gesamt - st.erledigt);
+    if (a.frist && a.frist < A.todayISO()) ueber++;
+  });
+  return { listen: listen.length, offen: offen, ueber: ueber };
+}
+function klassenListenHTML(klasseId) {
+  var listen = listenDerKlasse(klasseId, false);
+  if (!listen.length) return '<div class="card-body small muted">Keine offenen Einsammel-Listen.</div>';
+  return listen.map(function (a) {
+    var kurs = A.byId('Kurse', a.kursId), st = listenStand(a, kurs), fehlt = Math.max(0, st.gesamt - st.erledigt), fr = aufgabeFrist(a, null, a.kursId);
+    return '<button class="row" data-act="aufgabe-open" data-aufgabe="' + A.esc(a.id) + '">' +
+      '<div class="row-main"><div class="row-title">' + A.esc(a.titel) + '</div>' +
+      '<div class="row-sub">' + A.esc(kurs ? kurs.fach : '') + (fr.text ? ' · ' + A.esc(fr.text) : '') +
+      (fehlt ? ' · <span class="klassen-listen-missing">' + fehlt + ' fehlen</span>' : ' · vollständig') + '</div></div>' +
+      '<div class="row-val">' + st.erledigt + '/' + st.gesamt + '</div><div class="chev">›</div></button>';
+  }).join('');
+}
+function elternErinnerungDaten(a) {
+  var kurs = A.byId('Kurse', a.kursId), st = listenStand(a, kurs);
+  var offen = st.sus.filter(function (person) { return !st.checks[person.id]; });
+  var frist = a.frist ? ' bis zum ' + A.fmtDate(a.frist) : '';
+  var zusatz = String(a.elternhinweis || a.notiz || '').trim();
+  var text = 'Liebe Eltern,\n\nuns fehlt noch „' + String(a.titel || 'eine Abgabe') + '“. Bitte geben Sie diese' + frist + ' Ihrem Kind wieder mit.' +
+    (zusatz ? '\n\n' + zusatz : '') + '\n\nVielen Dank und liebe Grüße';
+  return { text: text, offen: offen, kurs: kurs, stand: st };
+}
+function elternErinnerungOeffnen(id) {
+  var a = aufgabeById(id);
+  if (!a || a.typ !== 'liste') return;
+  var d = elternErinnerungDaten(a);
+  if (!d.offen.length) { window.toast('Für diese Liste fehlt niemand mehr.'); return; }
+  var emp = d.offen.map(function (x) { return A.susName(x); }).join(', ');
+  Modal.open({
+    title: 'Eltern erinnern',
+    body: '<div class="hint-box">Die Namen stehen absichtlich nicht im Nachrichtentext. So kannst du denselben Text einzeln an die betreffenden Eltern senden.</div>' +
+      '<div class="eltern-msg" data-eltern-text>' + A.esc(d.text).replace(/\n/g,'<br>') + '</div>' +
+      '<div class="empfaenger-box"><b>Zu senden an Eltern von:</b><div class="empfaenger-namen">' + A.esc(emp) + '</div></div>',
+    foot: '<button class="btn" data-copy-msg>Text kopieren</button><button class="btn primary" data-share-msg>Teilen</button>',
+    after: function (bg) {
+      bg.querySelector('[data-copy-msg]').addEventListener('click', function () {
+        kopieren(d.text).then(function () { window.toast('Nachricht kopiert'); }).catch(function () { window.toast('Kopieren nicht möglich', true); });
+      });
+      bg.querySelector('[data-share-msg]').addEventListener('click', function () {
+        if (navigator.share) navigator.share({ title: a.titel, text: d.text }).catch(function () {});
+        else kopieren(d.text).then(function () { window.toast('Nachricht kopiert'); });
+      });
+    }
+  });
+}
+
+/* ---------------------------------------------------- V38 Elternkommunikation */
+function elternNachrichtSchwelle() {
+  var n = A.num(A.cfg('elternNachrichtAb'), 5);
+  return n > 0 ? Math.round(n) : 0;
+}
+function elternHinweisFaellig(kursId, susId, punkt) {
+  var schwelle = elternNachrichtSchwelle();
+  if (!schwelle) return null;
+  var bilanz = A.checkBilanzSus(kursId, susId);
+  var anzahl = Number((bilanz[punkt] || {}).f || 0);
+  if (!anzahl || anzahl % schwelle !== 0) return null;
+  var key = kursId + '|' + susId + '|' + punkt;
+  var gemeldet = Number((A.cfg('elternHinweise') || {})[key] || 0);
+  if (anzahl <= gemeldet) return null;
+  return {typ:'vergessen',susId:susId,kursId:kursId,punkt:punkt,anzahl:anzahl};
+}
+function elternHinweisGemeldet(h) {
+  if (!h || h.typ !== 'vergessen') return;
+  var all = A.clone(A.cfg('elternHinweise') || {});
+  all[h.kursId + '|' + h.susId + '|' + h.punkt] = Number(h.anzahl || 0);
+  A.setCfg('elternHinweise', all);
+}
+function kommunikationsHinweiseFuerSus(susId) {
+  var sus = A.byId('SuS', susId);
+  if (!sus) return [];
+  var schwelle = elternNachrichtSchwelle();
+  var out = [];
+  A.kurseDerKlasse(sus.klasseId).forEach(function (kurs) {
+    var bilanz = A.checkBilanzSus(kurs.id, susId);
+    Object.keys(bilanz).forEach(function (punkt) {
+      var z = bilanz[punkt] || { f:0, e:0 };
+      if (schwelle && Number(z.f || 0) >= schwelle) {
+        out.push({ typ:'vergessen', susId:susId, kursId:kurs.id, punkt:punkt, anzahl:Number(z.f||0) });
+      }
+    });
+  });
+  offeneListenFuerSus(susId).forEach(function (a) {
+    out.push({ typ:'liste', susId:susId, aufgabeId:a.id, kursId:a.kursId, titel:a.titel || 'Abgabe' });
+  });
+  return out;
+}
+function kommunikationsHinweiseKlasse(klasseId) {
+  var out = [];
+  A.susDerKlasse(klasseId).forEach(function (sus) {
+    kommunikationsHinweiseFuerSus(sus.id).forEach(function (h) {
+      if (h.typ === 'vergessen') out.push(h);
+    });
+  });
+  return out.sort(function(a,b){ return (b.anzahl||0)-(a.anzahl||0); });
+}
+var ELTERN_ANLAESSE = [
+  {key:'material',label:'Material fehlt / unvollständig'},
+  {key:'hausaufgaben',label:'Hausaufgaben fehlen'},
+  {key:'unterschrift',label:'Unterschrift fehlt'},
+  {key:'abgabe',label:'Abgabe / Unterlagen fehlen'},
+  {key:'organisation',label:'Arbeitsorganisation / Vorbereitung'},
+  {key:'mitarbeit',label:'Mitarbeit / Beteiligung'},
+  {key:'verhalten',label:'Verhalten im Unterricht'},
+  {key:'leistung',label:'Lernentwicklung / Leistungsstand'},
+  {key:'gespraech',label:'Gesprächswunsch'},
+  {key:'lob',label:'Positive Rückmeldung / Lob'},
+  {key:'termin',label:'Organisatorisches / Termin'},
+  {key:'allgemein',label:'Sonstige Rückmeldung'}
+];
+function elternGrundLabel_(grund) {
+  if (!grund) return 'Sonstige Rückmeldung';
+  if (grund.typ === 'vergessen') {
+    var kurs=A.byId('Kurse',grund.kursId);
+    return (grund.punkt || 'Material') + ' · ' + (grund.anzahl || 0) + '×' + (kurs && kurs.fach ? ' · '+kurs.fach : '');
+  }
+  if (grund.typ === 'liste') return 'Fehlende Abgabe · ' + (grund.titel || 'Liste');
+  if (grund.typ === 'preset') {
+    var p=ELTERN_ANLAESSE.find(function(x){return x.key===grund.key;});
+    return p ? p.label : 'Sonstige Rückmeldung';
+  }
+  return grund.label || 'Sonstige Rückmeldung';
+}
+function elternNachrichtText_(sus, grund, ton, anzahlNennen, zusatz) {
+  var vorname = String((sus && sus.vorname) || '').trim();
+  var name = vorname || 'Ihrem Kind';
+  var anrede = 'Liebe Eltern' + (vorname ? ' von ' + vorname : '') + ',';
+  ton = ton || 'freundlich';
+  zusatz = String(zusatz || '').trim();
+  var mitte = '';
+  if (grund && grund.typ === 'vergessen') {
+    var kurs = A.byId('Kurse', grund.kursId);
+    var fach = kurs && kurs.fach ? ' im Fach ' + kurs.fach : '';
+    var anzahl = anzahlNennen && grund.anzahl ? ' inzwischen ' + grund.anzahl + '-mal' : ' mehrfach';
+    var punktRaw = String(grund.punkt || 'Material');
+    var istHA = /hausauf/i.test(punktRaw);
+    if (ton === 'deutlich') {
+      mitte = 'ich möchte Sie darauf hinweisen, dass bei ' + name + fach + anzahl + ' ' + (istHA ? 'die Hausaufgaben' : 'benötigtes Material') + ' gefehlt haben. Bitte achten Sie darauf, dass dies künftig zuverlässig vollständig mitgebracht wird.';
+    } else if (ton === 'neutral') {
+      mitte = 'bei ' + name + ' haben' + fach + anzahl + ' ' + (istHA ? 'die Hausaufgaben' : 'benötigte Materialien') + ' gefehlt. Bitte unterstützen Sie Ihr Kind dabei, künftig vollständig vorbereitet in den Unterricht zu kommen.';
+    } else {
+      mitte = 'ich möchte Ihnen kurz eine Rückmeldung geben: Bei ' + name + ' haben' + fach + anzahl + ' ' + (istHA ? 'die Hausaufgaben' : 'benötigte Materialien') + ' gefehlt. Es wäre schön, wenn Sie gemeinsam noch einmal darauf achten könnten, dass alles Benötigte dabei ist.';
+    }
+  } else if (grund && grund.typ === 'liste') {
+    var a = aufgabeById(grund.aufgabeId);
+    var frist = a && a.frist ? ' bis zum ' + A.fmtDate(a.frist) : '';
+    var titel = a ? (a.titel || 'eine Abgabe') : (grund.titel || 'eine Abgabe');
+    mitte = 'uns fehlt von ' + name + ' noch „' + titel + '“. Bitte geben Sie die Unterlagen' + frist + ' mit.';
+    var eh = a ? String(a.elternhinweis || a.notiz || '').trim() : '';
+    if (eh) mitte += '\n\n' + eh;
+  } else {
+    var key = grund && grund.typ === 'preset' ? grund.key : 'allgemein';
+    var freundlich = {
+      material:'ich möchte Ihnen kurz eine Rückmeldung geben: In letzter Zeit hat benötigtes Unterrichtsmaterial bei ' + name + ' wiederholt gefehlt. Es wäre hilfreich, wenn Sie gemeinsam noch einmal auf die vollständige Vorbereitung achten könnten.',
+      hausaufgaben:'ich möchte Ihnen kurz eine Rückmeldung geben: Die Hausaufgaben waren bei ' + name + ' zuletzt wiederholt nicht vollständig vorhanden. Bitte unterstützen Sie Ihr Kind dabei, die Aufgaben zuverlässig zu erledigen und mitzubringen.',
+      unterschrift:'uns fehlt von ' + name + ' noch eine benötigte Unterschrift. Bitte schauen Sie die Unterlagen noch einmal durch und geben Sie diese unterschrieben mit.',
+      abgabe:'uns fehlt von ' + name + ' noch eine vereinbarte Abgabe bzw. Unterlage. Bitte geben Sie diese möglichst zeitnah mit.',
+      organisation:'mir ist aufgefallen, dass die Vorbereitung und Arbeitsorganisation bei ' + name + ' derzeit noch nicht zuverlässig gelingt. Es wäre hilfreich, wenn Sie dies zu Hause noch einmal gemeinsam besprechen könnten.',
+      mitarbeit:'ich möchte Ihnen eine kurze Rückmeldung zur Mitarbeit von ' + name + ' geben. Die Beteiligung im Unterricht könnte derzeit noch regelmäßiger bzw. aktiver sein.',
+      verhalten:'ich möchte Ihnen eine kurze Rückmeldung zum Verhalten von ' + name + ' im Unterricht geben. Es gab zuletzt Situationen, die ich gern gemeinsam mit Ihnen in den Blick nehmen möchte.',
+      leistung:'ich möchte Ihnen eine kurze Rückmeldung zur aktuellen Lernentwicklung von ' + name + ' geben. Ich würde den derzeitigen Stand gern transparent mit Ihnen teilen und bei Bedarf gemeinsam nächste Schritte besprechen.',
+      gespraech:'ich würde mich gern kurz mit Ihnen über ' + name + ' austauschen. Melden Sie sich bitte, damit wir einen passenden Gesprächstermin finden können.',
+      lob:'ich möchte Ihnen gern eine positive Rückmeldung geben: ' + name + ' ist mir in letzter Zeit besonders erfreulich aufgefallen. Das wollte ich Ihnen gerne kurz zurückmelden.',
+      termin:'ich möchte Ihnen eine kurze organisatorische Information zu ' + name + ' weitergeben.',
+      allgemein:'ich möchte Ihnen eine kurze Rückmeldung zu ' + name + ' geben.'
+    };
+    mitte = freundlich[key] || freundlich.allgemein;
+    if (ton === 'deutlich' && !['lob','termin','gespraech'].includes(key)) {
+      mitte = mitte.replace('ich möchte Ihnen kurz eine Rückmeldung geben:', 'ich möchte Sie auf Folgendes aufmerksam machen:').replace('Es wäre hilfreich', 'Ich bitte Sie darum');
+    } else if (ton === 'neutral') {
+      mitte = mitte.replace('Es wäre hilfreich', 'Bitte unterstützen Sie dabei');
+    }
+  }
+  if (zusatz) mitte += '\n\n' + zusatz;
+  var ende = ton === 'deutlich' ? 'Vielen Dank für Ihre Unterstützung.\n\nLiebe Grüße' : 'Vielen Dank für Ihre Unterstützung und liebe Grüße';
+  return anrede + '\n\n' + mitte + '\n\n' + ende;
+}
+function elternNachrichtOeffnen(susId, preset) {
+  var sus=A.byId('SuS',susId);if(!sus)return;
+  var auto=kommunikationsHinweiseFuerSus(susId),gruende=auto.slice(),presetGrund=null;
+  if(preset){gruende.some(function(g){if(preset.typ===g.typ&&((g.typ==='vergessen'&&g.kursId===preset.kursId&&g.punkt===preset.punkt)||(g.typ==='liste'&&g.aufgabeId===preset.aufgabeId))){presetGrund=g;return true;}return false;});if(!presetGrund){gruende.unshift(preset);presetGrund=preset;}}
+  if(!presetGrund&&gruende.length)presetGrund=gruende[0];
+  var optionen='';
+  if(gruende.length)optionen+='<optgroup label="Aktuelle Anlässe">'+gruende.map(function(g,i){return '<option value="auto:'+i+'">'+A.esc(elternGrundLabel_(g))+'</option>';}).join('')+'</optgroup>';
+  optionen+='<optgroup label="Weitere Anlässe">'+ELTERN_ANLAESSE.map(function(x){return '<option value="preset:'+x.key+'">'+A.esc(x.label)+'</option>';}).join('')+'</optgroup>';
+  var body='<div class="comm-head"><div><div class="comm-kicker">Elternkommunikation</div><div class="comm-person">'+A.esc(A.susName(sus))+'</div></div></div>'+ '<div class="field"><label>Anlass</label><select id="elternGrund">'+optionen+'</select></div>'+ '<div class="comm-grid"><div class="field"><label>Ton</label><select id="elternTon"><option value="freundlich">freundlich</option><option value="neutral">neutral</option><option value="deutlich">deutlich</option></select></div><div class="field check comm-check"><input id="elternAnzahl" type="checkbox" checked><label for="elternAnzahl">Anzahl nennen</label><span class="check-state" aria-hidden="true"></span></div></div>'+ '<div class="field"><label>Eigener Zusatz</label><textarea id="elternZusatz" rows="3" placeholder="Optionaler Zusatz …"></textarea></div><div class="comm-preview-label">Vorschau</div><div class="eltern-msg comm-preview" data-comm-preview></div>';
+  Modal.open({title:'Elternnachricht',body:body,foot:'<button class="btn" data-copy-comm>Kopieren</button><button class="btn" data-share-comm>Teilen</button><button class="btn primary" data-sent-comm>Als verschickt markieren</button>',after:function(bg,close){
+    var grundSel=bg.querySelector('#elternGrund'),ton=bg.querySelector('#elternTon'),anz=bg.querySelector('#elternAnzahl'),zus=bg.querySelector('#elternZusatz'),preview=bg.querySelector('[data-comm-preview]');ton.value=String(A.cfg('elternNachrichtTon')||'freundlich');
+    if(presetGrund){var idx=gruende.indexOf(presetGrund);if(idx>=0)grundSel.value='auto:'+idx;}
+    function grund(){var v=grundSel.value||'';if(v.indexOf('auto:')===0)return gruende[Number(v.slice(5))]||{typ:'preset',key:'allgemein'};if(v.indexOf('preset:')===0)return {typ:'preset',key:v.slice(7),susId:susId};return {typ:'preset',key:'allgemein',susId:susId};}
+    function text(){return elternNachrichtText_(sus,grund(),ton.value,anz.checked,zus.value);}function update(){var g=grund();anz.closest('.field').style.display=(g.typ==='vergessen')?'flex':'none';preview.textContent=text();A.setCfg('elternNachrichtTon',ton.value);}
+    [grundSel,ton,anz,zus].forEach(function(el){el.addEventListener(el===zus?'input':'change',update);});update();
+    bg.querySelector('[data-copy-comm]').addEventListener('click',function(){kopieren(text()).then(function(){window.toast('Nachricht kopiert');});});
+    bg.querySelector('[data-share-comm]').addEventListener('click',function(){var t=text();if(navigator.share)navigator.share({title:'Elternnachricht',text:t}).catch(function(){});else kopieren(t).then(function(){window.toast('Nachricht kopiert');});});
+    bg.querySelector('[data-sent-comm]').addEventListener('click',function(){var g=grund();g.susId=susId;if(g.typ==='vergessen'){var schw=elternNachrichtSchwelle();g.anzahl=Math.floor(Number(g.anzahl||0)/schw)*schw||Number(g.anzahl||0);elternVorgangSet_(g,'verschickt',zus.value);}else{var hist=elternVerlauf_();hist.push({id:A.uid('kom'),susId:susId,kursId:g.kursId||'',zeit:new Date().toISOString(),status:'verschickt',anlass:elternGrundLabel_(g),notiz:zus.value||''});A.setCfg('elternVerlauf',hist.slice(-500));}close();render();window.toast('Als verschickt gespeichert');});
+  }});
+}
+function zeigeElternSchwellenHinweis(h, straf) {
+  if(!h)return;var sus=A.byId('SuS',h.susId),kurs=A.byId('Kurse',h.kursId);if(!sus)return;elternHinweisGemeldet(h);elternVorgangEnsure_(h);
+  Modal.open({title:'Elternhinweis',body:'<div class="comm-milestone"><div class="comm-milestone-num">'+h.anzahl+'×</div><div class="comm-milestone-text"><b>'+A.esc(h.punkt)+'</b> fehlt bei '+A.esc(A.susName(sus))+' zum '+h.anzahl+'. Mal.'+(kurs&&kurs.fach?'<div class="comm-milestone-meta">'+A.esc(kurs.fach)+'</div>':'')+'</div></div><div class="hint-box">Nächster automatischer Hinweis beim '+(h.anzahl+elternNachrichtSchwelle())+'. Mal.'+(straf?' Zusätzlich ist eine Strafarbeit fällig.':'')+'</div>',foot:'<button class="btn" data-eltern-spaeter>Später</button><button class="btn" data-eltern-besprochen>Besprochen</button><button class="btn primary" data-eltern-direkt>Nachricht erstellen</button>',after:function(bg,close){bg.querySelector('[data-eltern-spaeter]').addEventListener('click',function(){elternVorgangSet_(h,'spaeter');close();render();});bg.querySelector('[data-eltern-besprochen]').addEventListener('click',function(){elternVorgangSet_(h,'besprochen');close();render();window.toast('Als besprochen gespeichert');});bg.querySelector('[data-eltern-direkt]').addEventListener('click',function(){close();setTimeout(function(){elternNachrichtOeffnen(h.susId,h);},0);});}});
+}
+
+function elternGeneratorGlobalOeffnen() {
+  var sus = A.list('SuS', function(s){return String(s.aktiv||'1')!=='0';}).sort(function(a,b){return A.susName(a).localeCompare(A.susName(b),'de');});
+  if (!sus.length) { window.toast('Noch keine Schüler:innen angelegt.',true); return; }
+  Modal.open({title:'Elternnachricht',body:'<div class="hint-box">Wähle ein Kind. Danach kannst du einen aktuellen oder freien Anlass auswählen.</div><div class="comm-person-list">'+sus.map(function(s){var k=A.byId('Klassen',s.klasseId),h=kommunikationsHinweiseFuerSus(s.id).filter(function(x){return x.typ==='vergessen';});return '<button class="row" data-comm-sus="'+s.id+'"><div class="row-main"><div class="row-title">'+A.esc(A.susName(s))+'</div><div class="row-sub">'+A.esc(k?k.name:'')+(h.length?' · '+h.length+' aktueller Hinweis'+(h.length===1?'':'e'):'')+'</div></div><div class="chev">›</div></button>';}).join('')+'</div>',after:function(bg,close){bg.addEventListener('click',function(e){var b=e.target.closest('[data-comm-sus]');if(!b)return;var id=b.getAttribute('data-comm-sus');close();setTimeout(function(){elternNachrichtOeffnen(id);},0);});}});
+}
+function kommunikationKlasseHTML(klasseId) {
+  var arr = kommunikationsHinweiseKlasse(klasseId);
+  if (!arr.length) return '';
+  return card('Elternkommunikation', '<div class="comm-alert-intro">Hinweise bei '+elternNachrichtSchwelle()+'×, '+(elternNachrichtSchwelle()*2)+'×, '+(elternNachrichtSchwelle()*3)+'× … fehlendem Material / Hausaufgaben.</div>' + arr.map(function(h){var sus=A.byId('SuS',h.susId),kurs=A.byId('Kurse',h.kursId);return '<button class="row comm-row" data-act="eltern-nachricht" data-sus="'+h.susId+'" data-kurs="'+h.kursId+'" data-punkt="'+A.esc(h.punkt)+'"><div class="comm-dot"></div><div class="row-main"><div class="row-title">'+A.esc(sus?A.susName(sus):'')+'</div><div class="row-sub">'+A.esc(h.punkt)+' '+h.anzahl+'× vergessen'+(kurs&&kurs.fach?' · '+A.esc(kurs.fach):'')+'</div></div><span class="comm-action">Nachricht</span></button>';}).join(''));
+}
+
+function craftLinks_(){var x=A.cfg('craftLinks');return x&&typeof x==='object'?A.clone(x):{};}
+function craftLinkFuer_(kursId){return String(craftLinks_()[kursId]||'').trim();}
+function craftLinkSet_(kursId,url){var x=craftLinks_();url=String(url||'').trim();if(url)x[kursId]=url;else delete x[kursId];A.setCfg('craftLinks',x);}
+function craftLinkGueltig_(url){return /^https?:\/\//i.test(url)||/^craftdocs:\/\//i.test(url);}
+function craftOeffnen_(kursId){var u=craftLinkFuer_(kursId);if(!u){window.toast('Für dieses Fach ist noch kein Craft-Dokument verknüpft.',true);return;}if(/^craftdocs:\/\//i.test(u)){location.href=u;}else window.open(u,'_blank','noopener');}
+function susTimeline_(susId){
+  var items=[];
+  elternVerlaufFuerSus_(susId).forEach(function(x){items.push({datum:String(x.zeit||'').slice(0,10),sort:x.zeit||'',typ:'kommunikation',titel:x.status==='besprochen'?'Mit Eltern besprochen':'Elternnachricht verschickt',sub:x.anlass||''});});
+  A.list('Noten',function(n){return n.susId===susId;}).forEach(function(n){var l=A.byId('Leistungen',n.leistungId);if(!l)return;var k=A.byId('Kurse',l.kursId);var note=A.noteFuer(l,susId,k);if(note===null)return;items.push({datum:l.datum||'',sort:(l.datum||'')+'T12:00:00',typ:'note',titel:(l.titel||l.kategorie)+' · '+A.fmtNote(note,1),sub:k?k.fach:''});});
+  A.list('Checks',function(c){return c.susId===susId&&c.wert==='f';}).forEach(function(c){var k=A.byId('Kurse',c.kursId);items.push({datum:c.datum||'',sort:(c.datum||'')+'T08:00:00',typ:'check',titel:(c.punkt||'Material')+' fehlt',sub:k?k.fach:''});});
+  items.sort(function(a,b){return String(b.sort).localeCompare(String(a.sort));});return items.slice(0,24);
+}
+function susTimelineHTML_(susId){var arr=susTimeline_(susId);if(!arr.length)return '<div class="timeline-empty">Noch keine Einträge.</div>';return '<div class="timeline">'+arr.map(function(x){return '<div class="timeline-row"><div class="timeline-date">'+(x.datum?A.fmtDateShort(x.datum):'')+'</div><div class="timeline-dot '+x.typ+'"></div><div class="timeline-main"><b>'+A.esc(x.titel)+'</b>'+(x.sub?'<span>'+A.esc(x.sub)+'</span>':'')+'</div></div>';}).join('')+'</div>';}
+
+function elternVorgangKey_(h) {
+  return [h.kursId||'',h.susId||'',h.punkt||'',h.anzahl||0].join('|');
+}
+function elternVorgaenge_(){var x=A.cfg('elternVorgaenge');return x&&typeof x==='object'?A.clone(x):{};}
+function elternVerlauf_(){var x=A.cfg('elternVerlauf');return Array.isArray(x)?A.clone(x):[];}
+function elternVerlaufFuerSus_(susId){return elternVerlauf_().filter(function(x){return x.susId===susId;}).sort(function(a,b){return String(b.zeit||'').localeCompare(String(a.zeit||''));});}
+function elternVorgangEnsure_(h){
+  if(!h||h.typ!=='vergessen')return;
+  var all=elternVorgaenge_(),k=elternVorgangKey_(h);
+  if(!all[k]){all[k]={status:'offen',zeit:new Date().toISOString(),susId:h.susId,kursId:h.kursId,punkt:h.punkt,anzahl:h.anzahl};A.setCfg('elternVorgaenge',all);}
+}
+function elternVorgangSet_(h,status,notiz){
+  if(!h)return;
+  var all=elternVorgaenge_(),k=elternVorgangKey_(h),now=new Date().toISOString();
+  var rec=all[k]||{susId:h.susId||'',kursId:h.kursId||'',punkt:h.punkt||'',anzahl:h.anzahl||0};
+  rec.status=status;rec.zeit=now;rec.notiz=notiz||'';
+  if(status==='spaeter')rec.bis=A.addDays(A.todayISO(),1);else delete rec.bis;
+  all[k]=rec;A.setCfg('elternVorgaenge',all);
+  if(status==='verschickt'||status==='besprochen'){
+    var hist=elternVerlauf_();
+    hist.push({id:A.uid('kom'),susId:h.susId||'',kursId:h.kursId||'',zeit:now,status:status,anlass:elternGrundLabel_(h),punkt:h.punkt||'',anzahl:h.anzahl||0,notiz:notiz||''});
+    A.setCfg('elternVerlauf',hist.slice(-500));
+  }
+}
+function elternAktuellerVorgang_(kursId,susId,punkt){
+  var schwelle=elternNachrichtSchwelle();if(!schwelle)return null;
+  var bil=A.checkBilanzSus(kursId,susId),anz=Number((bil[punkt]||{}).f||0);if(anz<schwelle)return null;
+  var meilenstein=Math.floor(anz/schwelle)*schwelle;
+  var h={typ:'vergessen',susId:susId,kursId:kursId,punkt:punkt,anzahl:meilenstein,aktuell:anz};
+  var rec=elternVorgaenge_()[elternVorgangKey_(h)];
+  if(rec&&(rec.status==='verschickt'||rec.status==='besprochen'))return null;
+  if(rec&&rec.status==='spaeter'&&String(rec.bis||'')>A.todayISO())return null;
+  return h;
+}
+function elternInbox_(){
+  var out=[];
+  A.list('SuS',function(x){return String(x.aktiv||'1')!=='0';}).forEach(function(sus){
+    A.kurseDerKlasse(sus.klasseId).forEach(function(kurs){
+      var bil=A.checkBilanzSus(kurs.id,sus.id);
+      Object.keys(bil).forEach(function(p){var h=elternAktuellerVorgang_(kurs.id,sus.id,p);if(h)out.push(h);});
+    });
+  });
+  return out.sort(function(a,b){return (b.anzahl||0)-(a.anzahl||0);});
+}
+function inboxHTML(datum){
+  var heute=datum===A.todayISO(),items=[];
+  if(heute){
+    elternInbox_().forEach(function(h){var sus=A.byId('SuS',h.susId),k=A.byId('Kurse',h.kursId);items.push('<div class="inbox-item"><div class="inbox-icon">↗</div><div class="inbox-main"><b>'+A.esc(sus?A.susName(sus):'')+'</b><span>'+A.esc(h.punkt)+' · '+h.anzahl+'×'+(k&&k.fach?' · '+A.esc(k.fach):'')+'</span></div><div class="inbox-actions"><button class="btn small" data-act="eltern-spaeter" data-sus="'+h.susId+'" data-kurs="'+h.kursId+'" data-punkt="'+A.esc(h.punkt)+'" data-anzahl="'+h.anzahl+'">Später</button><button class="btn small" data-act="eltern-besprochen" data-sus="'+h.susId+'" data-kurs="'+h.kursId+'" data-punkt="'+A.esc(h.punkt)+'" data-anzahl="'+h.anzahl+'">Besprochen</button><button class="btn small primary" data-act="eltern-nachricht" data-sus="'+h.susId+'" data-kurs="'+h.kursId+'" data-punkt="'+A.esc(h.punkt)+'">Nachricht</button></div></div>');});
+  }
+  aufgabenAlle().filter(function(a){return a&&!a.erledigt&&a.frist&&a.frist<=datum;}).slice(0,8).forEach(function(a){var k=A.byId('Kurse',a.kursId);items.push('<button class="inbox-item clickable" data-act="aufgabe-open" data-aufgabe="'+a.id+'"><div class="inbox-icon">□</div><div class="inbox-main"><b>'+A.esc(a.titel)+'</b><span>'+(a.frist<datum?'überfällig':'heute fällig')+(k?' · '+A.esc(A.kursLabel(k)):'')+'</span></div><div class="chev">›</div></button>');});
+  A.alleKurse().forEach(function(k){A.offeneStrafarbeiten(k.id).slice(0,4).forEach(function(x){items.push('<button class="inbox-item clickable" data-act="open-sus" data-sus="'+x.sus.id+'"><div class="inbox-icon">!</div><div class="inbox-main"><b>'+A.esc(A.susName(x.sus))+'</b><span>offene Strafarbeit · '+A.esc(k.fach||'')+'</span></div><div class="chev">›</div></button>');});});
+  return '<section class="workspace-section inbox-section"><div class="workspace-heading"><div><h2>Inbox</h2><p>'+ (items.length?items.length+' Dinge brauchen deine Aufmerksamkeit':'Alles erledigt') +'</p></div><button class="ghost-link" data-act="eltern-generator">Elternnachricht</button></div>'+(items.length?'<div class="inbox-list">'+items.join('')+'</div>':'<div class="inbox-empty">Keine offenen Hinweise für heute.</div>')+'</section>';
+}
+function cockpitHTML(datum) { return inboxHTML(datum); }
+
+/* ------------------------------------------------------------ V34 Sitzregeln */
+function sitzRegelnFuer(klasseId) {
+  var all = A.cfg('sitzregeln') || {}, r = A.clone(all[klasseId] || {});
+  if (!Array.isArray(r.paare)) r.paare = [];
+  if (!r.zonen || typeof r.zonen !== 'object') r.zonen = {};
+  if (!r.fixiert || typeof r.fixiert !== 'object') r.fixiert = {};
+  return r;
+}
+function setSitzRegelnFuer(klasseId, regeln) {
+  var all = A.clone(A.cfg('sitzregeln') || {}); all[klasseId] = regeln; A.setCfg('sitzregeln', all);
+}
+function sitzPositionen(plan) {
+  var out=[];
+  (plan.items||[]).forEach(function(it,ti){ if(!it||it.type!=='table') return; (it.seats||[]).forEach(function(id,si){ out.push({key:sitzKey(ti,si),tisch:ti,platz:si,id:id||'',row:Math.floor(ti/Math.max(1,plan.tischeProReihe)),col:ti%Math.max(1,plan.tischeProReihe)}); }); });
+  return out;
+}
+function sitzPlanAusBelegung(plan, belegung) {
+  var neu=A.clone(plan); (neu.items||[]).forEach(function(it,ti){ if(!it||it.type!=='table') return; it.seats=(it.seats||[]).map(function(_,si){ return belegung[sitzKey(ti,si)]||''; }); }); return neu;
+}
+function sitzAuswertung(klasseId, plan) {
+  var r=sitzRegelnFuer(klasseId), pos=sitzPositionen(plan), byId={}; pos.forEach(function(p){if(p.id)byId[p.id]=p;});
+  var hart=0,wunsch=0,wunschGes=0, details=[];
+  r.paare.forEach(function(x){ var a=byId[x.a],b=byId[x.b]; if(!a||!b)return; var sameT=a.tisch===b.tisch, next=sameT&&Math.abs(a.platz-b.platz)===1; var bad=false, ok=false;
+    if(x.typ==='nicht-neben'){bad=next;if(bad)hart++;}
+    else if(x.typ==='nicht-tisch'){bad=sameT;if(bad)hart++;}
+    else if(x.typ==='gern-neben'){wunschGes++;ok=sameT;if(ok)wunsch++;}
+    else if(x.typ==='weit'){wunschGes++;ok=!sameT&&Math.abs(a.row-b.row)+Math.abs(a.col-b.col)>=2;if(ok)wunsch++;}
+    if(bad)details.push(x);
+  });
+  Object.keys(r.zonen).forEach(function(id){ var p=byId[id],z=r.zonen[id]; if(!p)return; wunschGes++; var rows=Math.max(1,Math.ceil((plan.items||[]).length/Math.max(1,plan.tischeProReihe))); var ok=z==='vorne'?p.row===0:z==='hinten'?p.row>=rows-1:z==='rand'?(p.col===0||p.col===plan.tischeProReihe-1):true; if(ok)wunsch++; });
+  Object.keys(r.fixiert).forEach(function(id){ if(byId[id]&&byId[id].key!==r.fixiert[id])hart++; });
+  return {hart:hart,wunsch:wunsch,wunschGes:wunschGes,details:details};
+}
+function sitzScore(klasseId, plan){ var a=sitzAuswertung(klasseId,plan); return a.hart*10000+(a.wunschGes-a.wunsch)*25; }
+function sitzVorschlaege(klasseId, anzahl) {
+  var plan=sitzPlanFlex(klasseId), reg=sitzRegelnFuer(klasseId), pos=sitzPositionen(plan), ids=A.susDerKlasse(klasseId).map(function(x){return x.id;});
+  if(pos.length<ids.length) return [];
+  var best=[], gesehen={};
+  for(var iter=0;iter<900;iter++){
+    var beleg={}, used={};
+    Object.keys(reg.fixiert).forEach(function(id){ var key=reg.fixiert[id]; if(ids.indexOf(id)>=0&&pos.some(function(p){return p.key===key;})){beleg[key]=id;used[id]=true;} });
+    var frei=pos.filter(function(p){return !beleg[p.key];}).map(function(p){return p.key;}); frei=mischen(frei);
+    var rest=mischen(ids.filter(function(id){return !used[id];})); rest.forEach(function(id,i){if(frei[i])beleg[frei[i]]=id;});
+    var neu=sitzPlanAusBelegung(plan,beleg), sig=pos.map(function(p){return beleg[p.key]||'';}).join('|'); if(gesehen[sig])continue; gesehen[sig]=true;
+    var aus=sitzAuswertung(klasseId,neu), score=sitzScore(klasseId,neu); best.push({plan:neu,aus:aus,score:score}); best.sort(function(a,b){return a.score-b.score;}); if(best.length>Math.max(3,anzahl||3))best.pop();
+  }
+  return best.slice(0,anzahl||3);
+}
+function sitzVorschlagTischeHTML(v){ return (v.plan.items||[]).filter(function(it){return it&&it.type==='table';}).map(function(it,i){var n=(it.seats||[]).map(function(id){var s=A.byId('SuS',id);return s?A.susKurz(s):'frei';}).join(' · ');return '<div class="vorschlag-tisch"><b>Tisch '+(i+1)+'</b><br>'+A.esc(n)+'</div>';}).join(''); }
+function gruppenMitRegeln(sus, modus, zahl) {
+  var basis=gruppenNormal(sus,modus,zahl), klasseId=sus[0]&&sus[0].klasseId, reg=klasseId?sitzRegelnFuer(klasseId):{paare:[]}; if(!reg.paare.length)return basis;
+  var best=basis,bestScore=1e9;
+  function score(gs){var gi={};gs.forEach(function(g,i){g.forEach(function(s){gi[s.id]=i;});});var sc=0;reg.paare.forEach(function(r){if(gi[r.a]===undefined||gi[r.b]===undefined)return;var same=gi[r.a]===gi[r.b];if((r.typ==='nicht-tisch'||r.typ==='nicht-neben')&&same)sc+=1000;else if(r.typ==='gern-neben'&&!same)sc+=8;else if(r.typ==='weit'&&same)sc+=40;});return sc;}
+  for(var i=0;i<250;i++){var g=gruppenNormal(sus,modus,zahl),sc=score(g);if(sc<bestScore){best=g;bestScore=sc;if(sc===0)break;}}
+  return best;
+}
+
+function weiterAlle(){var x=A.cfg('weiterNotizen');return x&&typeof x==='object'?x:{};}
+function weiterFuer(kursId){return weiterAlle()[kursId]||null;}
+function setWeiter(kursId,text){var all=A.clone(weiterAlle());if(String(text||'').trim())all[kursId]={text:String(text).trim(),updated:new Date().toISOString()};else delete all[kursId];A.setCfg('weiterNotizen',all);}
+
 /* ------------------------------------------------------ Stunden-Erinnerungen */
 
 var erinnerungsTimer = [];
@@ -4912,6 +5573,7 @@ document.querySelectorAll('.tab').forEach(function (t) {
 });
 
 btnSync.addEventListener('click', function () {
+  if (VORSCHAU_AKTIV) { window.toast('Vorschau: keine Server-Synchronisation'); return; }
   if (!A.Sync.configured()) { showAuth('login'); return; }
   A.Sync.pull().then(function () { window.toast('Daten aktualisiert'); render(); })
     .catch(function (e) { window.toast('Fehler: ' + e.message, true); });
@@ -5074,6 +5736,7 @@ function tagesAnsichtHTML(datum) {
     '<button data-act="tag-plus" aria-label="Nächster Tag">›</button>' +
     '</div>' + heuteModusHTML();
 
+  h += cockpitHTML(datum);
   var bloecke = A.bloeckeFuerDatum(datum);
   if (!bloecke.length) {
     h += card('', empty(tag > 5 ? '🌤️' : '☕', tag > 5
@@ -5178,7 +5841,8 @@ function wochenAnsichtHTML(datum) {
 VIEWS.heute = {
   title: function () { return 'Heute'; },
   actions: function () {
-    return '<button class="icon-btn" data-act="datum-waehlen">📆</button>' +
+    return '<button class="icon-btn" data-act="suche" title="Suchen">⌕</button>' +
+           '<button class="icon-btn" data-act="datum-waehlen">📆</button>' +
            '<button class="icon-btn" data-act="extra-stunde">＋</button>';
   },
   body: function () {
@@ -5411,7 +6075,8 @@ VIEWS.klassen = {
       var kurse = A.kurseDerKlasse(k.id);
       var kopf = '<button class="row" data-act="open-klasse" data-klasse="' + k.id + '">' +
         '<div class="row-main"><div class="row-title">' + A.esc(k.name) + '</div>' +
-        '<div class="row-sub">' + sus.length + ' Schüler:innen · ' + kurse.length + ' Fach/Fächer</div></div>' +
+        '<div class="row-sub">' + sus.length + ' Schüler:innen · ' + kurse.length + ' Fach/Fächer' +
+        (function(){var ls=listenKlassenStat(k.id);return ls.listen ? ' · ' + ls.listen + ' Liste(n) · ' + ls.offen + ' Abgaben offen' : '';})() + '</div></div>' +
         '<div class="chev">›</div></button>';
 
       var kursZeilen = kurse.map(function (ku) {
@@ -5463,11 +6128,18 @@ VIEWS.klasse = {
         '<div class="pill" style="background:' + A.kursFarbe(ku) + '"></div>' +
         '<div class="row-main"><div class="row-title">' + A.esc(ku.fach || 'ohne Fach') + '</div>' +
         '<div class="row-sub">' + lz + ' Leistung(en)' +
-        (schnitt === null ? '' : ' · Ø ' + A.fmtNote(schnitt)) + '</div></div>' +
+        (schnitt === null ? '' : ' · Ø ' + A.fmtNote(schnitt)) + (craftLinkFuer_(ku.id)?' · Craft ↗':'') + '</div></div>' +
         '<div class="chev">›</div></button>';
     }).join('') : empty('📚', 'Noch kein Fach angelegt.')));
 
     h += '<button class="btn primary block" data-act="neuer-kurs" data-klasse="' + k.id + '">Fach hinzufügen</button>';
+
+    var erledigteListen = listenDerKlasse(k.id, true).filter(function(a){ return !!a.erledigt; });
+    h += card('Listen & Abgaben', klassenListenHTML(k.id) +
+      (erledigteListen.length ? '<div class="aufgabe-neu-zeile"><button class="btn block" data-act="listen-archiv" data-klasse="' + k.id + '">Abgeschlossene Listen (' + erledigteListen.length + ')</button></div>' : '') +
+      (kurse.length ? '<div class="aufgabe-neu-zeile"><button class="btn block" data-act="aufgabe-neu-klasse" data-klasse="' + k.id + '">＋ Einsammel-Liste anlegen</button></div>' : ''));
+
+    h += kommunikationKlasseHTML(k.id);
 
     var sitz = sitzPlanFlex(k.id);
     var sitzInfo = sitzPlanKennzahlen(sitz);
@@ -5572,8 +6244,13 @@ VIEWS.sitzplan = {
 
     var vorne = '<div class="sitz-front-marker' + (perspektive === 'pult' ? ' unten' : '') + '"><div class="sitz-tafel">' +
       (perspektive === 'pult' ? 'Pult / vorne' : 'Tafel / vorne') + '</div></div>';
+    var regeln = sitzRegelnFuer(k.id);
+    var aus = sitzAuswertung(k.id, plan);
+    var regelStatus = '<div class="sitz-regel-status"><span class="sitz-regel-chip">' + (regeln.paare.length + Object.keys(regeln.zonen).length + Object.keys(regeln.fixiert).length) + ' Regeln</span>' +
+      '<span class="sitz-regel-chip ' + (aus.hart ? 'bad' : 'good') + '">' + (aus.hart ? aus.hart + ' Konflikt(e)' : 'keine harten Konflikte') + '</span>' +
+      (aus.wunschGes ? '<span class="sitz-regel-chip">' + aus.wunsch + '/' + aus.wunschGes + ' Wünsche erfüllt</span>' : '') + '</div>';
 
-    return card('', '<div class="card-body sitz-raum sitz-perspektive-' + perspektive + '">' +
+    return card('', '<div class="card-body sitz-raum sitz-perspektive-' + perspektive + '">' + regelStatus +
         '<div class="sitz-perspektive-bar"><div class="segmented" role="group" aria-label="Perspektive">' +
           '<button class="' + (perspektive === 'raum' ? 'on' : '') + '" data-act="sitz-perspektive" data-perspektive="raum">Tafelansicht</button>' +
           '<button class="' + (perspektive === 'pult' ? 'on' : '') + '" data-act="sitz-perspektive" data-perspektive="pult">Pultsicht</button>' +
@@ -5586,9 +6263,11 @@ VIEWS.sitzplan = {
       '</div>') +
       '<div class="btn-row"><button class="btn' + (layout ? ' sitz-mode-on' : '') + '" data-act="sitz-layout-toggle" data-klasse="' + k.id + '">' +
         (layout ? '✓ Layout fertig' : '🪑 Tische anordnen') + '</button>' +
-      '<button class="btn" data-act="sitzplan-mischen" data-klasse="' + k.id + '">🎲 Zufällig mischen</button></div>' +
+      '<button class="btn" data-act="sitzplan-mischen" data-klasse="' + k.id + '">Zufällig mischen</button></div>' +
+      '<div class="btn-row"><button class="btn" data-act="sitzregeln" data-klasse="' + k.id + '">Regeln</button>' +
+      '<button class="btn primary" data-act="sitzplan-vorschlaege" data-klasse="' + k.id + '">Sitzplan vorschlagen</button></div>' +
       '<div class="btn-row"><button class="btn" data-act="sitzplan-spalten" data-klasse="' + k.id + '">Tische pro Reihe</button>' +
-      '<button class="btn primary" data-act="sitzplan-pdf" data-klasse="' + k.id + '">PDF erstellen</button></div>';
+      '<button class="btn" data-act="sitzplan-pdf" data-klasse="' + k.id + '">PDF erstellen</button></div>';
   }
 };
 
@@ -5598,7 +6277,7 @@ VIEWS.sitzplan = {
 
 VIEWS.kurs = {
   title: function (p) { var ku = A.byId('Kurse', p.id); return ku ? A.kursLabel(ku) : 'Kurs'; },
-  actions: function (p) { return '<button class="icon-btn" data-act="kurs-bearbeiten" data-kurs="' + p.id + '">···</button>'; },
+  actions: function (p) { var c=craftLinkFuer_(p.id); return (c?'<button class="icon-btn" data-act="craft-open" data-kurs="'+p.id+'" title="In Craft öffnen">C</button>':'') + '<button class="icon-btn" data-act="kurs-bearbeiten" data-kurs="' + p.id + '">···</button>'; },
   body: function (p) {
     var kurs = A.byId('Kurse', p.id);
     if (!kurs) return card('', empty('❓', 'Diesen Kurs gibt es nicht mehr.'));
@@ -5608,7 +6287,9 @@ VIEWS.kurs = {
     var sp = A.notenspiegel(gesamt);
     var kats = A.kategorienVon(kurs);
 
-    var h = card('Listen & To-dos', aufgabenRows(kurs, true), 'aufgaben-card');
+    var craftUrl=craftLinkFuer_(kurs.id);
+    var h = '<section class="craft-strip"><div><span class="craft-mark">C</span><div><b>Unterrichtsplanung in Craft</b><small>' + (craftUrl?'Dokument verknüpft':'Noch kein Dokument verknüpft') + '</small></div></div><div class="craft-actions">' + (craftUrl?'<button class="btn" data-act="craft-open" data-kurs="'+kurs.id+'">In Craft öffnen</button>':'') + '<button class="btn" data-act="craft-link" data-kurs="'+kurs.id+'">' + (craftUrl?'Link ändern':'Craft verknüpfen') + '</button></div></section>';
+    h += card('Listen & To-dos', aufgabenRows(kurs, true), 'aufgaben-card');
 
     h += card('Notenspiegel (Gesamtnoten)',
       '<div class="card-body">' + spiegelHTML(sp) +
@@ -5702,7 +6383,18 @@ VIEWS.sus = {
     if (!klasse) return card('', empty('❓', 'Klasse nicht gefunden.'));
     var kurse = A.kurseDerKlasse(klasse.id);
 
-    var h = '<div class="hint-box">Klasse <b>' + A.esc(klasse.name) + '</b></div>';
+    var h = '<div class="profile-head"><div class="profile-eyebrow">'+A.esc(klasse.name)+'</div><h1>'+A.esc(A.susName(s))+'</h1><button class="btn" data-act="eltern-nachricht" data-sus="'+s.id+'">Elternnachricht</button></div>';
+    h += card('Verlauf', susTimelineHTML_(s.id));
+    var offeneAbgaben = offeneListenFuerSus(s.id);
+    if (offeneAbgaben.length) {
+      h += card('Offene Abgaben (' + offeneAbgaben.length + ')', '<div class="card-body offene-abgaben-list">' + offeneAbgaben.map(function(a){
+        var k=A.byId('Kurse',a.kursId);return '<div class="offene-abgabe"><b>' + A.esc(a.titel) + '</b><span>' + A.esc(k?k.fach:'') + (a.frist ? ' · bis ' + A.fmtDateShort(a.frist) : '') + '</span></div>';
+      }).join('') + '</div>');
+    }
+
+    var kommHinweise=kommunikationsHinweiseFuerSus(s.id).filter(function(x){return x.typ==='vergessen';});
+    var kommHist=elternVerlaufFuerSus_(s.id).slice(0,8);
+    h += card('Elternkommunikation','<div class="comm-profile">'+(kommHinweise.length?kommHinweise.map(function(x){var ku=A.byId('Kurse',x.kursId);return '<button class="comm-suggestion" data-act="eltern-nachricht" data-sus="'+s.id+'" data-kurs="'+x.kursId+'" data-punkt="'+A.esc(x.punkt)+'"><span><b>'+A.esc(x.punkt)+'</b><small>'+x.anzahl+'× vergessen'+(ku&&ku.fach?' · '+A.esc(ku.fach):'')+'</small></span><em>Nachricht</em></button>';}).join(''):'<div class="small muted" style="padding:8px 0">Kein aktueller automatischer Hinweis.</div>')+'<button class="btn comm-create" data-act="eltern-nachricht" data-sus="'+s.id+'">Neue Elternnachricht</button>'+(kommHist.length?'<div class="comm-history-title">Historie</div>'+kommHist.map(function(x){return '<div class="comm-history-row"><span>'+A.fmtDateShort(String(x.zeit||'').slice(0,10))+'</span><b>'+(x.status==='besprochen'?'besprochen':'verschickt')+'</b><em>'+A.esc(x.anlass||'')+'</em></div>';}).join(''):'')+'</div>');
 
     if (!kurse.length) return h + card('', empty('📚', 'Für diese Klasse ist noch kein Fach angelegt.'));
 
@@ -5981,8 +6673,14 @@ VIEWS.mehr = {
           ? (A.cfg('zeitraumVon') ? A.fmtDate(A.cfg('zeitraumVon')) : '…') + ' – ' + (A.cfg('zeitraumBis') ? A.fmtDate(A.cfg('zeitraumBis')) : '…')
           : 'alle Daten') + '</div></div><div class="chev">›</div></button>');
 
+    h += card('Kommunikation',
+      '<button class="row" data-act="eltern-generator"><div class="row-main"><div class="row-title">Elternnachricht erstellen</div><div class="row-sub">Textvorlage für ein Kind generieren und anschließend kopieren oder teilen</div></div><div class="chev">›</div></button>' +
+      '<button class="row" data-act="eltern-einstellungen"><div class="row-main"><div class="row-title">Automatische Elternhinweise</div><div class="row-sub">bei ' + elternNachrichtSchwelle() + '×, ' + (elternNachrichtSchwelle()*2) + '×, ' + (elternNachrichtSchwelle()*3) + '× …</div></div><div class="chev">›</div></button>');
+
+    h += card('Craft', '<button class="row" data-act="craft-info"><div class="row-main"><div class="row-title">Craft-Verknüpfung</div><div class="row-sub">Planungsdokumente pro Fach direkt öffnen · Inhalte bleiben in Craft</div></div><div class="chev">›</div></button>');
+
     h += card('App',
-      '<div class="row" style="cursor:default"><div class="row-main"><div class="row-title">App-Version</div><div class="row-sub">Version 33</div></div></div>' +
+      '<div class="row" style="cursor:default"><div class="row-main"><div class="row-title">App-Version</div><div class="row-sub">Version 39</div></div></div>' +
       '<button class="row" data-act="farbdesign"><div class="row-main"><div class="row-title">Farbdesign</div>' +
         '<div class="row-sub"><span class="farb-punkt" style="--fc:' + aktuelleDesignFarbe() + ';display:inline-block;vertical-align:-2px;margin-right:6px"></span>' +
         A.esc(A.cfg('farbdesignHex') ? 'Eigene Farbe' : (FARBDESIGNS[A.cfg('farbdesign')] || FARBDESIGNS.blau)) +
@@ -5990,6 +6688,9 @@ VIEWS.mehr = {
       '<button class="row" data-act="namensformat"><div class="row-main"><div class="row-title">Namensanzeige</div>' +
         '<div class="row-sub">' + ({ nachname: 'Nachname, Vorname', vorname: 'Vorname Nachname', kurz: 'Nachname, V.' }[A.cfg('namensformat')] || '') +
         '</div></div><div class="chev">›</div></button>' +
+      '<button class="row" data-act="suche"><div class="row-main"><div class="row-title">Suche</div><div class="row-sub">Klassen, Schüler:innen, Fächer und Listen</div></div><div class="chev">›</div></button>' +
+      '<button class="row" data-act="startseite"><div class="row-main"><div class="row-title">Startseite</div><div class="row-sub">' + ({heute:'Heute',plan:'Stundenplan',klassen:'Klassen',noten:'Noten'}[A.cfg('startseite')||'heute']) + '</div></div><div class="chev">›</div></button>' +
+      '<button class="row" data-act="auto-lock"><div class="row-main"><div class="row-title">Automatisch sperren</div><div class="row-sub">' + (A.cfg('autoLockMin') ? 'nach ' + A.cfg('autoLockMin') + ' Minute(n) im Hintergrund' : 'aus') + '</div></div><div class="chev">›</div></button>' +
       '<button class="row" data-act="biometrie"><div class="row-main"><div class="row-title">Face ID / Touch ID</div>' +
         '<div class="row-sub"><span class="security-status"><i class="security-dot ' + (biometrieAktiv() ? 'on' : '') + '"></i>' +
         (biometrieAktiv() ? 'Schnellanmeldung auf diesem Gerät aktiv' : 'nicht eingerichtet') +
@@ -6014,7 +6715,7 @@ VIEWS.mehr = {
       '<div class="kv"><span class="k">Abhak-Einträge</span><span class="v">' + z.c + '</span></div>' +
       '</div>');
 
-    h += '<div class="small muted" style="text-align:center;padding:6px 10px 20px"><b>Schulapp · Version 33</b><br>Deine Daten sind deinem Konto zugeordnet und zusätzlich lokal auf diesem Gerät zwischengespeichert.</div>';
+    h += '<div class="small muted" style="text-align:center;padding:6px 10px 20px"><b>Schulapp · Version 39</b><br>Deine Daten sind deinem Konto zugeordnet und zusätzlich lokal auf diesem Gerät zwischengespeichert.</div>';
     return h;
   }
 };
@@ -6074,6 +6775,7 @@ function render() {
   main.innerHTML = cur.def.body(cur.p);
   topTitle.textContent = cur.def.title(cur.p);
   topActions.innerHTML = cur.def.actions ? cur.def.actions(cur.p) : '';
+  if (VORSCHAU_AKTIV) topActions.insertAdjacentHTML('beforeend', '<span class="preview-chip" title="Lokale Testdaten – keine Serververbindung">Vorschau</span>');
   btnBack.hidden = route.stack.length === 0;
   document.querySelectorAll('.tab').forEach(function (t) {
     t.classList.toggle('active', t.getAttribute('data-tab') === route.tab && route.stack.length === 0);
@@ -6190,7 +6892,8 @@ function gruppenDialog(puzzle) {
         '<option value="anzahl">Anzahl Gruppen</option><option value="personen">Personen pro Gruppe</option></select></div>' +
       '<div class="field"><label id="gruppenLabel">Anzahl Gruppen</label><input id="gruppenZahl" type="number" min="1" max="' + sus.length + '" value="3" inputmode="numeric"></div>';
 
-  body += '<div id="gruppenErgebnis"></div>';
+  var regelnVorhanden = !!(sus[0] && (sitzRegelnFuer(sus[0].klasseId).paare || []).length);
+  body += (regelnVorhanden ? '<label class="auth-check" style="margin:10px 0"><input id="gruppenRegeln" type="checkbox" checked> Sitz-/Gruppenregeln berücksichtigen</label>' : '') + '<div id="gruppenErgebnis"></div>';
 
   Modal.open({
     title: puzzle ? 'Gruppenpuzzle' : 'Gruppen bilden',
@@ -6217,7 +6920,8 @@ function gruppenDialog(puzzle) {
             '<div style="margin-top:16px"><b>2. Expertengruppen</b></div>' + gruppenHTML(experten, 'Expertengruppe') + '</div>';
         } else {
           var m = modus.value;
-          var g = gruppenNormal(sus, m, zahl.value);
+          var rg = bg.querySelector('#gruppenRegeln');
+          var g = (rg && rg.checked) ? gruppenMitRegeln(sus, m, zahl.value) : gruppenNormal(sus, m, zahl.value);
           ergebnis.innerHTML = '<div class="tool-result">' + gruppenHTML(g, 'Gruppe') + '</div>';
         }
       }
@@ -6229,6 +6933,7 @@ function gruppenDialog(puzzle) {
         });
       }
       zahl.addEventListener('change', zeichne);
+      var gruppenRegeln = bg.querySelector('#gruppenRegeln'); if (gruppenRegeln) gruppenRegeln.addEventListener('change', zeichne);
       bg.querySelector('#gruppenNeu').addEventListener('click', function () {
         zeichne();
         if (navigator.vibrate) navigator.vibrate(12);
@@ -6267,11 +6972,14 @@ ACT['check'] = function (el) {
 
   if (navigator.vibrate) navigator.vibrate(8);
 
-  /* Ist damit die Grenze voll? */
+  /* Elternhinweis bei 5/10/15 … und ggf. Strafarbeit. */
   if (neu === 'f') {
+    var elternHinweis = elternHinweisFaellig(p.kursId, susId, punkt);
     var straf = A.strafFaellig(p.kursId, susId);
-    if (straf) {
-      A.strafGemeldet(p.kursId, susId, straf.gesamt);
+    if (straf) A.strafGemeldet(p.kursId, susId, straf.gesamt);
+    if (elternHinweis) {
+      zeigeElternSchwellenHinweis(elternHinweis, straf);
+    } else if (straf) {
       zeigeStrafHinweis(A.byId('SuS', susId), A.byId('Kurse', p.kursId), straf);
     }
   }
@@ -6296,6 +7004,7 @@ function zeigeStrafHinweis(sus, kurs, st) {
       ' Vergessen. Der nächste Hinweis kommt beim ' + (st.gesamt + st.grenze) + '. Mal.' +
       (st.entschuldigt ? ' Entschuldigtes Fehlen (' + st.entschuldigt + '×) zählt nicht mit.' : '') + '</div>',
     foot: '<button class="btn" id="strafNotiz">In die Notiz schreiben</button>' +
+          '<button class="btn" id="strafEltern">Elternnachricht</button>' +
           '<button class="btn primary" data-close>Verstanden</button>',
     after: function (bg, close) {
       bg.querySelector('#strafNotiz').addEventListener('click', function () {
@@ -6303,6 +7012,12 @@ function zeigeStrafHinweis(sus, kurs, st) {
         A.put('SuS', sus);
         close();
         window.toast('In die Notiz von ' + A.susKurz(sus) + ' eingetragen');
+      });
+      var eb=bg.querySelector('#strafEltern');
+      if(eb) eb.addEventListener('click',function(){
+        var haupt=st.teile&&st.teile.length?st.teile[0]:null;
+        var preset=haupt?{typ:'vergessen',susId:sus.id,kursId:kurs.id,punkt:haupt.name,anzahl:haupt.anzahl}:null;
+        close(); setTimeout(function(){elternNachrichtOeffnen(sus.id,preset);},0);
       });
     }
   });
@@ -7336,7 +8051,7 @@ function notenPdfKopf_(title, subtitle, meta) {
 
 function notenPdfFooter_(seite, gesamt) {
   var W = 841.89;
-  var text = 'Schulapp · Version 33';
+  var text = 'Schulapp · Version 39';
   if (gesamt > 1) text += ' · Seite ' + seite + '/' + gesamt;
   return pdfTextCmd_(text, W - 34, 18, 6.8, 'right');
 }
@@ -8145,9 +8860,14 @@ ACT['conn-save'] = function () {
 };
 
 ACT['logout'] = function () {
+  if (VORSCHAU_AKTIV) {
+    VORSCHAU_AKTIV=false; document.body.classList.remove('preview-mode');
+    A.Auth.logout().then(function(){ route={tab:'heute',stack:[]}; showAuth('login'); previewLoginAnsicht_(); });
+    return;
+  }
   if (!confirm('Abmelden? Nicht synchronisierte Änderungen werden vorher noch zu übertragen versucht.')) return;
   A.Sync.flush(true).then(function () { return A.Auth.logout(); }).then(function () {
-    route = { tab: 'heute', stack: [] };
+    route = { tab: (A.cfg('startseite') || 'heute'), stack: [] };
     showAuth('login');
   });
 };
@@ -8160,6 +8880,14 @@ ACT['sync-jetzt'] = function () {
 
 
 /* --- Listen & To-dos ------------------------------------------------- */
+
+
+ACT['aufgabe-neu-klasse'] = function (el) {
+  var klasseId=el.getAttribute('data-klasse'), kurse=A.kurseDerKlasse(klasseId);
+  if(!kurse.length){window.toast('Lege zuerst ein Fach an.',true);return;}
+  if(kurse.length===1){var fake=document.createElement('button');fake.setAttribute('data-kurs',kurse[0].id);ACT['aufgabe-neu'](fake);return;}
+  Modal.form({title:'Liste anlegen',fields:[{key:'kursId',label:'Fach / Kurs',type:'select',value:kurse[0].id,options:kurse.map(function(k){return{value:k.id,label:A.kursLabel(k)};})}],onSave:function(v){setTimeout(function(){var fake=document.createElement('button');fake.setAttribute('data-kurs',v.kursId);ACT['aufgabe-neu'](fake);},0);},focus:false});
+};
 
 ACT['aufgabe-neu'] = function (el) {
   var kursId = el.getAttribute('data-kurs') || ((currentView().p || {}).kursId) || '';
@@ -8175,7 +8903,8 @@ ACT['aufgabe-neu'] = function (el) {
       ], value: 'liste' },
       { key: 'titel', label: 'Titel', placeholder: 'z. B. Elternbrief einsammeln' },
       { key: 'frist', label: 'Frist (optional)', type: 'date', value: '' },
-      { key: 'notiz', label: 'Notiz (optional)', type: 'textarea', rows: 2, placeholder: 'z. B. unterschrieben mitbringen' }
+      { key: 'notiz', label: 'Notiz (optional)', type: 'textarea', rows: 2, placeholder: 'z. B. unterschrieben mitbringen' },
+      { key: 'elternhinweis', label: 'Hinweis für Eltern (optional)', type: 'textarea', rows: 2, placeholder: 'z. B. Bitte unterschrieben zurückgeben' }
     ],
     validate: function (v) { return v.titel.trim() ? null : 'Bitte einen Titel eingeben.'; },
     onSave: function (v) {
@@ -8186,6 +8915,7 @@ ACT['aufgabe-neu'] = function (el) {
         titel: v.titel.trim(),
         frist: v.frist || '',
         notiz: v.notiz.trim(),
+        elternhinweis: v.elternhinweis.trim(),
         erstellt: new Date().toISOString(),
         erledigt: '',
         checks: {}
@@ -8242,7 +8972,7 @@ ACT['aufgabe-open'] = function (el) {
   Modal.open({
     title: a.titel,
     body: listenBody(),
-    foot: '<button class="btn" data-edit>Bearbeiten</button><button class="btn primary" data-done>Liste abschließen</button>',
+    foot: '<button class="btn" data-remind>Eltern erinnern</button><button class="btn" data-edit>Bearbeiten</button><button class="btn primary" data-done>Liste abschließen</button>',
     after: function (bg, close) {
       function refresh() {
         var st = listenStand(a, kurs);
@@ -8288,6 +9018,7 @@ ACT['aufgabe-open'] = function (el) {
           a.checks = {}; aufgabeSpeichern(a); refresh();
         }
       });
+      bg.querySelector('[data-remind]').addEventListener('click', function () { close(); setTimeout(function(){ elternErinnerungOeffnen(a.id); }, 0); });
       bg.querySelector('[data-edit]').addEventListener('click', function () { close(); aufgabeBearbeiten(a.id); });
       bg.querySelector('[data-done]').addEventListener('click', function () {
         var st = listenStand(a, kurs);
@@ -8310,16 +9041,197 @@ function aufgabeBearbeiten(id) {
     fields: [
       { key: 'titel', label: 'Titel', value: a.titel || '' },
       { key: 'frist', label: 'Frist (optional)', type: 'date', value: a.frist || '' },
-      { key: 'notiz', label: 'Notiz (optional)', type: 'textarea', rows: 2, value: a.notiz || '' }
+      { key: 'notiz', label: 'Notiz (optional)', type: 'textarea', rows: 2, value: a.notiz || '' },
+      { key: 'elternhinweis', label: 'Hinweis für Eltern (optional)', type: 'textarea', rows: 2, value: a.elternhinweis || '', hint: 'Wird automatisch in die Eltern-Erinnerung übernommen.' }
     ],
     validate: function (v) { return v.titel.trim() ? null : 'Bitte einen Titel eingeben.'; },
     onSave: function (v) {
-      a.titel = v.titel.trim(); a.frist = v.frist || ''; a.notiz = v.notiz.trim();
+      a.titel = v.titel.trim(); a.frist = v.frist || ''; a.notiz = v.notiz.trim(); a.elternhinweis = v.elternhinweis.trim();
       aufgabeSpeichern(a);
     },
     onDelete: function () { aufgabeLoeschen(a.id); },
     deleteHint: (a.typ === 'liste' ? 'Diese Liste' : 'Dieses To-do') + ' wirklich löschen?'
   });
+}
+
+
+
+ACT['eltern-nachricht'] = function(el){
+  var susId=el.getAttribute('data-sus'); if(!susId)return;
+  var kursId=el.getAttribute('data-kurs')||'', punkt=el.getAttribute('data-punkt')||'';
+  var preset=null;
+  if(kursId&&punkt){
+    var bil=A.checkBilanzSus(kursId,susId),z=bil[punkt]||{f:0};
+    preset={typ:'vergessen',susId:susId,kursId:kursId,punkt:punkt,anzahl:Number(z.f||0)};
+  }
+  elternNachrichtOeffnen(susId,preset);
+};
+ACT['eltern-generator'] = function(){elternGeneratorGlobalOeffnen();};
+ACT['eltern-einstellungen'] = function(){
+  Modal.form({title:'Elternkommunikation',hinweis:'Die App erinnert dich bei jedem Vielfachen der Schwelle – z. B. beim 5., 10., 15. Mal. Im Hinweis kannst du direkt eine Elternnachricht erstellen. Es wird nichts automatisch versendet.',fields:[
+    {key:'ab',label:'Erster Hinweis nach',type:'text',inputmode:'numeric',value:String(elternNachrichtSchwelle()),hint:'Beispiel 5 = Hinweise beim 5., 10., 15. Mal usw.'},
+    {key:'ton',label:'Standard-Ton',type:'select',value:String(A.cfg('elternNachrichtTon')||'freundlich'),options:[{value:'freundlich',label:'freundlich'},{value:'neutral',label:'neutral'},{value:'deutlich',label:'deutlich'}]},
+    {key:'reset',label:'Bereits gezeigte Elternhinweise zurücksetzen',type:'checkbox',value:false,hint:'Dann werden bereits erreichte 5er/10er/15er-Stände erneut gemeldet.'}
+  ],validate:function(v){var n=A.num(String(v.ab).replace(',','.'),null);return (n===null||n<1)?'Bitte eine Zahl ab 1 eingeben.':null;},onSave:function(v){A.setCfg('elternNachrichtAb',Math.round(A.num(String(v.ab).replace(',','.'),5)));A.setCfg('elternNachrichtTon',v.ton);if(v.reset)A.setCfg('elternHinweise',{});},focus:false});
+};
+
+/* ------------------------------------------------------------- V34 Aktionen */
+ACT['eltern-erinnern'] = function(el){elternErinnerungOeffnen(el.getAttribute('data-aufgabe'));};
+ACT['listen-archiv'] = function(el){var klasseId=el.getAttribute('data-klasse'),arr=listenDerKlasse(klasseId,true).filter(function(a){return !!a.erledigt;});Modal.open({title:'Abgeschlossene Listen',body:arr.length?arr.map(function(a){var k=A.byId('Kurse',a.kursId),st=listenStand(a,k);return '<div class="row"><div class="row-main"><div class="row-title">'+A.esc(a.titel)+'</div><div class="row-sub">'+A.esc(k?k.fach:'')+(a.erledigt?' · abgeschlossen '+A.fmtDateShort(String(a.erledigt).slice(0,10)):'')+'</div></div><div class="row-val">'+st.erledigt+'/'+st.gesamt+'</div></div>';}).join(''):'<div class="card-body small muted">Noch keine abgeschlossenen Listen.</div>'});};
+ACT['morgen-vorbereiten'] = function(){ui.datum=A.addDays(A.todayISO(),1);ui.heuteModus='tag';render();};
+
+ACT['sitzregeln'] = function(el){
+  var klasseId=el.getAttribute('data-klasse')||currentView().p.id, sus=A.susDerKlasse(klasseId), reg=sitzRegelnFuer(klasseId), plan=sitzPlanFlex(klasseId);
+  function optionen(){return sus.map(function(x){return '<option value="'+x.id+'">'+A.esc(A.susName(x))+'</option>';}).join('');}
+  function regelText(r){var a=A.byId('SuS',r.a),b=A.byId('SuS',r.b),lab={ 'nicht-neben':'nicht neben','nicht-tisch':'nicht am selben Tisch wie','gern-neben':'bevorzugt neben','weit':'möglichst weit weg von'}[r.typ]||r.typ;return (a?A.susName(a):'?')+' · '+lab+' · '+(b?A.susName(b):'?');}
+  function body(){var paar=reg.paare.map(function(r,i){return '<div class="regel-row"><span>'+A.esc(regelText(r))+'</span><button data-del-pair="'+i+'">×</button></div>';}).join('');var zon=Object.keys(reg.zonen).map(function(id){var x=A.byId('SuS',id);return '<div class="regel-row"><span>'+A.esc(x?A.susName(x):'?')+' · bevorzugt '+A.esc(reg.zonen[id])+'</span><button data-del-zone="'+id+'">×</button></div>';}).join('');var fix=Object.keys(reg.fixiert).map(function(id){var x=A.byId('SuS',id);return '<div class="regel-row"><span>'+A.esc(x?A.susName(x):'?')+' · Platz fixiert</span><button data-del-fix="'+id+'">×</button></div>';}).join('');return '<div class="hint-box">Harte Regeln werden bei Vorschlägen möglichst nie verletzt. Wünsche werden optimiert, wenn es gleichzeitig möglich ist.</div><div class="field"><label>Person A</label><select id="regelA">'+optionen()+'</select></div><div class="field"><label>Regel</label><select id="regelTyp"><option value="nicht-neben">nicht neben</option><option value="nicht-tisch">nicht am selben Tisch</option><option value="gern-neben">bevorzugt neben</option><option value="weit">möglichst weit weg</option></select></div><div class="field"><label>Person B</label><select id="regelB">'+optionen()+'</select></div><button class="btn block" data-add-pair>Regel hinzufügen</button><div class="regel-liste" data-pair-list>'+paar+'</div><hr style="border:0;border-top:1px solid var(--line-soft);margin:16px 0"><div class="field"><label>Platzwunsch</label><select id="zonePerson">'+optionen()+'</select><select id="zoneTyp" style="margin-top:7px"><option value="vorne">vorne</option><option value="hinten">hinten</option><option value="rand">am Rand</option></select></div><button class="btn block" data-add-zone>Platzwunsch hinzufügen</button><div class="regel-liste" data-zone-list>'+zon+'</div><hr style="border:0;border-top:1px solid var(--line-soft);margin:16px 0"><div class="field"><label>Aktuellen Platz fixieren</label><select id="fixPerson">'+optionen()+'</select></div><button class="btn block" data-add-fix>Aktuellen Platz fixieren</button><div class="regel-liste" data-fix-list>'+fix+'</div>';}
+  Modal.open({title:'Sitzplan-Regeln',body:body(),foot:'<button class="btn primary" data-close-rules>Fertig</button>',after:function(bg,close){function save(){setSitzRegelnFuer(klasseId,reg);}function rer(){close();setTimeout(function(){var f=document.createElement('button');f.setAttribute('data-klasse',klasseId);ACT['sitzregeln'](f);},0);}bg.querySelector('[data-add-pair]').addEventListener('click',function(){var a=bg.querySelector('#regelA').value,b=bg.querySelector('#regelB').value,typ=bg.querySelector('#regelTyp').value;if(!a||!b||a===b){window.toast('Bitte zwei verschiedene Personen wählen.',true);return;}reg.paare.push({a:a,b:b,typ:typ});save();rer();});bg.querySelector('[data-add-zone]').addEventListener('click',function(){reg.zonen[bg.querySelector('#zonePerson').value]=bg.querySelector('#zoneTyp').value;save();rer();});bg.querySelector('[data-add-fix]').addEventListener('click',function(){var id=bg.querySelector('#fixPerson').value,key='';sitzPositionen(plan).some(function(p){if(p.id===id){key=p.key;return true;}return false;});if(!key){window.toast('Person sitzt aktuell auf keinem Platz.',true);return;}reg.fixiert[id]=key;save();rer();});bg.addEventListener('click',function(e){var b=e.target.closest('[data-del-pair]');if(b){reg.paare.splice(Number(b.getAttribute('data-del-pair')),1);save();rer();return;}b=e.target.closest('[data-del-zone]');if(b){delete reg.zonen[b.getAttribute('data-del-zone')];save();rer();return;}b=e.target.closest('[data-del-fix]');if(b){delete reg.fixiert[b.getAttribute('data-del-fix')];save();rer();}});bg.querySelector('[data-close-rules]').addEventListener('click',close);}});
+};
+ACT['sitzplan-vorschlaege'] = function(el){var klasseId=el.getAttribute('data-klasse')||currentView().p.id,vs=sitzVorschlaege(klasseId,3);if(!vs.length){window.toast('Es gibt nicht genug Sitzplätze für alle Schüler:innen.',true);return;}Modal.open({title:'Sitzplan-Vorschläge',body:'<div class="hint-box">Die Vorschläge berücksichtigen deine Regeln. Harte Konflikte werden zuerst minimiert, danach die Wünsche.</div>'+vs.map(function(v,i){return '<div class="vorschlag-box '+(i===0?'best':'')+'"><b>Vorschlag '+(i+1)+'</b><div class="small muted" style="margin-top:3px">'+v.aus.hart+' harte Konflikte · '+v.aus.wunsch+'/'+v.aus.wunschGes+' Wünsche erfüllt</div><div class="vorschlag-tische">'+sitzVorschlagTischeHTML(v)+'</div><button class="btn '+(i===0?'primary':'')+' block" data-use-v="'+i+'">Übernehmen</button></div>';}).join(''),after:function(bg,close){bg.addEventListener('click',function(e){var b=e.target.closest('[data-use-v]');if(!b)return;var v=vs[Number(b.getAttribute('data-use-v'))];setSitzPlanFlex(klasseId,v.plan);ui.sitzAuswahl=null;close();render();window.toast('Sitzplan übernommen');});}});};
+
+ACT['suche'] = function(){
+  Modal.open({title:'Suche',body:'<div class="field"><label>Suchen</label><input id="appSearch" type="search" placeholder="Name, Klasse, Fach oder Liste …" autocomplete="off"></div><div class="search-results" id="searchResults"><div class="small muted">Suchbegriff eingeben.</div></div>',after:function(bg,close){var inp=bg.querySelector('#appSearch'),out=bg.querySelector('#searchResults');function draw(){var q=String(inp.value||'').trim().toLowerCase();if(q.length<2){out.innerHTML='<div class="small muted">Mindestens zwei Zeichen eingeben.</div>';return;}var hits=[];A.klassen(true).forEach(function(k){if(String(k.name).toLowerCase().includes(q))hits.push({typ:'Klasse',titel:k.name,sub:'Klasse',view:'klasse',id:k.id});});A.list('SuS').forEach(function(x){var n=A.susName(x),kl=A.byId('Klassen',x.klasseId);if(n.toLowerCase().includes(q))hits.push({typ:'Kind',titel:n,sub:kl?kl.name:'',view:'sus',id:x.id});});A.alleKurse(true).forEach(function(k){var l=A.kursLabel(k);if(l.toLowerCase().includes(q))hits.push({typ:'Kurs',titel:l,sub:'Fach',view:'kurs',id:k.id});});aufgabenAlle().forEach(function(a){if(String(a.titel||'').toLowerCase().includes(q)){var k=A.byId('Kurse',a.kursId);hits.push({typ:a.typ==='liste'?'Liste':'To-do',titel:a.titel,sub:k?A.kursLabel(k):'',aufgabe:a.id});}});out.innerHTML=hits.length?hits.slice(0,30).map(function(h,i){return '<button class="search-hit" data-hit="'+i+'"><span class="search-type">'+A.esc(h.typ)+'</span><span><b>'+A.esc(h.titel)+'</b><small>'+A.esc(h.sub||'')+'</small></span></button>';}).join(''):'<div class="small muted">Nichts gefunden.</div>';out._hits=hits;}inp.addEventListener('input',draw);out.addEventListener('click',function(e){var b=e.target.closest('[data-hit]');if(!b)return;var h=out._hits&&out._hits[Number(b.getAttribute('data-hit'))];if(!h)return;close();setTimeout(function(){if(h.aufgabe){var f=document.createElement('button');f.setAttribute('data-aufgabe',h.aufgabe);ACT['aufgabe-open'](f);}else push(h.view,{id:h.id});},0);});setTimeout(function(){inp.focus();},30);}});
+};
+ACT['startseite'] = function(){Modal.form({title:'Startseite',fields:[{key:'s',label:'Beim Öffnen anzeigen',type:'select',value:A.cfg('startseite')||'heute',options:[{value:'heute',label:'Heute'},{value:'plan',label:'Stundenplan'},{value:'klassen',label:'Klassen'},{value:'noten',label:'Noten'}]}],onSave:function(v){A.setCfg('startseite',v.s);},focus:false});};
+ACT['auto-lock'] = function(){Modal.form({title:'Automatisch sperren',hinweis:'Funktioniert zusammen mit der vierstelligen PIN. Wenn die App länger im Hintergrund war, wird beim Zurückkehren erneut gesperrt.',fields:[{key:'m',label:'Nach',type:'select',value:String(A.cfg('autoLockMin')||0),options:[{value:'0',label:'aus'},{value:'1',label:'1 Minute'},{value:'2',label:'2 Minuten'},{value:'5',label:'5 Minuten'},{value:'10',label:'10 Minuten'}]}],onSave:function(v){A.setCfg('autoLockMin',Number(v.m)||0);},focus:false});};
+
+
+/* ---------------------------------------------------------- V39 Kommunikation & Craft */
+ACT['eltern-spaeter']=function(el){var h={typ:'vergessen',susId:el.getAttribute('data-sus'),kursId:el.getAttribute('data-kurs'),punkt:el.getAttribute('data-punkt'),anzahl:Number(el.getAttribute('data-anzahl')||0)};elternVorgangSet_(h,'spaeter');render();window.toast('Morgen wieder in der Inbox');};
+ACT['eltern-besprochen']=function(el){var h={typ:'vergessen',susId:el.getAttribute('data-sus'),kursId:el.getAttribute('data-kurs'),punkt:el.getAttribute('data-punkt'),anzahl:Number(el.getAttribute('data-anzahl')||0)};elternVorgangSet_(h,'besprochen');render();window.toast('Als besprochen gespeichert');};
+ACT['craft-open']=function(el){craftOeffnen_(el.getAttribute('data-kurs'));};
+ACT['craft-link']=function(el){var kursId=el.getAttribute('data-kurs'),kurs=A.byId('Kurse',kursId),alt=craftLinkFuer_(kursId);Modal.form({title:'Craft verknüpfen',hinweis:'Füge den Link zu deinem Craft-Planungsdokument für '+A.esc(kurs?A.kursLabel(kurs):'dieses Fach')+' ein. Die Schulapp speichert nur den Link – deine Unterrichtsplanung bleibt in Craft.',fields:[{key:'url',label:'Craft-Link',type:'url',value:alt,placeholder:'https://docs.craft.do/… oder craftdocs://…',hint:'Link leer lassen, um die Verknüpfung zu entfernen.'}],validate:function(v){var u=String(v.url||'').trim();return u&&!craftLinkGueltig_(u)?'Bitte einen gültigen http(s)- oder craftdocs://-Link eingeben.':null;},onSave:function(v){craftLinkSet_(kursId,v.url);render();},focus:true});};
+ACT['craft-info']=function(){Modal.open({title:'Craft + Schulapp',body:'<div class="craft-info"><p><b>Empfohlene Aufteilung:</b> Unterrichtsplanung und Inhalte bleiben vollständig in Craft. Die Schulapp kümmert sich um Stundenplan, Listen, Mitarbeit, Noten, Sitzplan und Elternkommunikation.</p><p>Du kannst jedem Fach ein Craft-Dokument zuordnen und es danach mit einem Tipp direkt öffnen.</p><p class="small muted">Craft bietet inzwischen auch eine offizielle API. Eine echte automatische Inhalts-Synchronisierung würde ich aber erst aktivieren, wenn du bewusst festlegst, welche Craft-Dokumente die Schulapp lesen darf – damit keine Unterrichtsinhalte oder Zugangsdaten unnötig in der Web-App landen.</p></div>',foot:'<button class="btn primary" data-close>Verstanden</button>'});};
+
+/* ---------------------------------------------------------- V39 Lokale Vorschau */
+function previewSetting_(key, value) {
+  A.put('Settings', { id: key, value: JSON.stringify(value) }, true);
+}
+
+function previewDemoSeed_() {
+  if (A.klassen(true).length) return;
+
+  var heute = A.todayISO();
+  var gestern = A.addDays(heute, -1);
+  var morgen = A.addDays(heute, 1);
+  var bald = A.addDays(heute, 3);
+  var tag = A.tagVon(heute);
+  var tag2 = tag >= 5 ? 1 : tag + 1;
+
+  var kl4 = { id:'demo_kl4', name:'4a', stufe:'4', fach:'', archiviert:'', notiz:'Testklasse für die Vorschau' };
+  var kl5 = { id:'demo_kl5', name:'5b', stufe:'5', fach:'', archiviert:'', notiz:'' };
+  A.put('Klassen', kl4, true); A.put('Klassen', kl5, true);
+
+  var kDe = { id:'demo_de', klasseId:kl4.id, fach:'Deutsch', farbe:'#3f5bd9', kategorien:'', notenschluessel:'', notiz:'', archiviert:'' };
+  var kMa = { id:'demo_ma', klasseId:kl4.id, fach:'Mathematik', farbe:'#0f8a6a', kategorien:'', notenschluessel:'', notiz:'', archiviert:'' };
+  var kKu = { id:'demo_ku', klasseId:kl4.id, fach:'Kunst', farbe:'#8438b8', kategorien:'', notenschluessel:'', notiz:'', archiviert:'' };
+  var k5 = { id:'demo_5de', klasseId:kl5.id, fach:'Deutsch', farbe:'#b4531c', kategorien:'', notenschluessel:'', notiz:'', archiviert:'' };
+  [kDe,kMa,kKu,k5].forEach(function(x){A.put('Kurse',x,true);});
+
+  var namen4 = [
+    ['Berger','Mila'],['Fischer','Noah'],['Kaya','Aylin'],['Schmidt','Leo'],['Roth','Emma'],
+    ['Weber','Ben'],['Nguyen','Sofia'],['Koch','Jonas'],['Braun','Lina'],['Wolf','Oskar']
+  ];
+  var sus4 = namen4.map(function(n,i){var x={id:'demo_s4_'+i,klasseId:kl4.id,nachname:n[0],vorname:n[1],aktiv:'1',notiz:''};A.put('SuS',x,true);return x;});
+  var namen5 = [['Haas','Ida'],['Krüger','Anton'],['Yilmaz','Elif'],['Lorenz','Paul'],['Neumann','Maja'],['Becker','Theo']];
+  namen5.forEach(function(n,i){A.put('SuS',{id:'demo_s5_'+i,klasseId:kl5.id,nachname:n[0],vorname:n[1],aktiv:'1',notiz:''},true);});
+
+  [
+    {id:'demo_pl1',tag:String(tag),stunde:'1',kursId:kDe.id,klasseId:kl4.id,fach:kDe.fach,raum:'204'},
+    {id:'demo_pl2',tag:String(tag),stunde:'2',kursId:kDe.id,klasseId:kl4.id,fach:kDe.fach,raum:'204'},
+    {id:'demo_pl3',tag:String(tag),stunde:'3',kursId:kMa.id,klasseId:kl4.id,fach:kMa.fach,raum:'204'},
+    {id:'demo_pl4',tag:String(tag2),stunde:'1',kursId:kKu.id,klasseId:kl4.id,fach:kKu.fach,raum:'Kunst'},
+    {id:'demo_pl5',tag:String(tag2),stunde:'3',kursId:k5.id,klasseId:kl5.id,fach:k5.fach,raum:'105'}
+  ].forEach(function(x){A.put('Stundenplan',x,true);});
+
+  A.put('Stunden',{id:'demo_std1',datum:heute,stunde:'1',kursId:kDe.id,klasseId:kl4.id,thema:'Fabeln untersuchen',hausaufgaben:'S. 42, Nr. 3',material:'',notiz:'Heute Gruppenarbeit einplanen',entfaellt:''},true);
+
+  var le1={id:'demo_le1',kursId:kDe.id,klasseId:kl4.id,kategorie:'Klassenarbeit',titel:'KA 1 – Fabel',datum:A.addDays(heute,-14),maxPunkte:'40',gewicht:'1',notenschluessel:''};
+  var le2={id:'demo_le2',kursId:kDe.id,klasseId:kl4.id,kategorie:'Test',titel:'Grammatiktest',datum:A.addDays(heute,-5),maxPunkte:'20',gewicht:'1',notenschluessel:''};
+  var le3={id:'demo_le3',kursId:kMa.id,klasseId:kl4.id,kategorie:'Test',titel:'Kopfrechnen',datum:A.addDays(heute,-4),maxPunkte:'20',gewicht:'1',notenschluessel:''};
+  [le1,le2,le3].forEach(function(x){A.put('Leistungen',x,true);});
+  var p1=[36,31,38,25,34,29,39,23,32,27], p2=[18,15,20,12,17,14,19,11,16,13], p3=[19,16,18,13,17,15,20,12,18,14];
+  sus4.forEach(function(x,i){
+    A.put('Noten',{id:'demo_n1_'+i,leistungId:le1.id,kursId:kDe.id,klasseId:kl4.id,susId:x.id,punkte:String(p1[i]),note:''},true);
+    A.put('Noten',{id:'demo_n2_'+i,leistungId:le2.id,kursId:kDe.id,klasseId:kl4.id,susId:x.id,punkte:String(p2[i]),note:''},true);
+    A.put('Noten',{id:'demo_n3_'+i,leistungId:le3.id,kursId:kMa.id,klasseId:kl4.id,susId:x.id,punkte:String(p3[i]),note:''},true);
+  });
+
+  var werte=[2,1,1,0,2,0,2,-1,1,0];
+  sus4.forEach(function(x,i){
+    A.put('Mitarbeit',{id:'demo_m1_'+i,datum:A.addDays(heute,-7),stunde:'1',kursId:kDe.id,klasseId:kl4.id,susId:x.id,wert:String(werte[i]),bemerkung:''},true);
+    A.put('Mitarbeit',{id:'demo_m2_'+i,datum:heute,stunde:'1',kursId:kDe.id,klasseId:kl4.id,susId:x.id,wert:String(i%4===0?2:(i%4===1?1:0)),bemerkung:''},true);
+  });
+
+  var c1={},c2={},c3={};
+  sus4.slice(0,6).forEach(function(x){c1[x.id]=true;});
+  sus4.slice(0,7).forEach(function(x){c2[x.id]=true;});
+  sus4.slice(0,9).forEach(function(x){c3[x.id]=true;});
+  previewSetting_('aufgaben',[
+    {id:'demo_auf1',typ:'liste',kursId:kDe.id,titel:'Einverständniserklärung Ausflug',frist:bald,notiz:'unterschrieben zurückgeben',elternhinweis:'Bitte unterschrieben im Schulranzen mitgeben.',erstellt:new Date().toISOString(),erledigt:'',checks:c1},
+    {id:'demo_auf2',typ:'liste',kursId:kKu.id,titel:'Materialgeld Kunstprojekt',frist:gestern,notiz:'5 € im Umschlag',elternhinweis:'Bitte 5 € passend in einem beschrifteten Umschlag mitgeben.',erstellt:new Date().toISOString(),erledigt:'',checks:c2},
+    {id:'demo_auf3',typ:'liste',kursId:kMa.id,titel:'Unterschrift Lernzielkontrolle',frist:morgen,notiz:'',elternhinweis:'Bitte die Lernzielkontrolle unterschreiben.',erstellt:new Date().toISOString(),erledigt:'',checks:c3},
+    {id:'demo_todo1',typ:'todo',kursId:kDe.id,titel:'Arbeitsblatt für morgen kopieren',frist:heute,notiz:'25 Exemplare',elternhinweis:'',erstellt:new Date().toISOString(),erledigt:'',checks:{}},
+    {id:'demo_done',typ:'liste',kursId:kDe.id,titel:'Elternbrief Schulfest',frist:A.addDays(heute,-8),notiz:'',elternhinweis:'',erstellt:new Date().toISOString(),erledigt:A.addDays(heute,-6)+'T12:00:00.000Z',checks:sus4.reduce(function(o,x){o[x.id]=true;return o;},{})}
+  ]);
+
+  /* V38: Demo-Einträge für automatische Elternhinweise. */
+  for (var ci=0; ci<10; ci++) {
+    A.put('Checks',{id:'demo_ck_mat_'+ci,datum:A.addDays(heute,-(ci+1)*2),stunde:'1',kursId:kDe.id,klasseId:kl4.id,susId:sus4[1].id,punkt:'Material',wert:'f'},true);
+  }
+  for (var hi=0; hi<15; hi++) {
+    A.put('Checks',{id:'demo_ck_ha_'+hi,datum:A.addDays(heute,-(hi+1)),stunde:'1',kursId:kDe.id,klasseId:kl4.id,susId:sus4[3].id,punkt:'Hausaufgaben',wert:'f'},true);
+  }
+
+  var plan={};
+  plan[kl4.id]={version:5,tischeProReihe:3,items:[
+    {type:'table',size:2,seats:[sus4[0].id,sus4[6].id]},
+    {type:'table',size:2,seats:[sus4[2].id,sus4[3].id]},
+    {type:'table',size:2,seats:[sus4[4].id,sus4[5].id]},
+    {type:'table',size:2,seats:[sus4[7].id,sus4[9].id]},
+    {type:'table',size:2,seats:[sus4[1].id,sus4[8].id]}
+  ]};
+  previewSetting_('sitzplaene',plan);
+  var reg={};
+  reg[kl4.id]={paare:[
+    {a:sus4[2].id,b:sus4[3].id,typ:'nicht-neben'},
+    {a:sus4[0].id,b:sus4[6].id,typ:'gern-neben'},
+    {a:sus4[1].id,b:sus4[7].id,typ:'weit'}
+  ],zonen:(function(){var o={};o[sus4[4].id]='vorne';return o;})(),fixiert:(function(){var o={};o[sus4[9].id]='3:1';return o;})()};
+  previewSetting_('sitzregeln',reg);
+  previewSetting_('startseite','heute');
+  previewSetting_('autoLockMin',0);
+  A.saveLocal();
+}
+
+function previewOeffnen_() {
+  if (!VORSCHAU_LOKAL) return;
+  VORSCHAU_AKTIV = true;
+  document.body.classList.add('preview-mode');
+  A.Auth._activate({
+    url:'', sessionToken:'preview-only',
+    user:{id:'preview-v38',name:'Vorschau',email:'vorschau@lokal',role:'owner'}
+  }, false);
+  try { sessionStorage.removeItem('schulapp.auth.session'); } catch(e) {}
+  A.Auth.setServerUrl('');
+  previewDemoSeed_();
+  route={tab:'heute',stack:[]};
+  ui.datum=A.todayISO(); ui.heuteModus='tag';
+  startAuthenticatedApp(false);
+  window.toast('Vorschau geöffnet – nur Testdaten');
+}
+
+function previewLoginAnsicht_() {
+  if (!VORSCHAU_LOKAL) return;
+  var box=document.getElementById('previewModeBox');
+  if(box) box.hidden=false;
+  var sub=document.getElementById('authSub');
+  if(sub) sub.textContent='Lokale Vorschau – ohne Server';
+  if(loginForm) loginForm.hidden=true;
+  if(registerForm) registerForm.hidden=true;
+  if(resetForm) resetForm.hidden=true;
+  var btn=document.getElementById('previewOpenBtn');
+  if(btn && !btn.dataset.bound){btn.dataset.bound='1';btn.addEventListener('click',previewOeffnen_);}
 }
 
 /* ---------------------------------------------------------- Event-Verteilung */
@@ -8720,6 +9632,40 @@ function speichereNote(input) {
 }
 
 
+/* ---------------------------------------------------- V39 Vorschau-Feedback */
+var previewFeedbackPick=false;
+function feedbackListe_(){try{return JSON.parse(localStorage.getItem('schulapp.preview.feedback.v39')||'[]')||[];}catch(e){return[];}}
+function feedbackSpeichern_(arr){try{localStorage.setItem('schulapp.preview.feedback.v39',JSON.stringify(arr||[]));}catch(e){}}
+function feedbackLabel_(el){
+  if(!el)return 'Element';
+  var txt=String(el.innerText||el.textContent||'').replace(/\s+/g,' ').trim();
+  if(txt.length>90)txt=txt.slice(0,87)+'…';
+  var view=currentView();
+  return (view&&view.n?view.n:'Ansicht')+' → '+(txt||el.tagName.toLowerCase());
+}
+function feedbackModusStart_(){
+  previewFeedbackPick=true;document.body.classList.add('feedback-pick');window.toast('Tippe jetzt auf die Stelle, die du kommentieren möchtest.');
+}
+function feedbackKommentar_(el){
+  previewFeedbackPick=false;document.body.classList.remove('feedback-pick');
+  var label=feedbackLabel_(el);el.classList.add('feedback-picked');
+  Modal.form({title:'Feedback zu dieser Stelle',hinweis:label,fields:[{key:'text',label:'Kommentar',type:'textarea',rows:4,placeholder:'Was soll hier anders sein?'}],validate:function(v){return String(v.text||'').trim()?'':'Bitte einen Kommentar eingeben.';},onSave:function(v){var arr=feedbackListe_();arr.push({label:label,text:String(v.text).trim(),zeit:new Date().toISOString()});feedbackSpeichern_(arr);el.classList.remove('feedback-picked');window.toast('Kommentar gespeichert');},onDelete:null});
+}
+function feedbackUebersicht_(){
+  var arr=feedbackListe_();
+  Modal.open({title:'Vorschau-Feedback',body:'<div class="hint-box">Diese Kommentare bleiben nur in deiner lokalen Vorschau. Mit „Alle kopieren“ kannst du sie gesammelt hier in den Chat einfügen.</div>'+(arr.length?arr.map(function(x,i){return '<div class="row static"><div class="row-main"><div class="row-title">'+A.esc(x.label)+'</div><div class="row-sub">'+A.esc(x.text)+'</div></div><button class="icon-btn" data-feedback-del="'+i+'">×</button></div>';}).join(''):'<div class="card-body small muted">Noch keine Kommentare.</div>'),foot:'<button class="btn" data-feedback-pick>Element kommentieren</button>'+(arr.length?'<button class="btn primary" data-feedback-copy>Alle kopieren</button>':''),after:function(bg,close){
+    bg.addEventListener('click',function(e){var d=e.target.closest('[data-feedback-del]');if(d){var a=feedbackListe_();a.splice(Number(d.getAttribute('data-feedback-del')),1);feedbackSpeichern_(a);close();setTimeout(feedbackUebersicht_,0);return;}if(e.target.closest('[data-feedback-pick]')){close();setTimeout(feedbackModusStart_,0);return;}if(e.target.closest('[data-feedback-copy]')){var a2=feedbackListe_();var t=a2.map(function(x,i){return (i+1)+'. '+x.label+'\n   '+x.text;}).join('\n\n');kopieren(t).then(function(){window.toast('Feedback kopiert – einfach hier in den Chat einfügen');});}});
+  }});
+}
+var previewFeedbackBtn=document.getElementById('previewFeedbackBtn');
+if(previewFeedbackBtn)previewFeedbackBtn.addEventListener('click',feedbackUebersicht_);
+document.addEventListener('click',function(e){
+  if(!previewFeedbackPick)return;
+  if(e.target.closest('.modal-bg,#previewFeedbackBtn,.tabbar,.topbar'))return;
+  var target=e.target.closest('button,.row,.card,.kachel,.cockpit-stat,.field,.offene-abgabe,.vorschlag-box')||e.target;
+  e.preventDefault();e.stopPropagation();feedbackKommentar_(target);
+},true);
+
 /* ------------------------------------------------------------- PIN-Sperre */
 
 function pinSetup() {
@@ -8765,25 +9711,41 @@ function pinSetup() {
 
 /* ------------------------------------------------------------------ Start */
 
-var bioStored = A.Auth._stored ? A.Auth._stored() : null;
-if (biometrieAktiv() && bioStored && bioStored.sessionToken) {
-  A.Sync.update();
-  showAuth('login');
-} else if (A.Auth.restore()) {
-  startAuthenticatedApp(false);
-  A.Auth.validate().then(function () {
-    if (A.Sync.configured()) A.Sync.pull().then(function () { render(); }).catch(function () {});
-  }).catch(function () {
-    /* Offline darf ein auf diesem Gerät gespeicherter Login weiterarbeiten.
-       Bei einer echten Auth-Fehlermeldung wird spätestens der nächste Sync abgewiesen. */
-  });
+if (VORSCHAU_LOKAL) {
+  /* Lokale/ChatGPT-Vorschau: direkt mit isolierten Testdaten starten.
+     Kein Login und keine Serververbindung. */
+  try { localStorage.removeItem('schulapp.user.preview-v38.db'); } catch (e) {}
+  try { localStorage.removeItem('schulapp.user.preview-v38.queue'); } catch (e2) {}
+  previewOeffnen_();
 } else {
-  A.Sync.update();
-  showAuth('login');
+  var bioStored = A.Auth._stored ? A.Auth._stored() : null;
+  if (biometrieAktiv() && bioStored && bioStored.sessionToken) {
+    A.Sync.update();
+    showAuth('login');
+  } else if (A.Auth.restore()) {
+    startAuthenticatedApp(false);
+    A.Auth.validate().then(function () {
+      if (A.Sync.configured()) A.Sync.pull().then(function () { render(); }).catch(function () {});
+    }).catch(function () {
+      /* Offline darf ein auf diesem Gerät gespeicherter Login weiterarbeiten.
+         Bei einer echten Auth-Fehlermeldung wird spätestens der nächste Sync abgewiesen. */
+    });
+  } else {
+    A.Sync.update();
+    showAuth('login');
+  }
 }
 
+var schulappHiddenSeit = 0;
 document.addEventListener('visibilitychange', function () {
-  if (!document.hidden && A.Sync.configured() && A.Sync.pendingCount()) A.Sync.flush(true);
+  if (document.hidden) { schulappHiddenSeit = Date.now(); return; }
+  var lockMin = Number(A.cfg('autoLockMin') || 0);
+  if (lockMin && A.cfg('pin') && schulappHiddenSeit && (Date.now() - schulappHiddenSeit) >= lockMin * 60000) {
+    sessionStorage.removeItem('schulapp.unlocked');
+    pinSetup();
+  }
+  schulappHiddenSeit = 0;
+  if (A.Sync.configured() && A.Sync.pendingCount()) A.Sync.flush(true);
 });
 
 window.addEventListener('online', function () { if (A.Sync.configured()) A.Sync.flush(true); });
