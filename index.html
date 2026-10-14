@@ -2388,7 +2388,7 @@ body.feedback-pick .main *{cursor:crosshair!important}
 
 /* ------------------------------------------------------- V46 Arbeitskontext + Picker */
 .sus-picker-tools{display:grid;grid-template-columns:minmax(120px,.8fr) minmax(180px,1.2fr);gap:8px;margin-bottom:10px}
-.sus-picker-tools select,.sus-picker-tools input{width:100%}
+.sus-picker-tools select,.sus-picker-tools input{width:100%;min-height:44px;font-size:16px;box-sizing:border-box}
 .sus-picker-list{max-height:300px;overflow:auto;border-top:1px solid var(--line);border-bottom:1px solid var(--line);margin-bottom:12px}
 .sus-picker-row{width:100%;border:0;border-bottom:1px solid var(--line-soft);background:transparent;padding:9px 4px;text-align:left;font:inherit;color:var(--ink);display:flex;align-items:center;gap:10px;cursor:pointer}
 .sus-picker-row:last-child{border-bottom:0}.sus-picker-row:hover{background:#f7f7f5}.sus-picker-row.on{background:#f1f1ef}
@@ -2478,72 +2478,6 @@ body.feedback-pick .main *{cursor:crosshair!important}
 @media (min-width: 820px) and (pointer: fine) {
   .main .btn.block { width: auto; min-width: 300px; max-width: 460px; }
   .main .aufgabe-neu-zeile .btn.block { max-width: none; }
-}
-
-/* V50: Karte „Thema & Hausaufgabe“ in der Stunde, Thema in der Tagesliste */
-.thema-card{padding-bottom:0}
-.tz-row{display:flex;align-items:center;gap:10px;width:100%;min-height:44px;padding:8px 2px;border:0;border-top:1px solid var(--line-soft);background:transparent;color:var(--ink);font:inherit;text-align:left;cursor:pointer}
-.tz-row:first-of-type{border-top:0}
-.tz-row:active{background:var(--surface-2)}
-.tz-label{flex:none;width:92px;font-size:12.5px;font-weight:650;color:var(--ink-2)}
-.tz-wert{flex:1;min-width:0;font-size:15px;line-height:1.35;overflow-wrap:anywhere;white-space:pre-line}
-.tz-wert.leer{color:var(--ink-3)}
-.tz-edit{flex:none;font-size:15px;color:var(--ink-3)}
-.tz-letzte{margin:6px 0 8px;padding:9px 11px;border-radius:8px;background:color-mix(in srgb,var(--accent) 11%,var(--surface));color:var(--ink);font-size:13.5px;line-height:1.4}
-.tz-letzte b{display:block;font-size:12.5px;margin-bottom:2px}
-.tz-letzte div{white-space:pre-line;overflow-wrap:anywhere}
-.tz-mat{display:block;width:100%;min-height:38px;margin:0;padding:0 2px;border:0;border-top:1px solid var(--line-soft);background:transparent;color:var(--ink-3);font:inherit;font-size:13px;text-align:left;cursor:pointer}
-.lesson .meta .l2{display:-webkit-box;-webkit-box-orient:vertical;-webkit-line-clamp:2;overflow:hidden}
-.lesson .meta .l2 .l2-thema{color:var(--ink);font-weight:600}
-
-
-/* ------------------------------------------------------- V50 Tippflächen: alles Antippbare mind. 38 px hoch
-   Gilt auf Handy und iPad (Touch) sowie bei schmalen Fenstern. Dieser Block steht bewusst ganz am Ende,
-   weil frühere Blöcke (V38/V40/V47/V49) teils mit !important kleinere Maße setzen. Am Mac mit Maus
-   und breitem Fenster bleibt das dichtere Aussehen erhalten. */
-@media (pointer: coarse), (max-width: 820px) {
-  /* Knöpfe */
-  .btn, .btn.small, .btn.block, .btn-row .btn,
-  .kartei-actions .btn, .today-inbox-actions .btn, .kartei-strip-actions .btn, .craft-actions .btn { min-height: 38px !important; }
-  .icon-btn { min-width: 38px !important; height: 38px !important; }
-  #btnBack { min-width: 38px !important; }
-  .segmented button { min-height: 38px !important; }
-  .dismiss-hint { padding-right: 50px !important; }
-  .dismiss-hint .dismiss-hint-x { width: 38px !important; height: 38px !important; min-height: 38px !important; top: 3px !important; right: 3px !important; }
-  .farb-kachel { min-height: 38px !important; }
-  .chip { min-height: 38px; display: inline-flex; align-items: center; }
-  .tab { min-height: 38px; }
-  /* iPad-Seitenleiste (ab 820 px): Klassen-Einträge und Aufklapp-Pfeil */
-  .sidebar-child { min-height: 38px !important; }
-  .sidebar-disclosure { width: 38px !important; height: 38px !important; margin-right: -8px; }
-
-  /* Textknöpfe ohne Rahmen: Trefferfläche größer, Schrift bleibt */
-  .parent-more, .ghost-link, .goal-done, .inbox-craft, .kartei-link-btn, .timeline-filter {
-    display: inline-flex; align-items: center; justify-content: center;
-    min-height: 38px !important; padding-left: 12px !important; padding-right: 12px !important;
-  }
-  .parent-actions { gap: 2px 2px; }
-  .parent-more { padding-left: 8px !important; padding-right: 8px !important; }
-  .ghost-link { padding-left: 8px !important; padding-right: 0 !important; justify-content: flex-end; }
-  .timeline-toolbar { gap: 6px; }
-
-  /* Mitarbeit: Name antippbar (Notiz), Smileys mind. 38 × 38 */
-  .mit-kachel .kachel-name { min-height: 38px; align-items: center !important; }
-  .sm { min-width: 38px !important; min-height: 38px !important; }
-}
-
-/* Mitarbeit auf dem Handy: eine Spalte; passen Name und fünf Smileys nicht nebeneinander,
-   rutschen die Smileys in die nächste Zeile (Umbruch statt Verkleinern). */
-@media (max-width: 620px) {
-  .mit-grid { grid-template-columns: 1fr !important; gap: 6px !important; padding: 8px !important; }
-  .mit-kachel { display: flex !important; flex-wrap: wrap !important; align-items: center !important; gap: 2px 8px !important; padding: 5px 8px !important; }
-  .mit-kachel .kachel-name { display: flex !important; flex: 99 1 96px !important; min-width: 0 !important; margin-bottom: 0 !important; }
-  .mit-kachel .smileys {
-    flex: 1 0 202px !important; width: auto !important; max-width: 100% !important;
-    display: grid !important; grid-template-columns: repeat(5, minmax(38px, 1fr)) !important; gap: 3px !important;
-  }
-  .mit-kachel .sm { width: auto !important; min-width: 38px !important; max-width: none !important; height: 38px !important; font-size: 19px !important; border-radius: 9px !important; }
-  .mitarbeit-actions { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
 }
 </style>
 </head>
@@ -6471,9 +6405,40 @@ function zeigeElternSchwellenHinweis(h, straf) {
 }
 
 function elternGeneratorGlobalOeffnen() {
-  var sus = A.list('SuS', function(s){return String(s.aktiv||'1')!=='0';}).sort(function(a,b){return A.susName(a).localeCompare(A.susName(b),'de');});
-  if (!sus.length) { window.toast('Noch keine Schüler:innen angelegt.',true); return; }
-  Modal.open({title:'Elternnachricht',body:'<div class="hint-box">Wähle ein Kind. Danach kannst du einen aktuellen oder freien Anlass auswählen.</div><div class="comm-person-list">'+sus.map(function(s){var k=A.byId('Klassen',s.klasseId),h=kommunikationsHinweiseFuerSus(s.id).filter(function(x){return x.typ==='vergessen'||x.typ==='positiv';});return '<button class="row" data-comm-sus="'+s.id+'"><div class="row-main"><div class="row-title">'+A.esc(A.susName(s))+'</div><div class="row-sub">'+A.esc(k?k.name:'')+(h.length?' · '+h.length+' aktueller Hinweis'+(h.length===1?'':'e'):'')+'</div></div><div class="chev">›</div></button>';}).join('')+'</div>',after:function(bg,close){bg.addEventListener('click',function(e){var b=e.target.closest('[data-comm-sus]');if(!b)return;var id=b.getAttribute('data-comm-sus');close();setTimeout(function(){elternNachrichtOeffnen(id);},0);});}});
+  var alle = A.list('SuS', function(s){return String(s.aktiv||'1')!=='0';});
+  if (!alle.length) { window.toast('Noch keine Schüler:innen angelegt.',true); return; }
+  var klassen = A.klassen(true), meine = A.standardKlasseId();
+  var klOpts = '<option value="">Alle Klassen</option>' + klassen.map(function(k){
+    return '<option value="'+A.esc(k.id)+'"'+(k.id===meine?' selected':'')+'>'+A.esc(k.name)+(k.id===meine?' (meine Klasse)':'')+'</option>';
+  }).join('');
+  var body = '<div class="sus-picker-tools"><select id="elKlasse" aria-label="Klasse wählen">'+klOpts+'</select>'+
+    '<input id="elSuche" type="search" placeholder="Schüler:in suchen (alle Klassen) …" autocomplete="off"></div>'+
+    '<div class="hint-box">Wähle ein Kind. Beim Suchen werden alle Klassen durchsucht.</div><div class="comm-person-list" id="elListe"></div>';
+  Modal.open({title:'Elternnachricht',body:body,after:function(bg,close){
+    var selKlasse=bg.querySelector('#elKlasse'), suche=bg.querySelector('#elSuche'), out=bg.querySelector('#elListe');
+    var klassenName={}; klassen.forEach(function(k){klassenName[k.id]=k.name;});
+    var klassenRang={}; klassen.forEach(function(k,i){klassenRang[k.id]=i;});
+    function zeile(s){
+      var h=kommunikationsHinweiseFuerSus(s.id).filter(function(x){return x.typ==='vergessen'||x.typ==='positiv';});
+      return '<button class="row" data-comm-sus="'+s.id+'"><div class="row-main"><div class="row-title">'+A.esc(A.susName(s))+'</div><div class="row-sub">'+A.esc(klassenName[s.klasseId]||'')+(h.length?' · '+h.length+' aktueller Hinweis'+(h.length===1?'':'e'):'')+'</div></div><div class="chev">›</div></button>';
+    }
+    function draw(){
+      var q=String(suche.value||'').trim().toLowerCase(), kid=selKlasse.value;
+      var arr=alle.filter(function(x){
+        if(q){ return (A.susName(x,'vorname')+' '+A.susName(x,'nachname')).toLowerCase().indexOf(q)>=0; }
+        return !kid || x.klasseId===kid;
+      }).sort(function(x,y){
+        var rx=klassenRang[x.klasseId], ry=klassenRang[y.klasseId];
+        /* Eigene Klasse zuerst, dann die übrigen Klassen in Listenreihenfolge, darin nach Namen */
+        if(x.klasseId!==y.klasseId){ if(x.klasseId===meine) return -1; if(y.klasseId===meine) return 1; if(rx!==ry) return (rx||0)-(ry||0); }
+        return A.susName(x).localeCompare(A.susName(y),'de');
+      });
+      out.innerHTML=arr.length?arr.map(zeile).join(''):'<div class="inbox-empty">Keine passenden Schüler:innen.</div>';
+    }
+    selKlasse.addEventListener('change',draw); suche.addEventListener('input',draw); draw();
+    bg.addEventListener('click',function(e){var b=e.target.closest('[data-comm-sus]');if(!b)return;var id=b.getAttribute('data-comm-sus');close();setTimeout(function(){elternNachrichtOeffnen(id);},0);});
+    setTimeout(function(){suche.focus();},40);
+  }});
 }
 function kommunikationKlasseHTML(klasseId) {
   var arr=kommunikationsHinweiseKlasse(klasseId);if(!arr.length)return '';
@@ -7226,7 +7191,6 @@ function lessonRowHTML(b, datum) {
   else if (aufgabenLage.bald) flags += '<span class="badge warn">📋 bald fällig</span>';
 
   var zweiteZeile = [];
-  if (st && st.thema) zweiteZeile.push('<span class="l2-thema">' + A.esc(st.thema) + '</span>');
   if (b.raum) zweiteZeile.push('Raum ' + A.esc(b.raum));
   if (st && st.notiz) zweiteZeile.push(A.esc(st.notiz));
 
@@ -7422,37 +7386,6 @@ VIEWS.heute = {
 /*  Eine Stunde                                                           */
 /* ====================================================================== */
 
-/** Letzte Stunde dieses Kurses mit früherem Datum, in der eine Hausaufgabe eingetragen wurde (für die Kontrolle). */
-function letzteHausaufgabe(kursId, datum) {
-  var best = null;
-  A.list('Stunden', function (s) {
-    return s.kursId === kursId && s.datum < datum && String(s.hausaufgaben || '').trim() !== '';
-  }).forEach(function (s) {
-    if (!best || s.datum > best.datum || (s.datum === best.datum && A.num(s.stunde, 0) > A.num(best.stunde, 0))) best = s;
-  });
-  return best;
-}
-
-/** Karte oben in der Stunde: Thema, Hausaufgabe, Material – jede Zeile direkt antippbar. */
-function stundeThemaKarteHTML(p, st, kurs) {
-  function zeile(feld, label, wert, leer) {
-    return '<button type="button" class="tz-row" data-act="stunde-thema" data-feld="' + feld + '">' +
-      '<span class="tz-label">' + label + '</span>' +
-      '<span class="tz-wert' + (wert ? '' : ' leer') + '">' + (wert ? A.esc(wert) : leer) + '</span>' +
-      '<span class="tz-edit" aria-hidden="true">✎</span></button>';
-  }
-  var h = zeile('thema', 'Thema', st.thema, 'Thema eintragen') +
-    zeile('hausaufgaben', 'Hausaufgabe', st.hausaufgaben, 'Hausaufgabe eintragen');
-  if (st.material) h += zeile('material', 'Material', st.material, '');
-  var letzte = letzteHausaufgabe(kurs.id, p.datum);
-  if (letzte) {
-    h += '<div class="tz-letzte"><b>Zu besprechen · Hausaufgabe vom ' + A.tagName(A.tagVon(letzte.datum), true).slice(0, 2) + ', ' +
-      A.fmtDate(letzte.datum) + '</b><div>' + A.esc(letzte.hausaufgaben) + '</div></div>';
-  }
-  if (!st.material) h += '<button type="button" class="tz-mat" data-act="stunde-thema" data-feld="material">＋ Material eintragen</button>';
-  return card('Thema & Hausaufgabe', h, 'thema-card');
-}
-
 VIEWS.stunde = {
   title: function (p) {
     var kurs = A.byId('Kurse', p.kursId);
@@ -7470,7 +7403,6 @@ VIEWS.stunde = {
       (st.notiz ? '<br>' + A.esc(st.notiz) : '') + '</div>';
 
     if (!kurs) return h + card('', empty('👥', 'Zu dieser Stunde ist kein Kurs hinterlegt.'));
-    h += stundeThemaKarteHTML(p, st, kurs);
     if (!sus.length) {
       return h + card('', empty('🧑‍🎓', 'In der Klasse ' + A.esc((A.klasseVonKurs(kurs) || {}).name || '') +
         ' sind noch keine Schüler:innen angelegt.') +
@@ -8960,40 +8892,6 @@ ACT['mitarbeit-leeren'] = function () {
   render();
 };
 
-/** Thema, Hausaufgabe und Material der Stunde bearbeiten (Spalten thema, hausaufgaben, material). */
-ACT['stunde-thema'] = function (el) {
-  var p = currentView().p;
-  var feld = (el && el.getAttribute && el.getAttribute('data-feld')) || 'thema';
-  var st = A.stundeFuer(p.datum, p.stunde, p.kursId, false) || {};
-  var m = Modal.form({
-    title: 'Thema & Hausaufgabe',
-    fields: [
-      { key: 'thema', label: 'Thema der Stunde', value: st.thema || '', placeholder: 'z. B. Fabeln untersuchen' },
-      { key: 'hausaufgaben', label: 'Hausaufgabe', type: 'textarea', rows: 3, value: st.hausaufgaben || '',
-        hint: 'In der nächsten Stunde dieses Kurses erscheint sie oben zur Kontrolle.' },
-      { key: 'material', label: 'Material', type: 'textarea', rows: 2, value: st.material || '', placeholder: 'z. B. Kopien, Buch S. 42' }
-    ],
-    onSave: function (v) {
-      var thema = String(v.thema || '').trim(), ha = String(v.hausaufgaben || '').trim(), mat = String(v.material || '').trim();
-      var rec = A.stundeFuer(p.datum, p.stunde, p.kursId, false);
-      /* Keinen leeren Datensatz anlegen, wenn nichts eingetragen wurde. */
-      if (!rec) {
-        if (!thema && !ha && !mat) return;
-        rec = A.stundeFuer(p.datum, p.stunde, p.kursId, true);
-      }
-      rec.thema = thema;
-      rec.hausaufgaben = ha;
-      rec.material = mat;
-      A.put('Stunden', rec);
-    },
-    focus: false
-  });
-  setTimeout(function () {
-    var n = m && m.el && m.el.querySelector('[name="' + feld + '"]');
-    if (n) n.focus();
-  }, 80);
-};
-
 ACT['stunde-menu'] = function () {
   var p = currentView().p;
   var st = A.stundeFuer(p.datum, p.stunde, p.kursId, false) || {};
@@ -9016,7 +8914,7 @@ ACT['stunde-menu'] = function () {
       A.put('Stunden', rec);
     },
     onDelete: st.id ? function () { A.delKaskade('Stunden', st.id); window.toast('Gelöscht – unter Mehr → „Zuletzt gelöscht“ wiederherstellbar'); back(); } : null,
-    deleteHint: 'Thema, Hausaufgabe, Notiz und Vermerk zu dieser Stunde löschen?',
+    deleteHint: 'Notiz und Vermerk zu dieser Stunde löschen?',
     focus: false
   });
 };
