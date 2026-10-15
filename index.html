@@ -2659,6 +2659,12 @@ body.feedback-pick .main *{cursor:crosshair!important}
 .prio-menu button:hover,.prio-menu button:active{background:rgba(55,53,47,.07)}
 .prio-menu button.on b:after{content:' ✓';color:var(--good)}
 @media(prefers-color-scheme:dark){.prio-menu{box-shadow:0 8px 28px rgba(0,0,0,.5)}.prio-menu button:hover,.prio-menu button:active{background:rgba(255,255,255,.08)}}
+
+/* V58: Einladung/Server auf dem Anmeldebildschirm */
+.auth-server{margin-top:14px;font-size:14px}
+.auth-server summary{cursor:pointer;color:var(--muted,#6b6b66);padding:10px 4px;min-height:38px;display:flex;align-items:center}
+.auth-server .field{margin-bottom:10px}
+.sort-bar{display:flex;gap:8px;flex-wrap:wrap;margin:0 0 12px}.sort-chip{min-height:38px;padding:0 14px;border-radius:19px;border:1px solid var(--line);background:var(--surface);color:var(--ink);font:inherit;font-size:14px;cursor:pointer}.sort-chip.on{background:var(--accent,#2b6cb0);border-color:var(--accent,#2b6cb0);color:#fff;font-weight:600}
 </style>
 </head>
 <body>
@@ -2701,6 +2707,14 @@ body.feedback-pick .main *{cursor:crosshair!important}
     </form>
 
     <div id="authError" class="auth-error"></div>
+    <details id="authServerDetails" class="auth-server">
+      <summary>Einladung oder Server eintragen</summary>
+      <div class="field" style="margin-top:10px"><label>Einladungscode oder Server-Adresse</label>
+        <input id="authServerUrl" type="text" inputmode="url" autocapitalize="off" autocorrect="off" spellcheck="false" placeholder="SA1.… oder https://…">
+        <div class="hint">Den Einladungscode (beginnt mit SA1.) oder einen Einladungslink bekommst du von der Person, die die Schulapp verwaltet.</div></div>
+      <button class="btn block" type="button" id="authServerApply">Übernehmen</button>
+      <div class="small muted" id="authServerNow" style="margin-top:8px"></div>
+    </details>
     <div id="previewModeBox" class="preview-box" hidden>
       <b>Lokale Vorschau</b>
       <p>Hier kannst du die App mit erfundenen Testdaten ausprobieren. Es wird keine Verbindung zum Schulapp-Server hergestellt und deine echten Daten werden nicht verändert.</p>
@@ -2789,10 +2803,11 @@ var TABLES = ['Klassen', 'Kurse', 'SuS', 'Stundenplan', 'Stunden', 'Mitarbeit',
               'Leistungen', 'Noten', 'Checks', 'Settings'];
 
 /* Eine einzige Stelle für die Versionsangabe (Anzeige unter „Mehr“). */
-var APP_VERSION = 'V57';
+var APP_VERSION = 'V59';
 
 /* V15: Diese Adresse ist die verbindliche Login-Adresse. */
-var DEFAULT_SERVER_URL = 'https://script.google.com/macros/s/AKfycby8ans-FGEWHoCelT97z3jbQJQCMRi2uZl23MDnHtCiEGbjYIAlDLus2anrCVHdjgbs/exec';
+/* V58: Keine feste Server-Adresse mehr in der App. Sie wird über den Einladungslink/-code oder Mehr → Server gesetzt. */
+var DEFAULT_SERVER_URL = '';
 
 var TAGE = [
   { nr: 1, kurz: 'Mo', lang: 'Montag' },
@@ -2876,6 +2891,8 @@ var DEFAULT_CFG = {
   mitarbeitNoten: {},
   rundung: 'kaufmaennisch',
   namensformat: 'nachname',
+  /* V59: Sortierung der Schüler:innen: nachname | vorname | eingabe */
+  susSortierung: 'nachname',
   farbdesign: 'blau',
   /* Auf diesem Gerät nur einmal pro Kalendertag Anmeldung bestätigen. */
   dailyLogin: true,
@@ -4244,7 +4261,7 @@ var Auth = {
     if (!a || !a.user || !a.sessionToken) return false;
     /* Auch gespeicherte Sitzungen dürfen keine veraltete Server-Adresse
        zurückbringen. Ohne bewussten Override gilt immer DEFAULT_SERVER_URL. */
-    a.url = LS.get('serverOverrideUrl', '') || DEFAULT_SERVER_URL;
+    a.url = LS.get('serverOverrideUrl', '') || DEFAULT_SERVER_URL || a.url || '';
     this._activate(a, !!LS.get('auth', null)).catch(function () {});
     return true;
   },
@@ -4624,12 +4641,24 @@ function kursLabel(kurs) {
 function kursFarbe(kurs) { return (kurs && kurs.farbe) || STANDARDFARBE; }
 
 function susDerKlasse(klasseId) {
-  return list('SuS', function (s) { return s.klasseId === klasseId && String(s.aktiv) !== '0'; })
-    .sort(function (a, b) {
-      var sa = num(a.sortierung, 0) || 0, sb = num(b.sortierung, 0) || 0;
+  var modus = cfg('susSortierung') || 'nachname';
+  var rows = list('SuS', function (s) { return s.klasseId === klasseId && String(s.aktiv) !== '0'; });
+  function t(x) { return String(x || '').trim(); }
+  if (modus === 'eingabe') {
+    /* Reihenfolge der Eingabe; eine ggf. gesetzte Nummer geht vor. */
+    return rows.map(function (s, i) { return { s: s, i: i }; }).sort(function (a, b) {
+      var sa = num(a.s.sortierung, 0) || 0, sb = num(b.s.sortierung, 0) || 0;
       if (sa !== sb) return sa - sb;
-      return susName(a, 'nachname').localeCompare(susName(b, 'nachname'), 'de');
-    });
+      return a.i - b.i;
+    }).map(function (x) { return x.s; });
+  }
+  return rows.sort(function (a, b) {
+    var an = t(a.nachname), bn = t(b.nachname), av = t(a.vorname), bv = t(b.vorname);
+    var c = modus === 'vorname'
+      ? (av.localeCompare(bv, 'de') || an.localeCompare(bn, 'de'))
+      : (an.localeCompare(bn, 'de') || av.localeCompare(bv, 'de'));
+    return c;
+  });
 }
 
 function susDesKurses(kursId) {
@@ -5688,8 +5717,38 @@ function authServerValue() {
   return String(A.Auth.serverUrl() || '').trim();
 }
 
+/* V58: Einladung = Server-Adresse + Einladungscode in einem Text: SA1.<base64url von {"u":Adresse,"c":Code}> */
+function einladungLesen_(txt) {
+  var m = String(txt || '').match(/SA1\.[A-Za-z0-9_-]+/);
+  if (!m) return null;
+  try {
+    var b = m[0].slice(4).replace(/-/g, '+').replace(/_/g, '/');
+    while (b.length % 4) b += '=';
+    var o = JSON.parse(decodeURIComponent(escape(atob(b))));
+    if (o && /^https:\/\/[^\s]+$/i.test(String(o.u || '')) && o.c) return { url: String(o.u).replace(/\/+$/, ''), code: String(o.c) };
+  } catch (e) {}
+  return null;
+}
+function serverArt_(url) {
+  url = String(url || '');
+  if (!url) return 'noch kein Server eingestellt';
+  if (/script\.google\.com/i.test(url)) return 'Google (altes Backend)';
+  return 'eigener Server (' + url.replace(/^https?:\/\//i, '') + ')';
+}
+(function () {
+  /* Einladungslink: ?einladung=SA1.… – wird gemerkt und beim Anmeldebildschirm angewendet. */
+  try {
+    var q = new URLSearchParams(window.location.search).get('einladung');
+    var e = q ? einladungLesen_(q) : null;
+    if (e) { window.__einladung = e; }
+    if (q && window.history && history.replaceState) history.replaceState(null, '', window.location.pathname);
+  } catch (x) {}
+})();
+
 function showAuth(mode) {
   mode = mode || 'login';
+  var einl = window.__einladung || null;
+  if (einl) { window.__einladung = null; A.Auth.setServerOverride(einl.url); mode = 'register'; }
   authGate.classList.remove('hidden');
   loginForm.hidden = mode !== 'login';
   registerForm.hidden = mode !== 'register';
@@ -5697,11 +5756,16 @@ function showAuth(mode) {
   $('#authSub').textContent = mode === 'register' ? 'Eigenes Konto erstellen' : (mode === 'reset' ? 'Passwort zurücksetzen' : 'Mit deinem Konto anmelden');
   authError.textContent = '';
   authError.classList.remove('working');
-  var u = $('#authServerUrl');
-  if (u) u.value = A.Auth.serverUrl();
+  var jetzt = $('#authServerNow');
+  if (jetzt) jetzt.textContent = 'Verbunden mit: ' + serverArt_(A.Auth.serverUrl());
   var details = $('#authServerDetails');
   if (details && !A.Auth.serverUrl()) details.open = true;
   biometrieLoginButtonAktualisieren();
+  if (einl) {
+    var ri = $('#registerInvite'); if (ri) ri.value = einl.code;
+    authStatus('Einladung erkannt: Server ist eingestellt. Bitte jetzt dein Konto erstellen.', false);
+    if (jetzt) jetzt.textContent = 'Verbunden mit: ' + serverArt_(A.Auth.serverUrl());
+  }
   setTimeout(function () {
     var f = mode === 'register' ? $('#registerName') : (mode === 'reset' ? $('#resetEmail') : $('#loginEmail'));
     if (f) f.focus();
@@ -5950,11 +6014,32 @@ $('#bioLoginBtn').addEventListener('click', function () {
     .then(function () { authBusy(loginForm, false); });
 });
 
+$('#authServerApply').addEventListener('click', function () {
+  var v = String($('#authServerUrl').value || '').trim();
+  var e = einladungLesen_(v);
+  if (e) {
+    A.Auth.setServerOverride(e.url);
+    showAuth('register');
+    $('#registerInvite').value = e.code;
+    $('#authServerUrl').value = '';
+    authStatus('Einladung erkannt: Server ist eingestellt. Bitte jetzt dein Konto erstellen.', false);
+    return;
+  }
+  if (/^https:\/\/[^\s]+$/i.test(v)) {
+    A.Auth.setServerOverride(v.replace(/\/+$/, ''));
+    $('#authServerUrl').value = '';
+    $('#authServerNow').textContent = 'Verbunden mit: ' + serverArt_(A.Auth.serverUrl());
+    authStatus('Server gespeichert.', false);
+    return;
+  }
+  authStatus('Bitte den Einladungscode (beginnt mit SA1.) oder eine Adresse mit https:// einfügen.', false);
+});
+
 loginForm.addEventListener('submit', function (e) {
   e.preventDefault();
   authStatus('', false);
   var url = authServerValue();
-  if (!url) { authStatus('Keine Server-Adresse eingerichtet.', false); var d = $('#authServerDetails'); if (d) d.open = true; return; }
+  if (!url) { authStatus('Bitte zuerst unten den Einladungscode oder die Server-Adresse eintragen.', false); var d = $('#authServerDetails'); if (d) d.open = true; return; }
   authStatus('Verbindung zum Server …', true);
   authBusy(loginForm, true);
   A.Auth.login($('#loginEmail').value, $('#loginPassword').value, $('#loginRemember').checked, url)
@@ -5966,8 +6051,11 @@ loginForm.addEventListener('submit', function (e) {
 registerForm.addEventListener('submit', function (e) {
   e.preventDefault();
   authStatus('', false);
+  /* V58: Wurde in das Code-Feld eine ganze Einladung (SA1.…) eingefügt, gilt sie für Server und Code. */
+  var einl = einladungLesen_($('#registerInvite').value);
+  if (einl) { A.Auth.setServerOverride(einl.url); $('#registerInvite').value = einl.code; }
   var url = authServerValue();
-  if (!url) { authStatus('Keine Server-Adresse eingerichtet.', false); var d = $('#authServerDetails'); if (d) d.open = true; return; }
+  if (!url) { authStatus('Bitte zuerst unten den Einladungscode oder die Server-Adresse eintragen.', false); var d = $('#authServerDetails'); if (d) d.open = true; return; }
   if ($('#registerPassword').value.length < 8) { authStatus('Das Passwort braucht mindestens 8 Zeichen.', false); return; }
   if ($('#registerPassword').value !== $('#registerPassword2').value) { authStatus('Die beiden Passwörter stimmen nicht überein.', false); return; }
   authStatus('Konto wird auf dem Server angelegt …', true);
@@ -5988,7 +6076,7 @@ resetForm.addEventListener('submit', function (e) {
   e.preventDefault();
   authStatus('', false);
   var url = authServerValue();
-  if (!url) { authStatus('Keine Server-Adresse eingerichtet.', false); return; }
+  if (!url) { authStatus('Bitte zuerst unten den Einladungscode oder die Server-Adresse eintragen.', false); return; }
   if ($('#resetPassword').value.length < 8) { authStatus('Das neue Passwort braucht mindestens 8 Zeichen.', false); return; }
   if ($('#resetPassword').value !== $('#resetPassword2').value) { authStatus('Die beiden neuen Passwörter stimmen nicht überein.', false); return; }
   authStatus('Passwort wird sicher neu gesetzt …', true);
@@ -6775,12 +6863,13 @@ function craftLinkSet_(kursId,url){var x=craftLinks_();url=String(url||'').trim(
 function craftLinkGueltig_(url){return /^https?:\/\//i.test(url)||/^craftdocs:\/\//i.test(url);}
 function craftOeffnen_(kursId){var u=craftLinkFuer_(kursId);if(!u){window.toast('Für dieses Fach ist noch kein Craft-Dokument verknüpft.',true);return;}if(/^craftdocs:\/\//i.test(u)){location.href=u;}else window.open(u,'_blank','noopener');}
 function craftApiLocalKey_(){var u=A.Auth.currentUser&&A.Auth.currentUser();return 'craft.api.'+((u&&(u.id||u.email))||'device');}
-function craftApiConfig_(){var d={url:'',auto:false,namen:true,karteiFolderId:'',karteiFolderName:'',karteiAutoKommunikation:true,karteiAutoCreate:true,karteiAutoSnapshot:true};var c=A.LS.get(craftApiLocalKey_(),null);return Object.assign(d,(c&&typeof c==='object')?c:{});}
+/* V59: Craft bekommt keine Schülerdaten mehr. Die Kartei-Funktionen sind abgeschaltet, Namen werden nie übertragen. */
+function craftApiConfig_(){var d={url:'',auto:false,namen:false,karteiFolderId:'',karteiFolderName:'',karteiAutoKommunikation:false,karteiAutoCreate:false,karteiAutoSnapshot:false};var c=A.LS.get(craftApiLocalKey_(),null);var o=Object.assign(d,(c&&typeof c==='object')?c:{});o.namen=false;o.karteiAutoKommunikation=false;o.karteiAutoCreate=false;o.karteiAutoSnapshot=false;o.karteiFolderId='';return o;}
 function craftApiSet_(c){var alt=craftApiConfig_();A.LS.set(craftApiLocalKey_(),Object.assign({},alt,c||{}));}
 function craftApiUrlGueltig_(u){return /^https:\/\/connect\.craft\.do\/links\/[^/]+\/api\/v1\/?$/i.test(String(u||'').trim());}
 function craftSyncMapKey_(){return craftApiLocalKey_()+'.sync';}
 function craftSyncMap_(){var x=A.LS.get(craftSyncMapKey_(),{});return x&&typeof x==='object'?x:{};}
-function craftTaskText_(it){var c=craftApiConfig_(),name=c.namen!==false&&it.sus?A.susName(it.sus):'ein Kind';if(it.typ==='vergessen')return 'Elternnachricht prüfen: '+name+' · '+it.h.punkt+' '+it.h.anzahl+'×'+(it.kurs&&it.kurs.fach?' · '+it.kurs.fach:'');if(it.typ==='positiv')return 'Positive Elternrückmeldung erwägen: '+name+(it.kurs&&it.kurs.fach?' · '+it.kurs.fach:'');if(it.typ==='liste')return 'Einsammel-Liste prüfen: '+it.a.titel+(it.offen!==undefined?' · '+it.offen+' offen':'');if(it.typ==='wiedervorlage')return 'Wiedervorlage Elternkontakt: '+name;if(it.typ==='straf')return 'Offene Strafarbeit prüfen: '+name+(it.kurs&&it.kurs.fach?' · '+it.kurs.fach:'');return it.titel||'Schulapp-Aufgabe';}
+function craftTaskText_(it){var name='ein Kind';if(it.typ==='vergessen')return 'Elternnachricht prüfen: '+name+' · '+it.h.punkt+' '+it.h.anzahl+'×'+(it.kurs&&it.kurs.fach?' · '+it.kurs.fach:'');if(it.typ==='positiv')return 'Positive Elternrückmeldung erwägen: '+name+(it.kurs&&it.kurs.fach?' · '+it.kurs.fach:'');if(it.typ==='liste')return 'Einsammel-Liste prüfen: '+it.a.titel+(it.offen!==undefined?' · '+it.offen+' offen':'');if(it.typ==='wiedervorlage')return 'Wiedervorlage Elternkontakt: '+name;if(it.typ==='straf')return 'Offene Strafarbeit prüfen: '+name+(it.kurs&&it.kurs.fach?' · '+it.kurs.fach:'');return it.titel||'Schulapp-Aufgabe';}
 function craftPostTasks_(items,datum){var c=craftApiConfig_();if(!craftApiUrlGueltig_(c.url))return Promise.reject(new Error('Craft-Verbindung fehlt'));var url=String(c.url).replace(/\/$/,'')+'/tasks';var tasks=items.map(function(it){return {markdown:craftTaskText_(it),taskInfo:{scheduleDate:datum},location:{type:'dailyNote',date:datum}};});return fetch(url,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({tasks:tasks})}).then(function(r){return r.text().then(function(t){var j={};try{j=t?JSON.parse(t):{};}catch(e){}if(!r.ok)throw new Error((j&&j.message)||('Craft HTTP '+r.status));return j;});});}
 var craftAutoBusy_=false;
 function craftSyncInbox_(datum,onlyKey,silent){
@@ -6793,6 +6882,8 @@ function craftSyncInbox_(datum,onlyKey,silent){
 function craftAutoSyncHeute_(){if(craftAutoBusy_||VORSCHAU_AKTIV||route.tab!=='heute'||route.stack.length)return;var c=craftApiConfig_();if(!c.auto||!craftApiUrlGueltig_(c.url))return;craftAutoBusy_=true;craftSyncInbox_(A.todayISO(),null,true).catch(function(){}).finally(function(){craftAutoBusy_=false;});}
 
 function craftApiRequest_(path,opt){
+  /* V59: Sperre – über diese Funktion gehen nur Kartei-Zugriffe; sie sind entfernt. Aufgaben nutzen craftPostTasks_. */
+  return Promise.reject(new Error('Diese Craft-Funktion wurde entfernt.'));
   var c=craftApiConfig_();if(!craftApiUrlGueltig_(c.url))return Promise.reject(new Error('Craft-Verbindung fehlt'));
   if(VORSCHAU_AKTIV)return Promise.reject(new Error('In der Vorschau werden keine echten Craft-Daten verändert.'));
   opt=opt||{};var url=String(c.url).replace(/\/$/,'')+'/'+String(path||'').replace(/^\//,'');
@@ -6856,12 +6947,12 @@ function craftKarteiEnsureAll_(){
   });
 }
 var craftKarteiEnsureBusy_=false;
-function craftKarteiAutoEnsure_(force){var c=craftApiConfig_();if(VORSCHAU_AKTIV||craftKarteiEnsureBusy_||!craftApiUrlGueltig_(c.url)||!c.karteiAutoCreate||!c.karteiFolderId)return Promise.resolve(null);var key=craftApiLocalKey_()+'.karteiEnsureDate';if(!force&&A.LS.get(key,'')===A.todayISO())return Promise.resolve(null);craftKarteiEnsureBusy_=true;return craftKarteiEnsureAll_().then(function(r){A.LS.set(key,A.todayISO());return r;}).catch(function(){return null;}).then(function(r){craftKarteiEnsureBusy_=false;render();return r;});}
+function craftKarteiAutoEnsure_(force){return Promise.resolve(null);var c=craftApiConfig_();if(VORSCHAU_AKTIV||craftKarteiEnsureBusy_||!craftApiUrlGueltig_(c.url)||!c.karteiAutoCreate||!c.karteiFolderId)return Promise.resolve(null);var key=craftApiLocalKey_()+'.karteiEnsureDate';if(!force&&A.LS.get(key,'')===A.todayISO())return Promise.resolve(null);craftKarteiEnsureBusy_=true;return craftKarteiEnsureAll_().then(function(r){A.LS.set(key,A.todayISO());return r;}).catch(function(){return null;}).then(function(r){craftKarteiEnsureBusy_=false;render();return r;});}
 var craftSnapshotTimer_=null,craftSnapshotSus_={};
-function craftKarteiScheduleSnapshot_(susId){if(!susId)return;craftSnapshotSus_[susId]=true;if(craftSnapshotTimer_)clearTimeout(craftSnapshotTimer_);craftSnapshotTimer_=setTimeout(function(){var ids=Object.keys(craftSnapshotSus_);craftSnapshotSus_={};craftSnapshotTimer_=null;ids.forEach(function(id){if(craftKarteiFuer_(id))craftKarteiLiveSnapshot_(id).catch(function(){});});},1800);}
-function craftAutoJournalChange_(table,rec){var c=craftApiConfig_();if(VORSCHAU_AKTIV||!c.karteiAutoCreate||!craftApiUrlGueltig_(c.url))return;if(table==='SuS'&&rec&&String(rec.aktiv||'1')!=='0'){setTimeout(function(){craftKarteiAutoEnsure_(true);},350);if(c.karteiAutoSnapshot)craftKarteiScheduleSnapshot_(rec.id);return;}if(!c.karteiAutoSnapshot)return;if((table==='Mitarbeit'||table==='Checks'||table==='Noten')&&rec&&rec.susId){craftKarteiScheduleSnapshot_(rec.susId);return;}if(table==='Settings'&&rec&&(rec.id==='aufgaben'||rec.id==='foerderziele'||rec.id==='elternVerlauf'||rec.id==='mitarbeitNoten')){A.list('SuS',function(x){return String(x.aktiv||'1')!=='0'&&!!craftKarteiFuer_(x.id);}).forEach(function(x){craftKarteiScheduleSnapshot_(x.id);});}}
+function craftKarteiScheduleSnapshot_(susId){return ;if(!susId)return;craftSnapshotSus_[susId]=true;if(craftSnapshotTimer_)clearTimeout(craftSnapshotTimer_);craftSnapshotTimer_=setTimeout(function(){var ids=Object.keys(craftSnapshotSus_);craftSnapshotSus_={};craftSnapshotTimer_=null;ids.forEach(function(id){if(craftKarteiFuer_(id))craftKarteiLiveSnapshot_(id).catch(function(){});});},1800);}
+function craftAutoJournalChange_(table,rec){return ;var c=craftApiConfig_();if(VORSCHAU_AKTIV||!c.karteiAutoCreate||!craftApiUrlGueltig_(c.url))return;if(table==='SuS'&&rec&&String(rec.aktiv||'1')!=='0'){setTimeout(function(){craftKarteiAutoEnsure_(true);},350);if(c.karteiAutoSnapshot)craftKarteiScheduleSnapshot_(rec.id);return;}if(!c.karteiAutoSnapshot)return;if((table==='Mitarbeit'||table==='Checks'||table==='Noten')&&rec&&rec.susId){craftKarteiScheduleSnapshot_(rec.susId);return;}if(table==='Settings'&&rec&&(rec.id==='aufgaben'||rec.id==='foerderziele'||rec.id==='elternVerlauf'||rec.id==='mitarbeitNoten')){A.list('SuS',function(x){return String(x.aktiv||'1')!=='0'&&!!craftKarteiFuer_(x.id);}).forEach(function(x){craftKarteiScheduleSnapshot_(x.id);});}}
 function craftKarteiKommunikationMarkdown_(rec){var sus=A.byId('SuS',rec.susId),k=A.byId('Kurse',rec.kursId);return '### '+A.fmtDate(String(rec.zeit||'').slice(0,10))+' · Elternkommunikation\n\n- **'+(rec.status==='besprochen'?'Besprochen':'Nachricht verschickt')+'**'+(rec.anlass?' · '+rec.anlass:'')+(k&&k.fach?' · '+k.fach:'')+(rec.notiz?'\n- Notiz: '+rec.notiz:'')+'\n';}
-function craftKarteiAutoKommunikation_(rec){var c=craftApiConfig_();if(!c.karteiAutoKommunikation||!rec||!rec.susId||!craftKarteiFuer_(rec.susId)||VORSCHAU_AKTIV)return;var key='kommunikation|'+(rec.id||[rec.susId,rec.zeit,rec.status,rec.anlass].join('|'));craftKarteiPostMarkdown_(rec.susId,craftKarteiKommunikationMarkdown_(rec),key).catch(function(){});}
+function craftKarteiAutoKommunikation_(rec){return ;var c=craftApiConfig_();if(!c.karteiAutoKommunikation||!rec||!rec.susId||!craftKarteiFuer_(rec.susId)||VORSCHAU_AKTIV)return;var key='kommunikation|'+(rec.id||[rec.susId,rec.zeit,rec.status,rec.anlass].join('|'));craftKarteiPostMarkdown_(rec.susId,craftKarteiKommunikationMarkdown_(rec),key).catch(function(){});}
 
 
 /* ------------------------------------------------------- V46 Pädagogisches Journal */
@@ -6874,11 +6965,11 @@ function craftKarteiQuickNoteOpen_(presetSusId){
   var body='<div class="sus-picker-tools"><select id="obsKlasse" aria-label="Klasse filtern">'+klOpts+'</select><input id="obsSearch" type="search" placeholder="Schüler:in suchen …" autocomplete="off"></div><div class="sus-picker-list" id="obsPeople"></div>'+
     '<div class="field"><label>Art</label><select id="obsTyp"><option>Beobachtung</option><option>Positiver Moment</option><option>Lernentwicklung</option><option>Sozialverhalten</option><option>Selbstständigkeit</option><option>Organisation</option><option>Gespräch</option><option>Für Zeugnis merken</option></select></div>'+
     '<div class="field"><label>Notiz</label><textarea id="obsText" rows="6" placeholder="Was ist dir aufgefallen?"></textarea></div>';
-  Modal.open({title:'Beobachtung festhalten',body:body,foot:'<button class="btn primary" data-save-observation>In Craft speichern</button>',after:function(bg,close){
+  Modal.open({title:'Beobachtung festhalten',closeLabel:'Abbrechen',body:body,foot:'<button class="btn primary" data-save-observation>Speichern</button>',after:function(bg,close){
     var klasse=bg.querySelector('#obsKlasse'),search=bg.querySelector('#obsSearch'),out=bg.querySelector('#obsPeople'),txt=bg.querySelector('#obsText'),typ=bg.querySelector('#obsTyp');
     function draw(){var q=String(search.value||'').trim().toLowerCase(),kid=klasse.value;var arr=alle.filter(function(x){if(kid&&x.klasseId!==kid)return false;if(!q)return true;var n=(A.susName(x,'vorname')+' '+A.susName(x,'nachname')).toLowerCase();return n.indexOf(q)>=0;});out.innerHTML=arr.length?arr.map(function(x){var kl=A.byId('Klassen',x.klasseId);return '<button class="sus-picker-row '+(x.id===selectedId?'on':'')+'" data-obs-sus="'+x.id+'"><span class="pick-dot"></span><span class="sus-picker-main"><b>'+A.esc(A.susName(x,'vorname'))+'</b><span>'+A.esc(kl?kl.name:'')+'</span></span></button>';}).join(''):'<div class="inbox-empty">Keine passenden Schüler:innen.</div>';}
     klasse.addEventListener('change',function(){selectedId='';draw();});search.addEventListener('input',draw);out.addEventListener('click',function(e){var b=e.target.closest('[data-obs-sus]');if(!b)return;selectedId=b.getAttribute('data-obs-sus');draw();txt.focus();});draw();
-    bg.querySelector('[data-save-observation]').addEventListener('click',function(){var text=String(txt.value||'').trim();if(!selectedId){window.toast('Bitte eine Schüler:in auswählen.',true);return;}if(!text){window.toast('Bitte eine Notiz eingeben.',true);return;}var sus=A.byId('SuS',selectedId),zeit=new Date().toISOString(),md='### '+A.fmtDate(A.todayISO())+' · '+typ.value+'\n\n'+text+'\n';beobachtungSpeichern_({id:A.uid('beo'),susId:selectedId,zeit:zeit,typ:typ.value,text:text});var ensure=craftKarteiFuer_(selectedId)?Promise.resolve():craftKarteiCreate_(selectedId);ensure.then(function(){return craftKarteiPostMarkdown_(selectedId,md);}).then(function(){close();render();window.toast('Beobachtung gespeichert und nach Craft übertragen');}).catch(function(e){close();render();window.toast('Beobachtung in Schulapp gespeichert · Craft: '+e.message,true);});});
+    bg.querySelector('[data-save-observation]').addEventListener('click',function(){var text=String(txt.value||'').trim();if(!selectedId){window.toast('Bitte eine Schüler:in auswählen.',true);return;}if(!text){window.toast('Bitte eine Notiz eingeben.',true);return;}var sus=A.byId('SuS',selectedId),zeit=new Date().toISOString(),md='### '+A.fmtDate(A.todayISO())+' · '+typ.value+'\n\n'+text+'\n';beobachtungSpeichern_({id:A.uid('beo'),susId:selectedId,zeit:zeit,typ:typ.value,text:text});close();render();window.toast('Beobachtung gespeichert');});
     setTimeout(function(){search.focus();},40);
   }});
 }
@@ -6887,8 +6978,8 @@ function foerderzieleAlle_(){var x=A.cfg('foerderziele');return Array.isArray(x)
 function foerderzieleFuer_(susId,auchErledigt){return foerderzieleAlle_().filter(function(z){return z&&z.susId===susId&&(auchErledigt||z.status!=='erreicht');}).sort(function(a,b){if((a.status==='erreicht')!==(b.status==='erreicht'))return a.status==='erreicht'?1:-1;return String(b.start||'').localeCompare(String(a.start||''));});}
 function foerderzielSpeichern_(z){var all=foerderzieleAlle_(),found=false;all=all.map(function(x){if(x&&x.id===z.id){found=true;return z;}return x;});if(!found)all.push(z);A.setCfg('foerderziele',all);return z;}
 function foerderzielMarkdown_(z,ereignis){var lines=['### '+A.fmtDate(A.todayISO())+' · Förderziel '+(ereignis==='erreicht'?'erreicht':'gestartet'),'','- **Bereich:** '+(z.bereich||'Allgemein'),'- **Ziel:** '+z.text];if(z.bis)lines.push('- **Zieltermin:** '+A.fmtDate(z.bis));if(z.notiz)lines.push('- **Notiz:** '+z.notiz);return lines.join('\n')+'\n';}
-function craftFoerderzielOpen_(susId){var sus=A.byId('SuS',susId);if(!sus)return;if(!craftKarteiFuer_(susId)){craftKarteiLinkOpen_(susId);return;}Modal.form({title:'Förderziel für '+A.susName(sus),hinweis:'Das Ziel bleibt in der Schulapp sichtbar und wird zusätzlich als Eintrag in der Craft-Karte dokumentiert.',fields:[{key:'bereich',label:'Bereich',type:'select',value:'Lernen',options:['Lernen','Mitarbeit','Selbstständigkeit','Organisation','Sozialverhalten','Arbeitsverhalten','Sonstiges']},{key:'text',label:'Ziel',type:'textarea',rows:4,value:'',placeholder:'z. B. bringt das benötigte Material über mehrere Wochen zuverlässig mit'},{key:'bis',label:'Zieltermin (optional)',type:'date',value:''},{key:'notiz',label:'Notiz (optional)',type:'textarea',rows:3,value:''}],validate:function(v){return String(v.text||'').trim()?'':'Bitte ein Ziel formulieren.';},saveLabel:'Ziel anlegen',onSave:function(v){var z={id:A.uid('ziel'),susId:susId,bereich:v.bereich||'Lernen',text:String(v.text||'').trim(),bis:v.bis||'',notiz:String(v.notiz||'').trim(),start:A.todayISO(),status:'aktiv'};foerderzielSpeichern_(z);craftKarteiPostMarkdown_(susId,foerderzielMarkdown_(z,'start'),'ziel|start|'+z.id).catch(function(){});render();window.toast('Förderziel angelegt');},focus:true});}
-function craftFoerderzielErreicht_(susId,zielId){var all=foerderzieleAlle_(),z=null;all=all.map(function(x){if(x&&x.id===zielId){z=A.clone(x);z.status='erreicht';z.erreicht=A.todayISO();return z;}return x;});if(!z)return;A.setCfg('foerderziele',all);if(craftKarteiFuer_(susId))craftKarteiPostMarkdown_(susId,foerderzielMarkdown_(z,'erreicht'),'ziel|done|'+z.id).catch(function(){});render();window.toast('Förderziel als erreicht markiert');}
+function craftFoerderzielOpen_(susId){var sus=A.byId('SuS',susId);if(!sus)return;Modal.form({title:'Förderziel für '+A.susName(sus),hinweis:'Das Ziel wird in der Schulapp gespeichert und erscheint im Verlauf des Kindes.',fields:[{key:'bereich',label:'Bereich',type:'select',value:'Lernen',options:['Lernen','Mitarbeit','Selbstständigkeit','Organisation','Sozialverhalten','Arbeitsverhalten','Sonstiges']},{key:'text',label:'Ziel',type:'textarea',rows:4,value:'',placeholder:'z. B. bringt das benötigte Material über mehrere Wochen zuverlässig mit'},{key:'bis',label:'Zieltermin (optional)',type:'date',value:''},{key:'notiz',label:'Notiz (optional)',type:'textarea',rows:3,value:''}],validate:function(v){return String(v.text||'').trim()?'':'Bitte ein Ziel formulieren.';},saveLabel:'Ziel anlegen',onSave:function(v){var z={id:A.uid('ziel'),susId:susId,bereich:v.bereich||'Lernen',text:String(v.text||'').trim(),bis:v.bis||'',notiz:String(v.notiz||'').trim(),start:A.todayISO(),status:'aktiv'};foerderzielSpeichern_(z);render();window.toast('Förderziel angelegt');},focus:true});}
+function craftFoerderzielErreicht_(susId,zielId){var all=foerderzieleAlle_(),z=null;all=all.map(function(x){if(x&&x.id===zielId){z=A.clone(x);z.status='erreicht';z.erreicht=A.todayISO();return z;}return x;});if(!z)return;A.setCfg('foerderziele',all);render();window.toast('Förderziel als erreicht markiert');}
 
 function craftKarteiStaerken_(susId){var sus=A.byId('SuS',susId),out=[];if(!sus)return out;A.kurseDerKlasse(sus.klasseId).forEach(function(k){var h=positiveMitarbeitHinweis_(k.id,susId);if(h)out.push(k.fach+': '+(h.signal==='mitarbeit_verbessert'?'Mitarbeit hat sich zuletzt deutlich verbessert':'Mitarbeit zuletzt besonders zuverlässig und engagiert'));});return out;}
 function craftKarteiGespraechMarkdown_(susId){
@@ -6914,19 +7005,11 @@ function craftKarteiRueckblickOpen_(susId){var sus=A.byId('SuS',susId);if(!sus)r
 function craftKarteiAutoMatch_(){var c=craftApiConfig_();if(!c.karteiFolderId)return Promise.reject(new Error('Bitte zuerst einen Kartei-Ordner auswählen.'));return craftKarteiDokumente_(c.karteiFolderId).then(function(docs){var by={};docs.forEach(function(d){var n=craftKarteiNorm_(d.title);if(!by[n])by[n]=[];by[n].push(d);});var matched=0,offen=0;A.list('SuS',function(s){return String(s.aktiv||'1')!=='0';}).forEach(function(s){var name=craftKarteiNorm_(A.susName(s)),hits=by[name]||[];if(hits.length===1){var d=hits[0];craftKarteiSet_(s.id,{documentId:d.id,title:d.title||A.susName(s),link:d.clickableLink||'',folderId:c.karteiFolderId,linkedAt:new Date().toISOString()});matched++;}else offen++;});return {matched:matched,open:offen,total:matched+offen};});}
 function craftKarteiBindDoc_(susId,d){if(!d||!d.id)return;craftKarteiSet_(susId,{documentId:d.id,title:d.title||'',link:d.clickableLink||'',folderId:craftApiConfig_().karteiFolderId||'',linkedAt:new Date().toISOString()});}
 function craftKarteiManualLink_(susId,url){var id=craftKarteiDocIdAusLink_(url);if(!id)throw new Error('Aus diesem Link konnte keine Craft-Dokument-ID gelesen werden.');craftKarteiSet_(susId,{documentId:id,title:'',link:String(url||'').trim(),folderId:'',linkedAt:new Date().toISOString()});}
-function craftKarteiStripHTML_(sus){var r=craftKarteiFuer_(sus.id);if(r)return '<div class="kartei-strip"><div class="kartei-strip-main"><div class="craft-mark">C</div><div class="kartei-strip-copy"><b>Craft-Schülerkartei</b><span>'+A.esc(r.title||A.susName(sus))+(r.lastSyncAt?' · zuletzt synchronisiert '+A.fmtDateShort(String(r.lastSyncAt).slice(0,10)):'')+'</span></div></div><div class="kartei-strip-actions"><button class="btn small" data-act="craft-kartei-open" data-sus="'+sus.id+'">In Craft öffnen</button><button class="btn small" data-act="craft-kartei-sync" data-sus="'+sus.id+'">Stand synchronisieren</button><button class="kartei-link-btn" data-act="craft-kartei-link" data-sus="'+sus.id+'">•••</button></div></div>';return '<div class="kartei-strip"><div class="kartei-strip-main"><div class="craft-mark">C</div><div class="kartei-strip-copy"><b>Craft-Schülerkartei</b><span>Noch nicht verknüpft</span></div></div><div class="kartei-strip-actions"><button class="btn small" data-act="craft-kartei-link" data-sus="'+sus.id+'">Karte verbinden</button></div></div>';}
-function craftKarteiPanelHTML_(susId){
-  var r=craftKarteiFuer_(susId),c=craftApiConfig_(),goals=foerderzieleFuer_(susId,false);
-  if(r){
-    var goalHtml=goals.length?'<div class="goal-list">'+goals.slice(0,4).map(function(z){return '<div class="goal-row"><div class="goal-main"><b>'+A.esc(z.text)+'</b><span>'+A.esc(z.bereich)+(z.bis?' · bis '+A.fmtDateShort(z.bis):'')+'</span></div><button class="goal-done" data-act="craft-goal-done" data-sus="'+susId+'" data-ziel="'+z.id+'">Erreicht</button></div>';}).join('')+'</div>':'<div class="kartei-muted">Noch kein aktives Förderziel.</div>';
-    return '<div class="kartei-panel"><div class="kartei-state"><i class="kartei-state-dot on"></i><div class="kartei-state-main"><b>Mit Craft verknüpft</b><span>'+(A.esc(r.title||'Craft-Seite'))+(r.lastSnapshotAt?' · letzter Stand '+A.fmtDateShort(String(r.lastSnapshotAt).slice(0,10)):'')+'</span></div></div>'+
-      '<div class="ped-tool-grid"><button class="ped-tool" data-act="craft-kartei-note" data-sus="'+susId+'"><b>Beobachtung</b><span>Moment, Entwicklung oder Zeugnis-Merker festhalten</span></button><button class="ped-tool" data-act="craft-conversation" data-sus="'+susId+'"><b>Gespräch vorbereiten</b><span>Stärken, Stand, offene Punkte und Kontakte bündeln</span></button><button class="ped-tool" data-act="craft-review" data-sus="'+susId+'"><b>Rückblick</b><span>Woche, Ferienabschnitt oder eigenen Zeitraum zusammenfassen</span></button></div>'+
-      '<div class="kartei-actions"><button class="btn" data-act="craft-kartei-open" data-sus="'+susId+'">In Craft öffnen</button><button class="btn" data-act="craft-kartei-sync" data-sus="'+susId+'">Aktuellen Stand</button><button class="btn" data-act="craft-goal-add" data-sus="'+susId+'">Förderziel</button><button class="btn" data-act="craft-kartei-link" data-sus="'+susId+'">Verknüpfung</button></div>'+
-      '<div class="goal-head"><b>Aktive Förderziele</b><span>'+goals.length+'</span></div>'+goalHtml+'<div class="kartei-muted">Elternkontakte werden '+(c.karteiAutoKommunikation?'automatisch':'nicht automatisch')+' ergänzt. Einzelne Mitarbeitshäkchen werden nicht ungefiltert nach Craft geschrieben.</div></div>';
-  }
-  return '<div class="kartei-panel"><div class="kartei-state"><i class="kartei-state-dot"></i><div class="kartei-state-main"><b>Noch keine Craft-Karte verknüpft</b><span>Verbinde deine vorhandene Schülerkartei oder lege für dieses Kind eine neue Craft-Seite an.</span></div></div><div class="kartei-actions"><button class="btn primary" data-act="craft-kartei-link" data-sus="'+susId+'">Bestehende Karte verbinden</button><button class="btn" data-act="craft-kartei-create" data-sus="'+susId+'">Neue Karte anlegen</button></div></div>';
+function susBeobachtungPanelHTML_(susId){
+  var goals=foerderzieleFuer_(susId,false);
+  var goalHtml=goals.length?'<div class="goal-list">'+goals.slice(0,6).map(function(z){return '<div class="goal-row"><div class="goal-main"><b>'+A.esc(z.text)+'</b><span>'+A.esc(z.bereich)+(z.bis?' · bis '+A.fmtDateShort(z.bis):'')+'</span></div><button class="goal-done" data-act="craft-goal-done" data-sus="'+susId+'" data-ziel="'+z.id+'">Erreicht</button></div>';}).join('')+'</div>':'<div class="kartei-muted">Noch kein aktives Förderziel.</div>';
+  return '<div class="kartei-panel"><div class="kartei-actions"><button class="btn" data-act="craft-kartei-note" data-sus="'+susId+'">Beobachtung festhalten</button><button class="btn" data-act="craft-goal-add" data-sus="'+susId+'">Förderziel anlegen</button></div><div class="goal-head"><b>Aktive Förderziele</b><span>'+goals.length+'</span></div>'+goalHtml+'</div>';
 }
-
 function craftKarteiSettingsOpen_(){
   var c=craftApiConfig_();if(!craftApiUrlGueltig_(c.url)){window.toast('Richte zuerst die Craft API Connection ein.',true);ACT['craft-api']();return;}
   var map=craftKarteiMap_(),aktiv=A.list('SuS',function(x){return String(x.aktiv||'1')!=='0';}),verkn=craftKarteiVerknuepftAnzahl_();
@@ -7103,7 +7186,7 @@ function craftHeuteHTML(datum){
   function label(it){var kn=it.sus?klasseNameSus_(it.sus):'',nm=it.sus?(A.susName(it.sus)+(kn?' ('+kn+')':'')):'';return it.typ==='vergessen'?(nm+' · '+it.h.punkt+' '+it.h.anzahl+'×'):it.typ==='positiv'?(nm+' · positive Rückmeldung'):it.titel;}
   var rows=items.slice(0,8).map(function(it){var done=!!sync[it.key];return '<div class="craft-ready-row"><span>'+A.esc(label(it))+'</span><span class="craft-ready-state '+(done?'done':'pending')+'">'+(done?'✓ übertragen':'Nicht übertragen')+'</span>'+(!done&&verbunden?'<button class="parent-more" data-act="craft-sync-one" data-craft-key="'+A.esc(it.key)+'">Übertragen</button>':'')+'</div>';}).join('');
   var karteiN=craftKarteiVerknuepftAnzahl_(),karteiGes=A.list('SuS',function(x){return String(x.aktiv||'1')!=='0';}).length,sub=verbunden?(pending.length?pending.length+' nicht übertragen':'Heute alles übertragen'):'Noch nicht verbunden';
-  return '<section class="workspace-section craft-after-lessons"><div class="today-section-head craft-tab-head"><div class="today-section-title"><div class="craft-mark">C</div><div><h3>Craft</h3><span class="today-section-note">'+A.esc(sub)+'</span></div></div><div class="craft-panel-actions">'+(items.length?'<button class="btn small '+(verbunden?'primary':'')+'" data-act="craft-sync-inbox">'+(verbunden?'Alle übertragen':'Verbinden')+'</button>':'')+'<button class="btn small" data-act="craft-api">Einstellungen</button></div></div><div class="craft-panel">'+(items.length?'<div class="craft-ready">'+rows+(items.length>8?'<div class="craft-ready-row"><span>+'+(items.length-8)+' weitere</span><span class="craft-ready-state pending">Nicht übertragen</span></div>':'')+'</div>':'<div class="inbox-empty">Keine offenen Punkte für Craft.</div>')+'<div class="craft-kartei-summary"><span>Schülerkartei · '+karteiN+'/'+karteiGes+' angelegt/verknüpft'+(c.karteiAutoCreate?' · automatisch gepflegt':'')+'</span><button class="parent-more" data-act="craft-kartei-settings">Kartei verwalten</button></div></div></section>';
+  return '<section class="workspace-section craft-after-lessons"><div class="today-section-head craft-tab-head"><div class="today-section-title"><div class="craft-mark">C</div><div><h3>Craft</h3><span class="today-section-note">'+A.esc(sub)+'</span></div></div><div class="craft-panel-actions">'+(items.length?'<button class="btn small '+(verbunden?'primary':'')+'" data-act="craft-sync-inbox">'+(verbunden?'Alle übertragen':'Verbinden')+'</button>':'')+'<button class="btn small" data-act="craft-api">Einstellungen</button></div></div><div class="craft-panel">'+(items.length?'<div class="craft-ready">'+rows+(items.length>8?'<div class="craft-ready-row"><span>+'+(items.length-8)+' weitere</span><span class="craft-ready-state pending">Nicht übertragen</span></div>':'')+'</div>':'<div class="inbox-empty">Keine offenen Punkte für Craft.</div>')+'</div></section>';
 }
 function cockpitHTML(datum) { return inboxHTML(datum); }
 
@@ -7306,7 +7389,7 @@ var Modal = {
     bg.innerHTML =
       '<div class="modal" role="dialog">' +
         '<div class="modal-head"><div class="t">' + A.esc(opts.title || '') + '</div>' +
-          '<button class="icon-btn" data-close>Fertig</button></div>' +
+          '<button class="icon-btn" data-close>' + A.esc(opts.closeLabel || 'Fertig') + '</button></div>' +
         '<div class="modal-body">' + (opts.body || '') + '</div>' +
         (opts.foot ? '<div class="modal-foot">' + opts.foot + '</div>' : '') +
       '</div>';
@@ -7333,6 +7416,7 @@ var Modal = {
 
     return Modal.open({
       title: opts.title,
+      closeLabel: 'Abbrechen',
       body: body,
       foot: foot,
       after: function (bg, close) {
@@ -8236,7 +8320,12 @@ VIEWS.klasse = {
         '<div class="chev">›</div></button>';
     }).join('') : empty('🧑‍🎓', 'Noch keine Schüler:innen angelegt.');
 
-    h += zuCard_('klasse.' + k.id + '.sus', true, 'Schüler:innen (' + sus.length + ')', sus.length ? '<div class="sus-grid">' + susRows + '</div>' : susRows);
+    var sm = A.cfg('susSortierung') || 'nachname';
+    var sortBar = sus.length > 1 ? '<div class="sort-bar"><span>Sortierung</span>' +
+      [['nachname', 'Nachname'], ['vorname', 'Vorname'], ['eingabe', 'Eingabe']].map(function (o) {
+        return '<button type="button" class="sort-chip' + (o[0] === sm ? ' on' : '') + '" data-act="sus-sort" data-modus="' + o[0] + '">' + o[1] + '</button>';
+      }).join('') + '</div>' : '';
+    h += zuCard_('klasse.' + k.id + '.sus', true, 'Schüler:innen (' + sus.length + ')', sus.length ? sortBar + '<div class="sus-grid">' + susRows + '</div>' : susRows);
     h += '<div class="btn-row">' +
       '<button class="btn" data-act="sus-neu" data-klasse="' + k.id + '">Einzeln</button>' +
       '<button class="btn" data-act="sus-liste" data-klasse="' + k.id + '">Liste einfügen</button></div>';
@@ -8463,7 +8552,6 @@ VIEWS.sus = {
     var kurse = A.kurseDerKlasse(klasse.id);
 
     var h = '<div class="profile-head"><div class="profile-eyebrow">'+A.esc(klasse.name)+'</div><h1>'+A.esc(A.susName(s))+'</h1><div class="profile-head-actions"><button class="btn" data-act="eltern-nachricht" data-sus="'+s.id+'">Elternnachricht</button><button class="btn" data-act="gespraech-neu" data-sus="'+s.id+'">Gespräch protokollieren</button><button class="btn" data-act="kind-pdf" data-sus="'+s.id+'">Übersicht als PDF</button></div></div>';
-    h += craftKarteiStripHTML_(s);
     var timelineFilter=(ui.timelineFilterBySus&&ui.timelineFilterBySus[s.id])||'all';
     h += card('Seit letztem Mal', susSeitLetztemHTML_(s.id));
     h += card('Verlauf', susTimelineHTML_(s.id,timelineFilter));
@@ -8478,7 +8566,7 @@ VIEWS.sus = {
     var kommHist=elternVerlaufFuerSus_(s.id).slice(0,8);
     h += card('Elternkommunikation','<div class="comm-profile">'+(kommHinweise.length?kommHinweise.map(function(x){var ku=A.byId('Kurse',x.kursId);return '<button class="comm-suggestion" data-act="eltern-nachricht" data-sus="'+s.id+'" data-kurs="'+x.kursId+'" data-punkt="'+A.esc(x.punkt)+'"><span><b>'+A.esc(x.punkt)+'</b><small>'+x.anzahl+'× vergessen'+(ku&&ku.fach?' · '+A.esc(ku.fach):'')+'</small></span><em>Nachricht</em></button>';}).join(''):'<div class="small muted" style="padding:8px 0">Kein aktueller automatischer Hinweis.</div>')+'<button class="btn comm-create" data-act="eltern-nachricht" data-sus="'+s.id+'">Neue Elternnachricht</button>'+(kommHist.length?'<div class="comm-history-title">Historie</div>'+kommHist.map(function(x){return '<div class="comm-history-row"><span>'+A.fmtDateShort(String(x.zeit||'').slice(0,10))+'</span><b>'+(x.status==='besprochen'?'besprochen':'verschickt')+'</b><em>'+A.esc((x.anlass||'')+(x.typ==='gespraech'&&x.notiz?' – '+x.notiz:'')+(x.wiedervorlage?' · Wiedervorlage '+A.fmtDateShort(x.wiedervorlage)+(x.wvErledigt?' (erledigt)':''):''))+'</em></div>';}).join(''):'')+'</div>');
 
-    h += card('Craft-Schülerkartei', craftKarteiPanelHTML_(s.id));
+    h += card('Beobachtungen & Förderziele', susBeobachtungPanelHTML_(s.id));
 
     if (!kurse.length) return h + card('', empty('📚', 'Für diese Klasse ist noch kein Fach angelegt.'));
 
@@ -8783,11 +8871,9 @@ VIEWS.mehr = {
 
     var craftCfg=craftApiConfig_(), karteiN=craftKarteiVerknuepftAnzahl_(), karteiGes=A.list('SuS',function(x){return String(x.aktiv||'1')!=='0';}).length;
     h += card('Craft',
-      '<button class="row" data-act="craft-api"><div class="row-main"><div class="row-title">Craft API Connection</div><div class="row-sub">'+(craftApiUrlGueltig_(craftCfg.url)?'verbunden · '+(craftCfg.auto?'Inbox automatisch → heutige Notiz':'manuell synchronisieren'):'noch nicht verbunden')+'</div></div><div class="chev">›</div></button>'+
-      '<button class="row" data-act="craft-kartei-settings"><div class="row-main"><div class="row-title">Schülerkartei in Craft</div><div class="row-sub">'+karteiN+'/'+karteiGes+' Schüler:innen verknüpft'+(craftCfg.karteiFolderName?' · '+A.esc(craftCfg.karteiFolderName):'')+'</div></div><div class="chev">›</div></button>'+
-      '<button class="row" data-act="craft-quick-note"><div class="row-main"><div class="row-title">Beobachtung festhalten</div><div class="row-sub">pädagogisch relevanten Moment direkt in die passende Schüler:innenkarte schreiben</div></div><div class="chev">›</div></button>'+
+      '<button class="row" data-act="craft-api"><div class="row-main"><div class="row-title">Craft API Connection</div><div class="row-sub">'+(craftApiUrlGueltig_(craftCfg.url)?'verbunden · '+(craftCfg.auto?'Inbox automatisch → heutige Notiz':'manuell synchronisieren'):'noch nicht verbunden')+' · nur Aufgaben ohne Namen</div></div><div class="chev">›</div></button>'+
       '<button class="row" data-act="craft-sync-inbox"><div class="row-main"><div class="row-title">Heutige Inbox nach Craft</div><div class="row-sub">offene Schulapp-Hinweise als Aufgaben in die heutige Craft-Notiz schreiben</div></div><div class="chev">›</div></button>'+
-      '<button class="row" data-act="craft-info"><div class="row-main"><div class="row-title">Craft + Schulapp</div><div class="row-sub">Planung, Tagesaufgaben, Kartei und pädagogisches Journal erklären</div></div><div class="chev">›</div></button>');
+      '<button class="row" data-act="craft-info"><div class="row-main"><div class="row-title">Craft + Schulapp</div><div class="row-sub">Was nach Craft geht – und was bewusst nicht</div></div><div class="chev">›</div></button>');
 
     h += card('App',
       '<div class="row" style="cursor:default"><div class="row-main"><div class="row-title">App-Version</div><div class="row-sub">Version ' + A.VERSION + '</div></div></div>' +
@@ -8797,6 +8883,9 @@ VIEWS.mehr = {
         '</div></div><div class="chev">›</div></button>' +
       '<button class="row" data-act="namensformat"><div class="row-main"><div class="row-title">Namensanzeige</div>' +
         '<div class="row-sub">' + ({ nachname: 'Nachname, Vorname', vorname: 'Vorname Nachname', kurz: 'Nachname, V.' }[A.cfg('namensformat')] || '') +
+        '</div></div><div class="chev">›</div></button>' +
+      '<button class="row" data-act="sus-sortierung"><div class="row-main"><div class="row-title">Sortierung der Schüler:innen</div>' +
+        '<div class="row-sub">' + ({ nachname: 'Nachname (A–Z)', vorname: 'Vorname (A–Z)', eingabe: 'Reihenfolge der Eingabe' }[A.cfg('susSortierung') || 'nachname'] || '') +
         '</div></div><div class="chev">›</div></button>' +
       '<button class="row" data-act="suche"><div class="row-main"><div class="row-title">Suche</div><div class="row-sub">Klassen, Schüler:innen, Fächer und Listen</div></div><div class="chev">›</div></button>' +
       '<button class="row" data-act="startseite"><div class="row-main"><div class="row-title">Startseite</div><div class="row-sub">' + ({heute:'Heute',plan:'Stundenplan',klassen:'Klassen',noten:'Noten'}[A.cfg('startseite')||'heute']) + '</div></div><div class="chev">›</div></button>' +
@@ -8839,17 +8928,17 @@ VIEWS.verbindung = {
   title: function () { return 'Server'; },
   body: function () {
     var c = A.Sync.getConn();
-    return '<div class="hint-box">Die Server-Adresse ist in der App bereits voreingestellt. Hier kannst du sie nur bei Bedarf ändern. Alle Konten nutzen dieselbe Apps-Script-Web-App; die Unterrichtsdaten bleiben nach Benutzerkonto getrennt.</div>' +
+    return '<div class="hint-box"><b>Verbunden mit: ' + A.esc(serverArt_(c.url || A.Auth.serverUrl())) + '</b><br>Die Adresse bekommst du mit der Einladung. Ändern solltest du sie nur, wenn die Person, die die Schulapp verwaltet, es sagt. Die Unterrichtsdaten bleiben nach Benutzerkonto getrennt.</div>' +
       card('', '<div class="card-body">' +
         '<div class="field"><label>Web-App-URL</label>' +
           '<input id="connUrl" type="url" inputmode="url" autocapitalize="off" autocorrect="off" spellcheck="false" ' +
-          'placeholder="https://script.google.com/macros/s/.../exec" value="' + A.esc(c.url || A.Auth.serverUrl()) + '"></div>' +
+          'placeholder="https://…" value="' + A.esc(c.url || A.Auth.serverUrl()) + '"></div>' +
         '<div class="btn-row" style="margin-bottom:0">' +
           '<button class="btn" data-act="conn-test">Testen</button>' +
           '<button class="btn primary" data-act="conn-save">Speichern</button></div>' +
         '<div id="connResult" class="small muted" style="margin-top:10px"></div>' +
       '</div>') +
-      '<div class="small muted" style="padding:4px 4px 14px">Für die normale Anmeldung ist hier nichts einzutragen. Diese Einstellung ist nur für einen späteren Serverwechsel oder zur Fehlersuche gedacht.</div>';
+      '<div class="small muted" style="padding:4px 4px 14px">Für die normale Anmeldung ist hier nichts einzutragen. Diese Einstellung ist nur für einen Serverwechsel oder zur Fehlersuche gedacht. Beim Wechsel musst du dich danach neu anmelden.</div>';
   }
 };
 
@@ -10909,6 +10998,24 @@ ACT['farbdesign'] = function () {
   });
 };
 
+ACT['sus-sort'] = function (el) {
+  A.setCfg('susSortierung', el.getAttribute('data-modus') || 'nachname');
+  render();
+};
+
+ACT['sus-sortierung'] = function () {
+  Modal.form({
+    title: 'Sortierung der Schüler:innen',
+    fields: [{ key: 'm', label: 'Sortieren nach', type: 'select', value: A.cfg('susSortierung') || 'nachname', options: [
+      { value: 'nachname', label: 'Nachname (A–Z)' },
+      { value: 'vorname', label: 'Vorname (A–Z)' },
+      { value: 'eingabe', label: 'Reihenfolge der Eingabe' }
+    ] }],
+    onSave: function (v) { A.setCfg('susSortierung', v.m); },
+    focus: false
+  });
+};
+
 ACT['namensformat'] = function () {
   Modal.form({
     title: 'Namensanzeige',
@@ -11171,6 +11278,8 @@ ACT['fehlerprotokoll'] = function () {
 };
 
 var AENDERUNGEN_ = [
+  ['V59', ['Fenster zum Anlegen und Bearbeiten: oben steht „Abbrechen“ statt „Fertig“, gespeichert wird nur mit „Speichern“ unten.', 'Schüler:innen lassen sich sortieren: nach Nachname, Vorname oder in der Reihenfolge der Eingabe (in der Klasse oben und unter Mehr).', 'Craft: Es werden keine Schülerdaten mehr an Craft gesendet. Schülerkartei, Gesprächsvorbereitung und Rückblick sind entfernt. Beobachtungen und Förderziele bleiben in der Schulapp. Craft dient nur noch für Planungsdokumente und Aufgaben ohne Namen.']],
+  ['V58', ['Einladung mit einem Link oder Code: Wer den Einladungslink öffnet oder den Einladungscode (beginnt mit SA1.) einfügt, hat Server und Einladung gesetzt und kann sich direkt registrieren. Die Server-Adresse ist nicht mehr fest in der App.', 'Unter Mehr → Server steht, womit das Gerät gerade verbunden ist.']],
   ['V57', ['Wischen für Zurück/Vor klappt jetzt leichter (kürzere und schräge Wischbewegungen reichen) und auch vom linken Rand, wenn die App auf dem Home-Bildschirm läuft.']],
   ['V56', ['Zurück und Vor mit Wischen (rechts = zurück, links = vor) und mit den Pfeiltasten; Alt+Pfeil geht immer im Verlauf. Auf „Heute“ ganz oben wechseln Wischen und Pfeiltasten wie bisher den Tag.', 'Automatischer Abgleich: Die App überträgt wartende Änderungen alle Minute erneut und holt neue Daten von anderen Geräten (beim Öffnen, beim Zurückkehren in die App und alle paar Minuten). Ist der Server gerade nicht erreichbar, bleibt es still: nur der Punkt oben zeigt den Zustand, Änderungen warten auf dem Gerät.']],
   ['V55', ['Sitzplan-Regeln: Das Fenster bleibt beim Ändern offen und springt nicht mehr nach oben. Die Priorität wählst du aus einem kleinen Menü.']],
@@ -11445,21 +11554,14 @@ ACT['positiv-ausblenden']=function(el){var h=positiveMitarbeitHinweis_(el.getAtt
 ACT['positiv-nachricht']=function(el){var h=positiveMitarbeitHinweis_(el.getAttribute('data-kurs'),el.getAttribute('data-sus'));if(h)elternNachrichtOeffnen(h.susId,h);};
 ACT['craft-sync-inbox']=function(){craftSyncInbox_(A.todayISO()).catch(function(){});};
 ACT['craft-sync-one']=function(el){craftSyncInbox_(A.todayISO(),el.getAttribute('data-craft-key')).catch(function(){});};
-ACT['craft-api']=function(){var c=craftApiConfig_();Modal.form({title:'Craft-Verbindung',hinweis:'Füge hier die API-Server-Adresse deiner Craft API Connection ein. Sie bleibt nur lokal auf diesem Gerät und wird weder in GitHub noch in dein Schulapp-Backend synchronisiert.',fields:[{key:'url',label:'Craft API Connection',type:'password',value:c.url||'',placeholder:'https://connect.craft.do/links/…/api/v1',autocap:false,hint:'Die Connection-Adresse ist wie ein Zugangsschlüssel – nicht öffentlich teilen.'},{key:'auto',label:'Neue Inbox-Einträge automatisch in die heutige Craft-Notiz schreiben',type:'checkbox',value:!!c.auto},{key:'namen',label:'Schüler:innennamen in Craft-Aufgaben übernehmen',type:'checkbox',value:c.namen!==false}],validate:function(v){var u=String(v.url||'').trim();return u&&!craftApiUrlGueltig_(u)?'Bitte die vollständige Craft API Connection-Adresse einfügen.':null;},onSave:function(v){craftApiSet_({url:String(v.url||'').trim(),auto:!!v.auto,namen:!!v.namen});render();window.toast(v.url?'Craft-Verbindung gespeichert':'Craft-Verbindung entfernt');if(v.url&&craftApiConfig_().karteiAutoCreate&&craftApiConfig_().karteiFolderId)setTimeout(function(){craftKarteiAutoEnsure_(true);},250);},focus:false});};
-ACT['craft-kartei-settings']=function(){craftKarteiSettingsOpen_();};
-ACT['craft-kartei-link']=function(el){craftKarteiLinkOpen_(el.getAttribute('data-sus'));};
-ACT['craft-kartei-create']=function(el){var susId=el.getAttribute('data-sus');if(!craftApiUrlGueltig_(craftApiConfig_().url)){window.toast('Richte zuerst die Craft-Verbindung ein.',true);ACT['craft-api']();return;}if(!craftApiConfig_().karteiFolderId&&!confirm('Es ist kein Kartei-Ordner ausgewählt. Die neue Karte wird in „Unsorted“ angelegt. Fortfahren?'))return;craftKarteiCreate_(susId).then(function(){render();window.toast('Craft-Karte angelegt');}).catch(function(e){window.toast('Craft: '+e.message,true);});};
-ACT['craft-kartei-open']=function(el){craftKarteiLinkOeffnen_(el.getAttribute('data-sus'));};
-ACT['craft-kartei-sync']=function(el){var susId=el.getAttribute('data-sus');if(!craftKarteiFuer_(susId)){craftKarteiLinkOpen_(susId);return;}window.toast('Craft-Karte wird aktualisiert …');craftKarteiSyncSnapshot_(susId).then(function(r){render();window.toast(r&&r.same?'Der aktuelle Stand ist bereits in Craft.':'Aktueller Stand in Craft ergänzt');}).catch(function(e){window.toast('Craft: '+e.message,true);});};
-ACT['craft-kartei-note']=function(el){var susId=el.getAttribute('data-sus');if(!craftKarteiFuer_(susId)){craftKarteiLinkOpen_(susId);return;}craftKarteiQuickNoteOpen_(susId);};
+ACT['craft-api']=function(){var c=craftApiConfig_();Modal.form({title:'Craft-Verbindung',hinweis:'Craft bekommt nur Aufgaben ohne Namen von Kindern (z. B. „Elternnachricht zu einem Kind“) und deine Planungslinks. Füge hier die API-Server-Adresse deiner Craft API Connection ein. Sie bleibt nur lokal auf diesem Gerät und wird weder in GitHub noch in dein Schulapp-Backend synchronisiert.',fields:[{key:'url',label:'Craft API Connection',type:'password',value:c.url||'',placeholder:'https://connect.craft.do/links/…/api/v1',autocap:false,hint:'Die Connection-Adresse ist wie ein Zugangsschlüssel – nicht öffentlich teilen.'},{key:'auto',label:'Neue Inbox-Einträge automatisch in die heutige Craft-Notiz schreiben',type:'checkbox',value:!!c.auto}],validate:function(v){var u=String(v.url||'').trim();return u&&!craftApiUrlGueltig_(u)?'Bitte die vollständige Craft API Connection-Adresse einfügen.':null;},onSave:function(v){craftApiSet_({url:String(v.url||'').trim(),auto:!!v.auto,namen:false});render();window.toast(v.url?'Craft-Verbindung gespeichert':'Craft-Verbindung entfernt');},focus:false});};
+ACT['craft-kartei-note']=function(el){var susId=el.getAttribute('data-sus');craftKarteiQuickNoteOpen_(susId);};
 ACT['craft-quick-note']=function(){craftKarteiQuickNoteOpen_('');};
-ACT['craft-conversation']=function(el){craftKarteiGespraechOpen_(el.getAttribute('data-sus'));};
-ACT['craft-review']=function(el){craftKarteiRueckblickOpen_(el.getAttribute('data-sus'));};
 ACT['craft-goal-add']=function(el){craftFoerderzielOpen_(el.getAttribute('data-sus'));};
-ACT['craft-goal-done']=function(el){if(confirm('Förderziel als erreicht markieren und in Craft dokumentieren?'))craftFoerderzielErreicht_(el.getAttribute('data-sus'),el.getAttribute('data-ziel'));};
+ACT['craft-goal-done']=function(el){if(confirm('Förderziel als erreicht markieren?'))craftFoerderzielErreicht_(el.getAttribute('data-sus'),el.getAttribute('data-ziel'));};
 ACT['craft-open']=function(el){craftOeffnen_(el.getAttribute('data-kurs'));};
 ACT['craft-link']=function(el){var kursId=el.getAttribute('data-kurs'),kurs=A.byId('Kurse',kursId),alt=craftLinkFuer_(kursId);Modal.form({title:'Craft verknüpfen',hinweis:'Füge den Link zu deinem Craft-Planungsdokument für '+A.esc(kurs?A.kursLabel(kurs):'dieses Fach')+' ein. Die Schulapp speichert nur den Link – deine Unterrichtsplanung bleibt in Craft.',fields:[{key:'url',label:'Craft-Link',type:'url',value:alt,placeholder:'https://docs.craft.do/… oder craftdocs://…',hint:'Link leer lassen, um die Verknüpfung zu entfernen.'}],validate:function(v){var u=String(v.url||'').trim();return u&&!craftLinkGueltig_(u)?'Bitte einen gültigen http(s)- oder craftdocs://-Link eingeben.':null;},onSave:function(v){craftLinkSet_(kursId,v.url);render();},focus:true});};
-ACT['craft-info']=function(){Modal.open({title:'Craft + Schulapp',body:'<div class="craft-info"><p><b>Unterrichtsplanung:</b> Inhalte und Reihen bleiben in Craft; pro Fach kannst du dein Planungsdokument direkt öffnen.</p><p><b>Heute:</b> Offene Punkte aus der Schulapp können als echte Aufgaben in die heutige Craft-Notiz übertragen werden. Über „Beobachtung festhalten“ schreibst du pädagogisch relevante Momente direkt in die passende Schüler:innenkarte.</p><p><b>Schülerkartei:</b> Nach Auswahl deines Kartei-Ordners gleicht die Schulapp alle aktiven SuS automatisch ab: vorhandene Seiten werden verwendet, fehlende Seiten werden angelegt und der aktuelle Stand wird automatisch aktuell gehalten. Elternkontakte, Beobachtungen und Förderziele ergänzen den Verlauf.</p><p><b>Pädagogisches Journal:</b> Pro Kind kannst du Gesprächsvorbereitungen, Wochen-/Ferienrückblicke und Förderziele erzeugen. Automatisch zusammengestellte Texte lassen sich vor dem Schreiben nach Craft bearbeiten; bestehende eigene Craft-Notizen werden nicht automatisch ausgewertet.</p><p class="small muted">Die Craft API Connection und die Zuordnung der Kartei-Seiten werden nur lokal auf diesem Gerät gespeichert. Übertrage personenbezogene Daten nur, wenn Craft dafür in deinem schulischen Kontext freigegeben ist.</p></div>',foot:'<button class="btn" data-act="craft-quick-note">Beobachtung</button><button class="btn" data-act="craft-kartei-settings">Schülerkartei</button><button class="btn" data-act="craft-api">Verbindung</button><button class="btn primary" data-close>Verstanden</button>'});};
+ACT['craft-info']=function(){Modal.open({title:'Craft + Schulapp',body:'<div class="craft-info"><p><b>Unterrichtsplanung:</b> Inhalte und Reihen bleiben in Craft; pro Fach kannst du dein Planungsdokument direkt öffnen.</p><p><b>Aufgaben &amp; Einsammellisten:</b> Offene Punkte aus der Schulapp können als Aufgaben in die heutige Craft-Notiz übertragen werden – <b>ohne Namen von Kindern</b> (es steht dort nur „ein Kind“).</p><p><b>Bewusst nicht in Craft:</b> Schüler:innenkartei, Beobachtungen, Förderziele, Gesprächsvorbereitung. Das bleibt in der Schulapp und damit auf deinem eigenen Server.</p></div>',foot:'<button class="btn" data-act="craft-api">Verbindung</button><button class="btn primary" data-close>Verstanden</button>'});};
 
 /* ---------------------------------------------------------- V40 Lokale Vorschau */
 function previewSetting_(key, value) {
