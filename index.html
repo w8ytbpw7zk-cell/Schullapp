@@ -11,7 +11,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="format-detection" content="telephone=no">
 <title>Schulapp</title>
-<!-- Schulapp V54 – Sitzregel „nicht neben“ auch vor/hinter (V53: Sitzplan: Konflikte und Prioritäten (V52: Elternkommunikation als Blöcke pro Kind, Klassen/Fächer einklappbar (V51: Heute neu geordnet, Sicherungs-Hinweise, Kind-Übersicht als PDF (V50: Gerätespeicher, Papierkorb) -->
+<!-- Schulapp V55 – Sitzregel-Fenster mit Prioritätsmenü (V54: Sitzregel „nicht neben“ auch vor/hinter (V53: Sitzplan: Konflikte und Prioritäten (V52: Elternkommunikation als Blöcke pro Kind, Klassen/Fächer einklappbar (V51: Heute neu geordnet, Sicherungs-Hinweise, Kind-Übersicht als PDF (V50: Gerätespeicher, Papierkorb) -->
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="./icon-192.png">
 <link rel="icon" type="image/png" sizes="192x192" href="./icon-192.png">
@@ -2647,6 +2647,18 @@ body.feedback-pick .main *{cursor:crosshair!important}
 .sitzplatz.konflikt-wichtig{outline:2px solid var(--warn);outline-offset:-2px;background:color-mix(in srgb,var(--warn) 10%,var(--surface))}
 .sitzplatz.konflikt-wunsch{outline:2px dashed #d9a441;outline-offset:-2px}
 @media(prefers-color-scheme:dark){.konf-prio.muss,.prio-btn.muss{background:#4a2420;color:#f0a49c}.konf-prio.wichtig,.prio-btn.wichtig{background:#463a1c;color:#e6c27a}.konf-prio.wunsch,.prio-btn.wunsch{background:#333331;color:#c0bfba}}
+
+/* ---- V55 Regel-Fenster ---- */
+.regel-abschnitt{margin:16px 0 6px;font-size:12px;font-weight:650;color:var(--ink-2)}
+.regel-neu{border-top:1px solid var(--line-soft);padding:2px 0}
+.regel-neu>summary{cursor:pointer;min-height:44px;display:flex;align-items:center;font-size:14px;font-weight:600}
+.regel-neu[open]{padding-bottom:10px}
+.prio-menu{position:fixed;z-index:10000;min-width:220px;background:var(--surface);border:1px solid var(--line);border-radius:10px;box-shadow:0 8px 28px rgba(15,15,15,.18);padding:4px}
+.prio-menu button{display:flex;flex-direction:column;align-items:flex-start;gap:1px;width:100%;min-height:48px;padding:8px 12px;border:0;background:transparent;border-radius:7px;text-align:left;font:inherit;cursor:pointer;color:var(--ink)}
+.prio-menu button b{font-size:14px;font-weight:600}.prio-menu button span{font-size:12px;color:var(--ink-3)}
+.prio-menu button:hover,.prio-menu button:active{background:rgba(55,53,47,.07)}
+.prio-menu button.on b:after{content:' ✓';color:var(--good)}
+@media(prefers-color-scheme:dark){.prio-menu{box-shadow:0 8px 28px rgba(0,0,0,.5)}.prio-menu button:hover,.prio-menu button:active{background:rgba(255,255,255,.08)}}
 </style>
 </head>
 <body>
@@ -2777,7 +2789,7 @@ var TABLES = ['Klassen', 'Kurse', 'SuS', 'Stundenplan', 'Stunden', 'Mitarbeit',
               'Leistungen', 'Noten', 'Checks', 'Settings'];
 
 /* Eine einzige Stelle für die Versionsangabe (Anzeige unter „Mehr“). */
-var APP_VERSION = 'V54';
+var APP_VERSION = 'V55';
 
 /* V15: Diese Adresse ist die verbindliche Login-Adresse. */
 var DEFAULT_SERVER_URL = 'https://script.google.com/macros/s/AKfycby8ans-FGEWHoCelT97z3jbQJQCMRi2uZl23MDnHtCiEGbjYIAlDLus2anrCVHdjgbs/exec';
@@ -11056,6 +11068,7 @@ ACT['fehlerprotokoll'] = function () {
 };
 
 var AENDERUNGEN_ = [
+  ['V55', ['Sitzplan-Regeln: Das Fenster bleibt beim Ändern offen und springt nicht mehr nach oben. Die Priorität wählst du aus einem kleinen Menü.']],
   ['V54', ['Sitzplan: Die Regel „nicht neben“ gilt jetzt auch für direkt davor und dahinter – eine gemeinsame Regel.']],
   ['V53', ['Sitzplan: Regelübersicht zeigt, welche Regeln eingehalten, verletzt oder nicht prüfbar sind (mit Grund); betroffene Plätze sind farbig markiert.', 'Sitzplan-Regeln haben Prioritäten: Muss, Wichtig, Wunsch. Die Vorschläge richten sich danach.']],
   ['V52', ['Elternkommunikation als übersichtliche Blöcke pro Kind, mit Klasse neben dem Namen.', 'Klassen, Fächer, Schüler:innen und Noten lassen sich ein- und ausklappen (wird pro Gerät gemerkt).', 'Klasse steht jetzt auch bei Wiedervorlagen, Strafarbeiten und in der Craft-Übersicht beim Kind.']],
@@ -11257,11 +11270,56 @@ ACT['listen-archiv'] = function(el){var klasseId=el.getAttribute('data-klasse'),
 ACT['sitzregeln'] = function(el){
   var klasseId=el.getAttribute('data-klasse')||currentView().p.id, sus=A.susDerKlasse(klasseId), reg=sitzRegelnFuer(klasseId), plan=sitzPlanFlex(klasseId);
   function optionen(){return sus.map(function(x){return '<option value="'+x.id+'">'+A.esc(A.susName(x))+'</option>';}).join('');}
-  function regelText(r){var a=A.byId('SuS',r.a),b=A.byId('SuS',r.b),lab={ 'nicht-neben':'nicht neben / vor / hinter','nicht-tisch':'nicht am selben Tisch wie','gern-neben':'bevorzugt neben','weit':'möglichst weit weg von'}[r.typ]||r.typ;return (a?A.susName(a):'?')+' · '+lab+' · '+(b?A.susName(b):'?');}
-  function prioBtn(attr,p){return '<button type="button" class="prio-btn '+p+'" '+attr+' title="Priorität wechseln">'+SITZ_PRIO[p]+'</button>';}
+  function prioBtn(attr,p){return '<button type="button" class="prio-btn '+p+'" '+attr+' aria-haspopup="menu">'+SITZ_PRIO[p]+' ▾</button>';}
   function prioOptionen(){return '<option value="">Standard</option><option value="muss">Muss – nie verletzen</option><option value="wichtig">Wichtig</option><option value="wunsch">Wunsch</option>';}
-  function body(){var paar=reg.paare.map(function(r,i){return '<div class="regel-row"><span>'+A.esc(regelText(r))+'</span>'+prioBtn('data-prio-pair="'+i+'"',sitzPrio_(reg,'paar',null,r.typ,r))+'<button data-del-pair="'+i+'">×</button></div>';}).join('');var zon=Object.keys(reg.zonen).map(function(id){var x=A.byId('SuS',id);return '<div class="regel-row"><span>'+A.esc(x?A.susName(x):'?')+' · bevorzugt '+A.esc(reg.zonen[id])+'</span>'+prioBtn('data-prio-zone="'+id+'"',sitzPrio_(reg,'zone',id))+'<button data-del-zone="'+id+'">×</button></div>';}).join('');var fix=Object.keys(reg.fixiert).map(function(id){var x=A.byId('SuS',id);return '<div class="regel-row"><span>'+A.esc(x?A.susName(x):'?')+' · Platz fixiert</span>'+prioBtn('data-prio-fix="'+id+'"',sitzPrio_(reg,'fix',id))+'<button data-del-fix="'+id+'">×</button></div>';}).join('');return '<div class="hint-box">Priorität: <b>Muss</b> darf nicht verletzt werden, <b>Wichtig</b> zählt stark, <b>Wunsch</b> wird erfüllt, wenn es geht. Tippe auf das Etikett einer Regel, um die Priorität zu wechseln.</div><div class="field"><label>Person A</label><select id="regelA">'+optionen()+'</select></div><div class="field"><label>Regel</label><select id="regelTyp"><option value="nicht-neben">nicht neben / vor / hinter</option><option value="nicht-tisch">nicht am selben Tisch</option><option value="gern-neben">bevorzugt neben</option><option value="weit">möglichst weit weg</option></select></div><div class="field"><label>Person B</label><select id="regelB">'+optionen()+'</select></div><div class="field"><label>Priorität</label><select id="prioPair">'+prioOptionen()+'</select></div><button class="btn block" data-add-pair>Regel hinzufügen</button><div class="regel-liste" data-pair-list>'+paar+'</div><hr style="border:0;border-top:1px solid var(--line-soft);margin:16px 0"><div class="field"><label>Platzwunsch</label><select id="zonePerson">'+optionen()+'</select><select id="zoneTyp" style="margin-top:7px"><option value="vorne">vorne</option><option value="hinten">hinten</option><option value="rand">am Rand</option></select></div><div class="field"><label>Priorität</label><select id="prioZone">'+prioOptionen()+'</select></div><button class="btn block" data-add-zone>Platzwunsch hinzufügen</button><div class="regel-liste" data-zone-list>'+zon+'</div><hr style="border:0;border-top:1px solid var(--line-soft);margin:16px 0"><div class="field"><label>Aktuellen Platz fixieren</label><select id="fixPerson">'+optionen()+'</select></div><div class="field"><label>Priorität</label><select id="prioFix">'+prioOptionen()+'</select></div><button class="btn block" data-add-fix>Aktuellen Platz fixieren</button><div class="regel-liste" data-fix-list>'+fix+'</div>';}
-  Modal.open({title:'Sitzplan-Regeln',body:body(),foot:'<button class="btn primary" data-close-rules>Fertig</button>',after:function(bg,close){function save(){setSitzRegelnFuer(klasseId,reg);}function rer(){close();setTimeout(function(){var f=document.createElement('button');f.setAttribute('data-klasse',klasseId);ACT['sitzregeln'](f);},0);}bg.querySelector('[data-add-pair]').addEventListener('click',function(){var a=bg.querySelector('#regelA').value,b=bg.querySelector('#regelB').value,typ=bg.querySelector('#regelTyp').value;if(!a||!b||a===b){window.toast('Bitte zwei verschiedene Personen wählen.',true);return;}var pv=bg.querySelector('#prioPair').value,np={a:a,b:b,typ:typ};if(pv)np.prio=pv;reg.paare.push(np);save();rer();});bg.querySelector('[data-add-zone]').addEventListener('click',function(){var zid=bg.querySelector('#zonePerson').value,zv=bg.querySelector('#prioZone').value;reg.zonen[zid]=bg.querySelector('#zoneTyp').value;if(zv)reg.prio['z:'+zid]=zv;else delete reg.prio['z:'+zid];save();rer();});bg.querySelector('[data-add-fix]').addEventListener('click',function(){var id=bg.querySelector('#fixPerson').value,key='';sitzPositionen(plan).some(function(p){if(p.id===id){key=p.key;return true;}return false;});if(!key){window.toast('Person sitzt aktuell auf keinem Platz.',true);return;}reg.fixiert[id]=key;var fv=bg.querySelector('#prioFix').value;if(fv)reg.prio['f:'+id]=fv;else delete reg.prio['f:'+id];save();rer();});bg.addEventListener('click',function(e){var b=e.target.closest('[data-prio-pair],[data-prio-zone],[data-prio-fix]');if(b){var nxt={muss:'wichtig',wichtig:'wunsch',wunsch:'muss'};if(b.hasAttribute('data-prio-pair')){var px=reg.paare[Number(b.getAttribute('data-prio-pair'))];if(px)px.prio=nxt[sitzPrio_(reg,'paar',null,px.typ,px)];}else{var pa=b.hasAttribute('data-prio-zone')?'zone':'fix',pid=b.getAttribute(pa==='zone'?'data-prio-zone':'data-prio-fix');reg.prio[(pa==='zone'?'z:':'f:')+pid]=nxt[sitzPrio_(reg,pa,pid)];}save();rer();return;}b=e.target.closest('[data-del-pair]');if(b){reg.paare.splice(Number(b.getAttribute('data-del-pair')),1);save();rer();return;}b=e.target.closest('[data-del-zone]');if(b){delete reg.prio['z:'+b.getAttribute('data-del-zone')];delete reg.zonen[b.getAttribute('data-del-zone')];save();rer();return;}b=e.target.closest('[data-del-fix]');if(b){delete reg.prio['f:'+b.getAttribute('data-del-fix')];delete reg.fixiert[b.getAttribute('data-del-fix')];save();rer();}});bg.querySelector('[data-close-rules]').addEventListener('click',close);}});
+  function leer(t){return '<div class="small muted" style="padding:4px 2px">'+t+'</div>';}
+  function paarListe(){return reg.paare.length?reg.paare.map(function(r,i){return '<div class="regel-row"><span>'+A.esc(sitzRegelText_(r))+'</span>'+prioBtn('data-prio-pair="'+i+'"',sitzPrio_(reg,'paar',null,r.typ,r))+'<button data-del-pair="'+i+'" aria-label="Regel löschen">×</button></div>';}).join(''):leer('Noch keine Regeln für zwei Personen.');}
+  function zoneListe(){var k=Object.keys(reg.zonen);return k.length?k.map(function(id){return '<div class="regel-row"><span>'+A.esc(sitzSusN_(id))+' · bevorzugt '+A.esc(reg.zonen[id])+'</span>'+prioBtn('data-prio-zone="'+id+'"',sitzPrio_(reg,'zone',id))+'<button data-del-zone="'+id+'" aria-label="Wunsch löschen">×</button></div>';}).join(''):leer('Noch keine Platzwünsche.');}
+  function fixListe(){var k=Object.keys(reg.fixiert);return k.length?k.map(function(id){return '<div class="regel-row"><span>'+A.esc(sitzSusN_(id))+' · Platz fixiert</span>'+prioBtn('data-prio-fix="'+id+'"',sitzPrio_(reg,'fix',id))+'<button data-del-fix="'+id+'" aria-label="Fixierung löschen">×</button></div>';}).join(''):leer('Noch keine fixierten Plätze.');}
+  function body(){
+    return '<div class="hint-box">Priorität: <b>Muss</b> darf nicht verletzt werden, <b>Wichtig</b> zählt stark, <b>Wunsch</b> wird erfüllt, wenn es geht. Tippe auf das Etikett einer Regel, um die Priorität aus einem Menü zu wählen.</div>'+
+      '<div class="regel-abschnitt">Regeln für zwei Personen</div><div class="regel-liste" data-pair-list>'+paarListe()+'</div>'+
+      '<div class="regel-abschnitt">Platzwünsche</div><div class="regel-liste" data-zone-list>'+zoneListe()+'</div>'+
+      '<div class="regel-abschnitt">Fixierte Plätze</div><div class="regel-liste" data-fix-list>'+fixListe()+'</div>'+
+      '<hr style="border:0;border-top:1px solid var(--line-soft);margin:18px 0 12px">'+
+      '<details class="regel-neu"><summary>Neue Regel für zwei Personen</summary><div class="field"><label>Person A</label><select id="regelA">'+optionen()+'</select></div><div class="field"><label>Regel</label><select id="regelTyp"><option value="nicht-neben">nicht neben / vor / hinter</option><option value="nicht-tisch">nicht am selben Tisch</option><option value="gern-neben">bevorzugt neben</option><option value="weit">möglichst weit weg</option></select></div><div class="field"><label>Person B</label><select id="regelB">'+optionen()+'</select></div><div class="field"><label>Priorität</label><select id="prioPair">'+prioOptionen()+'</select></div><button class="btn block" data-add-pair>Regel hinzufügen</button></details>'+
+      '<details class="regel-neu"><summary>Neuer Platzwunsch</summary><div class="field"><label>Person</label><select id="zonePerson">'+optionen()+'</select><select id="zoneTyp" style="margin-top:7px"><option value="vorne">vorne</option><option value="hinten">hinten</option><option value="rand">am Rand</option></select></div><div class="field"><label>Priorität</label><select id="prioZone">'+prioOptionen()+'</select></div><button class="btn block" data-add-zone>Platzwunsch hinzufügen</button></details>'+
+      '<details class="regel-neu"><summary>Aktuellen Platz fixieren</summary><div class="field"><label>Person</label><select id="fixPerson">'+optionen()+'</select></div><div class="field"><label>Priorität</label><select id="prioFix">'+prioOptionen()+'</select></div><button class="btn block" data-add-fix>Aktuellen Platz fixieren</button></details>';
+  }
+  Modal.open({title:'Sitzplan-Regeln',body:body(),foot:'<button class="btn primary" data-close-rules>Fertig</button>',onClose:function(){render();},after:function(bg,close){
+    function save(){setSitzRegelnFuer(klasseId,reg);}
+    /* Nur die Listen neu zeichnen – das Fenster bleibt offen und scrollt nicht zurück */
+    function fill(){bg.querySelector('[data-pair-list]').innerHTML=paarListe();bg.querySelector('[data-zone-list]').innerHTML=zoneListe();bg.querySelector('[data-fix-list]').innerHTML=fixListe();}
+    function menuZu(){var m=bg.querySelector('.prio-menu');if(m)m.remove();return !!m;}
+    function menu(btn,aktuell,setzen){
+      menuZu();
+      var m=document.createElement('div');m.className='prio-menu';m.setAttribute('role','menu');
+      var txt={muss:'nie verletzen',wichtig:'zählt stark',wunsch:'wenn es geht'};
+      m.innerHTML=['muss','wichtig','wunsch'].map(function(k){return '<button type="button" role="menuitem" data-p="'+k+'" class="'+(k===aktuell?'on':'')+'"><b>'+SITZ_PRIO[k]+'</b><span>'+txt[k]+'</span></button>';}).join('');
+      bg.appendChild(m);
+      var r=btn.getBoundingClientRect(),w=m.offsetWidth,h=m.offsetHeight,left=Math.max(8,Math.min(window.innerWidth-w-8,r.right-w)),top=r.bottom+4;
+      if(top+h>window.innerHeight-8)top=Math.max(8,r.top-h-4);
+      m.style.left=left+'px';m.style.top=top+'px';
+      m.addEventListener('click',function(e){var b=e.target.closest('[data-p]');if(!b)return;setzen(b.getAttribute('data-p'));save();fill();m.remove();});
+    }
+    /* Tippen neben das Menü schließt nur das Menü, nicht das ganze Fenster */
+    bg.addEventListener('click',function(e){var m=bg.querySelector('.prio-menu');if(m&&!e.target.closest('.prio-menu')&&!e.target.closest('.prio-btn')){m.remove();e.stopPropagation();e.preventDefault();}},true);
+    bg.addEventListener('click',function(e){
+      var b=e.target.closest('.prio-btn');
+      if(b){
+        if(b.hasAttribute('data-prio-pair')){var i=Number(b.getAttribute('data-prio-pair')),px=reg.paare[i];if(px)menu(b,sitzPrio_(reg,'paar',null,px.typ,px),function(k){px.prio=k;});}
+        else{var art=b.hasAttribute('data-prio-zone')?'zone':'fix',id=b.getAttribute(art==='zone'?'data-prio-zone':'data-prio-fix');menu(b,sitzPrio_(reg,art,id),function(k){reg.prio[(art==='zone'?'z:':'f:')+id]=k;});}
+        return;
+      }
+      b=e.target.closest('[data-del-pair]');if(b){reg.paare.splice(Number(b.getAttribute('data-del-pair')),1);save();fill();return;}
+      b=e.target.closest('[data-del-zone]');if(b){var zi=b.getAttribute('data-del-zone');delete reg.prio['z:'+zi];delete reg.zonen[zi];save();fill();return;}
+      b=e.target.closest('[data-del-fix]');if(b){var fi=b.getAttribute('data-del-fix');delete reg.prio['f:'+fi];delete reg.fixiert[fi];save();fill();return;}
+    });
+    bg.querySelector('[data-add-pair]').addEventListener('click',function(){var a=bg.querySelector('#regelA').value,b=bg.querySelector('#regelB').value,typ=bg.querySelector('#regelTyp').value;if(!a||!b||a===b){window.toast('Bitte zwei verschiedene Personen wählen.',true);return;}var pv=bg.querySelector('#prioPair').value,np={a:a,b:b,typ:typ};if(pv)np.prio=pv;reg.paare.push(np);save();fill();window.toast('Regel hinzugefügt');});
+    bg.querySelector('[data-add-zone]').addEventListener('click',function(){var zid=bg.querySelector('#zonePerson').value,zv=bg.querySelector('#prioZone').value;reg.zonen[zid]=bg.querySelector('#zoneTyp').value;if(zv)reg.prio['z:'+zid]=zv;else delete reg.prio['z:'+zid];save();fill();window.toast('Platzwunsch gespeichert');});
+    bg.querySelector('[data-add-fix]').addEventListener('click',function(){var id=bg.querySelector('#fixPerson').value,key='';sitzPositionen(plan).some(function(p){if(p.id===id){key=p.key;return true;}return false;});if(!key){window.toast('Person sitzt aktuell auf keinem Platz.',true);return;}reg.fixiert[id]=key;var fv=bg.querySelector('#prioFix').value;if(fv)reg.prio['f:'+id]=fv;else delete reg.prio['f:'+id];save();fill();window.toast('Platz fixiert');});
+    bg.querySelector('[data-close-rules]').addEventListener('click',close);
+  }});
 };
 ACT['sitzplan-vorschlaege'] = function(el){var klasseId=el.getAttribute('data-klasse')||currentView().p.id,vs=sitzVorschlaege(klasseId,3);if(!vs.length){window.toast('Es gibt nicht genug Sitzplätze für alle Schüler:innen.',true);return;}Modal.open({title:'Sitzplan-Vorschläge',body:'<div class="hint-box">Die Vorschläge berücksichtigen deine Regeln nach Priorität: zuerst „Muss“, dann „Wichtig“, dann „Wunsch“. Unter „Regeln im Detail“ siehst du, was klappt und was nicht.</div>'+vs.map(function(v,i){return '<div class="vorschlag-box '+(i===0?'best':'')+'"><b>Vorschlag '+(i+1)+'</b><div class="small muted" style="margin-top:3px">'+v.aus.hart+' Muss-Regel(n) verletzt'+(v.aus.wichtig?' · '+v.aus.wichtig+' wichtige offen':'')+' · '+v.aus.wunsch+'/'+v.aus.wunschGes+' Wichtig/Wunsch erfüllt</div><div class="vorschlag-tische">'+sitzVorschlagTischeHTML(v)+'</div><details class="konf-details"'+((v.aus.hart||v.aus.wichtig)?' open':'')+'><summary>Regeln im Detail</summary><div class="konf-liste">'+sitzKonfliktHTML_(v.aus)+'</div></details><button class="btn '+(i===0?'primary':'')+' block" data-use-v="'+i+'">Übernehmen</button></div>';}).join(''),after:function(bg,close){bg.addEventListener('click',function(e){var b=e.target.closest('[data-use-v]');if(!b)return;var v=vs[Number(b.getAttribute('data-use-v'))];setSitzPlanFlex(klasseId,v.plan);ui.sitzAuswahl=null;close();render();window.toast('Sitzplan übernommen');});}});};
 
