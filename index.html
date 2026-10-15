@@ -2789,7 +2789,7 @@ var TABLES = ['Klassen', 'Kurse', 'SuS', 'Stundenplan', 'Stunden', 'Mitarbeit',
               'Leistungen', 'Noten', 'Checks', 'Settings'];
 
 /* Eine einzige Stelle für die Versionsangabe (Anzeige unter „Mehr“). */
-var APP_VERSION = 'V55';
+var APP_VERSION = 'V56';
 
 /* V15: Diese Adresse ist die verbindliche Login-Adresse. */
 var DEFAULT_SERVER_URL = 'https://script.google.com/macros/s/AKfycby8ans-FGEWHoCelT97z3jbQJQCMRi2uZl23MDnHtCiEGbjYIAlDLus2anrCVHdjgbs/exec';
@@ -4352,8 +4352,16 @@ function zeilenMischen_(t, rows) {
   rows.forEach(function (r) {
     if (QUEUE[t + ':' + r.id]) return;
     var p = pos[r.id];
-    if (p === undefined) { pos[r.id] = arr.length; arr.push(r); }
-    else arr[p] = r;
+    if (p === undefined) { pos[r.id] = arr.length; arr.push(r); Sync._fremd = true; }
+    else {
+      /* V56: Nur wenn sich außer dem Änderungsdatum etwas geändert hat, gilt es als Änderung von einem anderen Gerät. */
+      var alt = arr[p];
+      if (!Sync._fremd) {
+        var ks = Object.keys(r);
+        for (var j = 0; j < ks.length; j++) { if (ks[j] !== 'updatedAt' && String(alt[ks[j]]) !== String(r[ks[j]])) { Sync._fremd = true; break; } }
+      }
+      arr[p] = r;
+    }
   });
 }
 
@@ -4363,6 +4371,7 @@ var Sync = {
   lastPull: '',
   /* Infos zum letzten Abgleich für die Anzeige unter „Mehr“: { voll, zeilen, zeit } */
   lastInfo: null,
+  _fremd: false,
   _timer: null,
   _flushPromise: null,
   _pullPromise: null,
@@ -4464,10 +4473,13 @@ var Sync = {
       self.update();
       return true;
     }).catch(function (err) {
-      self.lastError = err.message || String(err);
+      var roh = err.message || String(err);
+      /* V56: Ist der Server nur gerade nicht erreichbar (z. B. Laptop schläft), bleibt die Änderung in der Warteschlange und es gibt keine Fehlermeldung; der Punkt oben zeigt den Zustand. */
+      var netz = /sehr langsam|zeitüberschreitung|failed to fetch|load failed|networkerror|network request|verbindung|nicht erreichbar/i.test(roh);
+      self.lastError = netz ? 'Server gerade nicht erreichbar – Änderungen warten auf dem Gerät und werden automatisch nachgesendet' : roh;
       self.status = 'err';
       self.update();
-      if (!silent && typeof global.toast === 'function') global.toast('Nicht gespeichert: ' + self.lastError, true);
+      if (!silent && !netz && typeof global.toast === 'function') global.toast('Nicht gespeichert: ' + self.lastError, true);
       return false;
     }).then(function (result) {
       self._flushPromise = null;
@@ -4522,6 +4534,7 @@ var Sync = {
           if (tabellen[t].length) { zeilenMischen_(t, tabellen[t]); geaendert.push(t); }
         } else {
           DB[t] = tabellen[t];
+          self._fremd = true;
           geaendert.push(t);
         }
       });
@@ -5563,6 +5576,56 @@ document.addEventListener('click', function (e) {
     e.stopPropagation();
   }
 }, true);
+
+/* V56: Wischen und Tastatur für Zurück/Vor.
+   - Wischen nach rechts = zurück, nach links = vor (nicht auf „Heute“ ganz oben: dort wechselt Wischen den Tag)
+   - Pfeiltasten ← → ebenso; auf „Heute“ ganz oben wechseln sie den Tag; Alt+← / Alt+→ gehen immer im Verlauf
+   - nicht in Eingabefeldern, offenen Fenstern, Sitzplan/Stundenplan-Ziehflächen und waagerecht scrollbaren Bereichen */
+(function () {
+  var start = null;
+  function hatFenster() { var h = document.getElementById('modalHost'); return !!(h && h.children.length); }
+  function waagerechtScrollbar(el) {
+    for (var n = el; n && n !== document.body; n = n.parentElement) {
+      if (n.scrollWidth > n.clientWidth + 4) {
+        var ox = window.getComputedStyle(n).overflowX;
+        if (ox === 'auto' || ox === 'scroll') return true;
+      }
+    }
+    return false;
+  }
+  document.addEventListener('touchstart', function (e) {
+    start = null;
+    if (e.touches.length !== 1 || hatFenster() || !A.Auth.isLoggedIn()) return;
+    var z = e.target, t = e.touches[0];
+    if (!z || !z.closest) return;
+    if (t.clientX < 24 || t.clientX > window.innerWidth - 24) return; /* Rand gehört dem System */
+    if (route.tab === 'heute' && !route.stack.length) return;         /* dort wischt man Tage */
+    if (z.closest('.topbar, .tabbar, .modal, input, textarea, select, [contenteditable], [draggable="true"], .grid-wrap, .sitz-scroll, .week-grid-wrap, .no-swipe')) return;
+    if (waagerechtScrollbar(z)) return;
+    start = { x: t.clientX, y: t.clientY, zeit: Date.now() };
+  }, { passive: true });
+  document.addEventListener('touchend', function (e) {
+    if (!start || !e.changedTouches || !e.changedTouches.length) return;
+    var s = start, t = e.changedTouches[0]; start = null;
+    var dx = t.clientX - s.x, dy = t.clientY - s.y;
+    if (Date.now() - s.zeit > 700 || Math.abs(dx) < 80 || Math.abs(dx) < Math.abs(dy) * 2) return;
+    if (dx > 0) navWischZurueck_(); else navVor();
+  }, { passive: true });
+  document.addEventListener('keydown', function (e) {
+    if (e.defaultPrevented || e.ctrlKey || e.metaKey || e.shiftKey || !A.Auth.isLoggedIn() || hatFenster()) return;
+    var k = e.key;
+    if (k !== 'ArrowLeft' && k !== 'ArrowRight') return;
+    var a = document.activeElement;
+    if (a && (/^(INPUT|TEXTAREA|SELECT)$/.test(a.tagName) || a.isContentEditable)) return;
+    var wurzelHeute = route.tab === 'heute' && !route.stack.length;
+    if (!e.altKey && wurzelHeute) {
+      ui.datum = A.addDays(ui.datum, k === 'ArrowLeft' ? -heuteSwipeSchritt() : heuteSwipeSchritt());
+      e.preventDefault(); render(); return;
+    }
+    e.preventDefault();
+    if (k === 'ArrowLeft') navWischZurueck_(); else navVor();
+  });
+})();
 
 var FARBDESIGNS = {
   blau: 'Blau',
@@ -7380,9 +7443,45 @@ function fieldHTML(f) {
 
 /* --------------------------------------------------------------- Navigation */
 
-function go(tab) { route.tab = tab; route.stack = []; window.scrollTo(0, 0); render(); }
-function push(view, p) { route.stack.push({ view: view, p: p || {} }); window.scrollTo(0, 0); render(); }
-function back() { route.stack.pop(); window.scrollTo(0, 0); render(); }
+/* V56: Verlauf wie im Browser. Jede Navigation merkt sich den Stand davor; „Zurück“ und „Vor“
+   (Pfeiltasten, Wischen, Alt+Pfeil) gehen diesen Verlauf durch, auch über Tabs hinweg. */
+var NAVH = { past: [], future: [] };
+function navSnap_() { return { tab: route.tab, stack: route.stack.map(function (e) { return { view: e.view, p: e.p }; }) }; }
+function navGleich_(a, b) {
+  if (!a || !b || a.tab !== b.tab || a.stack.length !== b.stack.length) return false;
+  for (var i = 0; i < a.stack.length; i++) if (a.stack[i].view !== b.stack[i].view || JSON.stringify(a.stack[i].p) !== JSON.stringify(b.stack[i].p)) return false;
+  return true;
+}
+function navMerken_() {
+  var s = navSnap_();
+  if (!navGleich_(NAVH.past[NAVH.past.length - 1], s)) NAVH.past.push(s);
+  if (NAVH.past.length > 60) NAVH.past.shift();
+  NAVH.future = [];
+}
+function navAnwenden_(s) { route.tab = s.tab; route.stack = s.stack.map(function (e) { return { view: e.view, p: e.p }; }); window.scrollTo(0, 0); render(); }
+function navZurueck() {
+  if (!NAVH.past.length) return false;
+  NAVH.future.push(navSnap_());
+  navAnwenden_(NAVH.past.pop());
+  return true;
+}
+function navVor() {
+  if (!NAVH.future.length) return false;
+  NAVH.past.push(navSnap_());
+  navAnwenden_(NAVH.future.pop());
+  return true;
+}
+function navReset_() { NAVH.past = []; NAVH.future = []; }
+function go(tab) { navMerken_(); route.tab = tab; route.stack = []; window.scrollTo(0, 0); render(); }
+function push(view, p) { navMerken_(); route.stack.push({ view: view, p: p || {} }); window.scrollTo(0, 0); render(); }
+function back() {
+  /* Der Zurück-Knopf geht eine Ebene hoch. Kam man genau von dort, ist das derselbe Schritt wie im Verlauf. */
+  var ziel = navSnap_(); ziel.stack.pop();
+  if (NAVH.past.length && navGleich_(NAVH.past[NAVH.past.length - 1], ziel)) { navZurueck(); return; }
+  navMerken_(); route.stack.pop(); window.scrollTo(0, 0); render();
+}
+/* Wischen / Pfeiltasten: erst der Verlauf, sonst eine Ebene hoch. */
+function navWischZurueck_() { if (navZurueck()) return true; if (route.stack.length) { back(); return true; } return false; }
 
 btnBack.addEventListener('click', back);
 
@@ -7406,7 +7505,7 @@ document.querySelectorAll('.tab').forEach(function (t) {
 tabbar.addEventListener('click', function(e){
   var b=e.target.closest('[data-sidebar-class],[data-sidebar-course]');
   if(!b)return;
-  if(b.hasAttribute('data-sidebar-class')){route.tab='klassen';route.stack=[{view:'klasse',p:{id:b.getAttribute('data-sidebar-class')}}];window.scrollTo(0,0);render();}
+  navMerken_();if(b.hasAttribute('data-sidebar-class')){route.tab='klassen';route.stack=[{view:'klasse',p:{id:b.getAttribute('data-sidebar-class')}}];window.scrollTo(0,0);render();}
   else{route.tab='noten';route.stack=[{view:'kurs',p:{id:b.getAttribute('data-sidebar-course')}}];window.scrollTo(0,0);render();}
 });
 
@@ -10902,12 +11001,13 @@ ACT['conn-save'] = function () {
 ACT['logout'] = function () {
   if (VORSCHAU_AKTIV) {
     VORSCHAU_AKTIV=false; document.body.classList.remove('preview-mode');
-    A.Auth.logout().then(function(){ route={tab:'heute',stack:[]}; showAuth('login'); previewLoginAnsicht_(); });
+    A.Auth.logout().then(function(){ route={tab:'heute',stack:[]}; navReset_(); showAuth('login'); previewLoginAnsicht_(); });
     return;
   }
   if (!confirm('Abmelden? Nicht synchronisierte Änderungen werden vorher noch zu übertragen versucht.')) return;
   A.Sync.flush(true).then(function () { return A.Auth.logout(); }).then(function () {
     route = { tab: (A.cfg('startseite') || 'heute'), stack: [] };
+    navReset_();
     showAuth('login');
   });
 };
@@ -11068,6 +11168,7 @@ ACT['fehlerprotokoll'] = function () {
 };
 
 var AENDERUNGEN_ = [
+  ['V56', ['Zurück und Vor mit Wischen (rechts = zurück, links = vor) und mit den Pfeiltasten; Alt+Pfeil geht immer im Verlauf. Auf „Heute“ ganz oben wechseln Wischen und Pfeiltasten wie bisher den Tag.', 'Automatischer Abgleich: Die App überträgt wartende Änderungen alle Minute erneut und holt neue Daten von anderen Geräten (beim Öffnen, beim Zurückkehren in die App und alle paar Minuten). Ist der Server gerade nicht erreichbar, bleibt es still: nur der Punkt oben zeigt den Zustand, Änderungen warten auf dem Gerät.']],
   ['V55', ['Sitzplan-Regeln: Das Fenster bleibt beim Ändern offen und springt nicht mehr nach oben. Die Priorität wählst du aus einem kleinen Menü.']],
   ['V54', ['Sitzplan: Die Regel „nicht neben“ gilt jetzt auch für direkt davor und dahinter – eine gemeinsame Regel.']],
   ['V53', ['Sitzplan: Regelübersicht zeigt, welche Regeln eingehalten, verletzt oder nicht prüfbar sind (mit Grund); betroffene Plätze sind farbig markiert.', 'Sitzplan-Regeln haben Prioritäten: Muss, Wichtig, Wunsch. Die Vorschläge richten sich danach.']],
@@ -11472,7 +11573,7 @@ function previewOeffnen_() {
     try { sessionStorage.removeItem('schulapp.auth.session'); } catch(e) {}
     A.Auth.setServerUrl('');
     previewDemoSeed_();
-    route={tab:'heute',stack:[]};
+    route={tab:'heute',stack:[]};navReset_();
     ui.datum=A.todayISO(); ui.heuteModus='tag';
     startAuthenticatedApp(false);
     window.toast('Vorschau geöffnet – nur Testdaten');
@@ -12040,6 +12141,40 @@ document.addEventListener('visibilitychange', function () {
 });
 
 window.addEventListener('online', function () { if (A.Sync.configured()) A.Sync.flush(true); });
+
+/* V56: Automatischer Abgleich im Hintergrund (nur solange die App sichtbar ist).
+   - wartende Änderungen werden jede Minute erneut gesendet (z. B. wenn der Laptop gerade schlief)
+   - neue Daten von anderen Geräten werden beim Zurückkehren in die App und alle 2–3 Minuten geholt
+   - Fehler bleiben still; der Punkt oben zeigt den Zustand. Die Ansicht wird nur neu gezeichnet,
+     wenn wirklich etwas Neues von einem anderen Gerät kam und gerade nichts bearbeitet wird. */
+(function () {
+  var letzterPull = 0, laeuft = false;
+  function bereit() {
+    return !document.hidden && !VORSCHAU_AKTIV && navigator.onLine !== false && A.Sync.configured() && A.Auth.isLoggedIn();
+  }
+  function wirdBearbeitet() {
+    var a = document.activeElement;
+    if (a && /^(INPUT|TEXTAREA|SELECT)$/.test(a.tagName)) return true;
+    var h = document.getElementById('modalHost');
+    return !!(h && h.children.length);
+  }
+  function tick(sofort) {
+    if (laeuft || !bereit()) return;
+    laeuft = true;
+    var p = A.Sync.pendingCount() ? A.Sync.flush(true) : Promise.resolve(true);
+    p.then(function () {
+      if (!sofort && Date.now() - letzterPull < 150000) return null;
+      letzterPull = Date.now();
+      A.Sync._fremd = false;
+      return A.Sync.pull().then(function () {
+        if (A.Sync._fremd && !wirdBearbeitet()) { render(); }
+      });
+    }).catch(function () {}).then(function () { laeuft = false; });
+  }
+  setInterval(function () { tick(false); }, 60000);
+  document.addEventListener('visibilitychange', function () { if (!document.hidden) setTimeout(function () { tick(true); }, 500); });
+  window.addEventListener('online', function () { setTimeout(function () { tick(true); }, 800); });
+})();
 
 var istHauptseite = /(^|\/)(index\.html)?$/.test(location.pathname);
 if ('serviceWorker' in navigator && istHauptseite) {
