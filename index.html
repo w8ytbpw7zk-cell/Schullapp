@@ -2789,7 +2789,7 @@ var TABLES = ['Klassen', 'Kurse', 'SuS', 'Stundenplan', 'Stunden', 'Mitarbeit',
               'Leistungen', 'Noten', 'Checks', 'Settings'];
 
 /* Eine einzige Stelle für die Versionsangabe (Anzeige unter „Mehr“). */
-var APP_VERSION = 'V56';
+var APP_VERSION = 'V57';
 
 /* V15: Diese Adresse ist die verbindliche Login-Adresse. */
 var DEFAULT_SERVER_URL = 'https://script.google.com/macros/s/AKfycby8ans-FGEWHoCelT97z3jbQJQCMRi2uZl23MDnHtCiEGbjYIAlDLus2anrCVHdjgbs/exec';
@@ -5598,7 +5598,10 @@ document.addEventListener('click', function (e) {
     if (e.touches.length !== 1 || hatFenster() || !A.Auth.isLoggedIn()) return;
     var z = e.target, t = e.touches[0];
     if (!z || !z.closest) return;
-    if (t.clientX < 24 || t.clientX > window.innerWidth - 24) return; /* Rand gehört dem System */
+    /* Im Safari-Tab gehört der Rand dem System (Browser-Zurück); als App vom Home-Bildschirm gibt es dort keine Systemgeste. */
+    var alsApp = (window.navigator && window.navigator.standalone === true) || (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches);
+    var rand = alsApp ? 0 : 24;
+    if (t.clientX < rand || t.clientX > window.innerWidth - rand) return;
     if (route.tab === 'heute' && !route.stack.length) return;         /* dort wischt man Tage */
     if (z.closest('.topbar, .tabbar, .modal, input, textarea, select, [contenteditable], [draggable="true"], .grid-wrap, .sitz-scroll, .week-grid-wrap, .no-swipe')) return;
     if (waagerechtScrollbar(z)) return;
@@ -5608,7 +5611,7 @@ document.addEventListener('click', function (e) {
     if (!start || !e.changedTouches || !e.changedTouches.length) return;
     var s = start, t = e.changedTouches[0]; start = null;
     var dx = t.clientX - s.x, dy = t.clientY - s.y;
-    if (Date.now() - s.zeit > 700 || Math.abs(dx) < 80 || Math.abs(dx) < Math.abs(dy) * 2) return;
+    if (Date.now() - s.zeit > 900 || Math.abs(dx) < 60 || Math.abs(dx) < Math.abs(dy) * 1.5) return;
     if (dx > 0) navWischZurueck_(); else navVor();
   }, { passive: true });
   document.addEventListener('keydown', function (e) {
@@ -11168,6 +11171,7 @@ ACT['fehlerprotokoll'] = function () {
 };
 
 var AENDERUNGEN_ = [
+  ['V57', ['Wischen für Zurück/Vor klappt jetzt leichter (kürzere und schräge Wischbewegungen reichen) und auch vom linken Rand, wenn die App auf dem Home-Bildschirm läuft.']],
   ['V56', ['Zurück und Vor mit Wischen (rechts = zurück, links = vor) und mit den Pfeiltasten; Alt+Pfeil geht immer im Verlauf. Auf „Heute“ ganz oben wechseln Wischen und Pfeiltasten wie bisher den Tag.', 'Automatischer Abgleich: Die App überträgt wartende Änderungen alle Minute erneut und holt neue Daten von anderen Geräten (beim Öffnen, beim Zurückkehren in die App und alle paar Minuten). Ist der Server gerade nicht erreichbar, bleibt es still: nur der Punkt oben zeigt den Zustand, Änderungen warten auf dem Gerät.']],
   ['V55', ['Sitzplan-Regeln: Das Fenster bleibt beim Ändern offen und springt nicht mehr nach oben. Die Priorität wählst du aus einem kleinen Menü.']],
   ['V54', ['Sitzplan: Die Regel „nicht neben“ gilt jetzt auch für direkt davor und dahinter – eine gemeinsame Regel.']],
