@@ -1259,7 +1259,7 @@ th .th-hint {
   display: flex;
   align-items: center;
   gap: 10px;
-  padding: 11px 12px;
+  padding: 9px 5px;
   border-bottom: 1px solid var(--line-soft);
   background: var(--surface);
 }
@@ -1279,8 +1279,8 @@ button.aufgabe-row {
   font-size: 18px;
 }
 .aufgabe-main { flex: 1; min-width: 0; }
-.aufgabe-title { font-weight: 700; line-height: 1.25; }
-.aufgabe-sub { color: var(--ink-2); font-size: 12.5px; margin-top: 2px; line-height: 1.35; }
+.aufgabe-title { display: block; font-size: 14px; font-weight: 500; line-height: 1.3; }
+.aufgabe-sub { display: block; color: var(--ink-2); font-size: 12px; margin-top: 2px; line-height: 1.35; }
 .aufgabe-frist {
   flex: none;
   font-size: 11px;
@@ -1830,20 +1830,20 @@ button.week-cell { cursor: pointer; font: inherit; }
 .sitzplatz {
   min-width: 0;
   min-height: 60px;
-  padding: 7px 5px;
+  padding: 7px 3px;
   border-radius: 9px;
   border: 1px solid var(--line-soft);
   background: var(--surface);
   color: var(--ink);
   cursor: grab;
   text-align: center;
-  font-size: 12.5px;
+  font-size: 12px;
   font-weight: 650;
   line-height: 1.22;
   user-select: none;
   -webkit-user-select: none;
   touch-action: manipulation;
-  overflow-wrap: anywhere;
+  overflow-wrap: break-word;
 }
 .sitzplatz:active { cursor: grabbing; }
 .sitzplatz.frei {
@@ -2664,7 +2664,10 @@ body.feedback-pick .main *{cursor:crosshair!important}
 .auth-server{margin-top:14px;font-size:14px}
 .auth-server summary{cursor:pointer;color:var(--muted,#6b6b66);padding:10px 4px;min-height:38px;display:flex;align-items:center}
 .auth-server .field{margin-bottom:10px}
-.sort-bar{display:flex;gap:8px;flex-wrap:wrap;margin:0 0 12px}.sort-chip{min-height:38px;padding:0 14px;border-radius:19px;border:1px solid var(--line);background:var(--surface);color:var(--ink);font:inherit;font-size:14px;cursor:pointer}.sort-chip.on{background:var(--accent,#2b6cb0);border-color:var(--accent,#2b6cb0);color:#fff;font-weight:600}
+.sort-bar{display:flex;align-items:center;gap:6px;flex-wrap:nowrap;margin:0 0 10px;padding:0 5px;overflow-x:auto;-webkit-overflow-scrolling:touch}.sort-bar>span{flex:none;font-size:12px;color:var(--ink-2);white-space:nowrap;margin-right:2px}.sort-chip{flex:1 1 auto;min-width:0;min-height:38px;padding:0 8px;border-radius:19px;border:1px solid var(--line);background:var(--surface);color:var(--ink);font:inherit;font-size:12.5px;white-space:nowrap;cursor:pointer}.sort-chip.on{background:var(--accent,#2b6cb0);border-color:var(--accent,#2b6cb0);color:#fff;font-weight:600}
+.liste-leer{padding:10px 5px;font-size:13px;color:var(--ink-2)}
+.aufgabe-neu-zeile.aufgabe-duo{padding:8px 0 4px;display:flex;flex-wrap:wrap;gap:8px}
+.aufgabe-duo .btn.block{flex:1 1 220px;width:auto}
 /* V60 Dark Mode: Kontraste (Notion-Schicht hatte helle Akzentfarben und feste dunkle Texte) */
 @media (prefers-color-scheme:dark){
 :root{color-scheme:dark;--accent:#ebebea;--accent-soft:#303030;--ink-2:#b8b7b3;--ink-3:#a09f9a}
@@ -2829,7 +2832,7 @@ var TABLES = ['Klassen', 'Kurse', 'SuS', 'Stundenplan', 'Stunden', 'Mitarbeit',
               'Leistungen', 'Noten', 'Checks', 'Settings'];
 
 /* Eine einzige Stelle für die Versionsangabe (Anzeige unter „Mehr“). */
-var APP_VERSION = 'V60';
+var APP_VERSION = 'V63';
 
 /* V15: Diese Adresse ist die verbindliche Login-Adresse. */
 /* V58: Keine feste Server-Adresse mehr in der App. Sie wird über den Einladungslink/-code oder Mehr → Server gesetzt. */
@@ -4189,11 +4192,14 @@ function requestApi(url, body, jsonpFallback, timeouts) {
   /* V20: Google Apps Script braucht bei Kaltstarts gelegentlich mehr Zeit.
      Erst normaler POST, dann ein zweiter POST-Versuch. JSONP wird nur bei
      kleinen Anfragen als Fallback benutzt. */
-  var zeit1 = (timeouts && timeouts[0]) || 14000;
-  var zeit2 = (timeouts && timeouts[1]) || 20000;
+  var eigener = !/script\.google\.com/i.test(url);
+  var zeit1 = (timeouts && timeouts[0]) || (eigener ? 8000 : 14000);
+  var zeit2 = (timeouts && timeouts[1]) || (eigener ? 10000 : 20000);
   return postRequest(zeit1).catch(function () {
     return warte(450).then(function () { return postRequest(zeit2); });
   }).catch(function () {
+    /* Eigener Server: kein JSONP-Umweg (das gab es nur für Google Apps Script). */
+    if (!eigener) throw new Error('Der Server antwortet gerade sehr langsam. Bitte später erneut abgleichen.');
     if (jsonpFallback !== false && payloadText.length < 6500) {
       return jsonpRequest(20000);
     }
@@ -4411,6 +4417,7 @@ function zeilenMischen_(t, rows) {
 var Sync = {
   status: 'off',
   lastError: '',
+  netzFehler: false,
   lastPull: '',
   /* Infos zum letzten Abgleich für die Anzeige unter „Mehr“: { voll, zeilen, zeit } */
   lastInfo: null,
@@ -4434,7 +4441,7 @@ var Sync = {
 
   update: function () {
     if (!this.configured()) this.status = 'off';
-    else if (this.status !== 'busy') this.status = this.pendingCount() ? 'pending' : (this.lastError ? 'err' : 'ok');
+    else if (this.status !== 'busy') this.status = (this.pendingCount() || this.netzFehler) ? 'pending' : (this.lastError ? 'err' : 'ok');
     if (typeof global.onSyncChange === 'function') global.onSyncChange(this.status);
   },
 
@@ -4512,13 +4519,15 @@ var Sync = {
       if (meldungen.length) throw new Error(meldungen.join(' · '));
 
       self.lastError = '';
+      self.netzFehler = false;
       self.status = self.pendingCount() ? 'pending' : 'ok';
       self.update();
       return true;
     }).catch(function (err) {
       var roh = err.message || String(err);
       /* V56: Ist der Server nur gerade nicht erreichbar (z. B. Laptop schläft), bleibt die Änderung in der Warteschlange und es gibt keine Fehlermeldung; der Punkt oben zeigt den Zustand. */
-      var netz = /sehr langsam|zeitüberschreitung|failed to fetch|load failed|networkerror|network request|verbindung|nicht erreichbar/i.test(roh);
+      var netz = /sehr langsam|zeitüberschreitung|failed to fetch|load failed|networkerror|network request|verbindung|nicht erreichbar|offline|abort/i.test(roh);
+      self.netzFehler = netz;
       self.lastError = netz ? 'Server gerade nicht erreichbar – Änderungen warten auf dem Gerät und werden automatisch nachgesendet' : roh;
       self.status = 'err';
       self.update();
@@ -4603,6 +4612,7 @@ var Sync = {
       LS.set(userKey('lastPull'), self.lastPull);
       self.lastInfo = { voll: !inkrementell, zeilen: zeilen, zeit: self.lastPull };
       self.lastError = '';
+      self.netzFehler = false;
       migriere();
       self.status = self.pendingCount() ? 'pending' : 'ok';
       saveLocal(inkrementell ? geaendert : null, true);
@@ -4610,8 +4620,9 @@ var Sync = {
       return true;
     }).catch(function (err) {
       var msg = err.message || String(err);
-      if (/sehr langsam|zeitüberschreitung|failed to fetch|verbindung/i.test(msg)) {
-        self.lastError = 'Server gerade langsam – Daten bleiben lokal erhalten';
+      if (/sehr langsam|zeitüberschreitung|failed to fetch|load failed|networkerror|network request|verbindung|nicht erreichbar|offline|abort/i.test(msg)) {
+        self.netzFehler = true;
+        self.lastError = 'Server gerade nicht erreichbar – Daten bleiben lokal erhalten';
       } else {
         self.lastError = msg;
       }
@@ -6509,7 +6520,7 @@ function listenKlassenStat(klasseId) {
 }
 function klassenListenHTML(klasseId) {
   var listen = listenDerKlasse(klasseId, false);
-  if (!listen.length) return '<div class="card-body small muted">Keine offenen Einsammel-Listen.</div>';
+  if (!listen.length) return '<div class="liste-leer">Keine offenen Einsammel-Listen.</div>';
   return listen.map(function (a) {
     var ids=aufgabeErinnerKursIds_(a),kurs=ids.length?A.byId('Kurse',ids[0]):A.byId('Kurse',a.kursId),st=listenStand(a,kurs),fehlt=Math.max(0,st.gesamt-st.erledigt),fr=aufgabeFrist(a,null,(kurs&&kurs.id)||a.kursId),faecher=aufgabeErinnerFaecherText_(a);
     return '<button class="row" data-act="aufgabe-open" data-aufgabe="' + A.esc(a.id) + '">' +
@@ -6913,7 +6924,18 @@ function craftApiUrlGueltig_(u){return /^https:\/\/connect\.craft\.do\/links\/[^
 function craftAn_(){return A.cfg('craftAus')!==true;}
 function craftSyncMapKey_(){return craftApiLocalKey_()+'.sync';}
 function craftSyncMap_(){var x=A.LS.get(craftSyncMapKey_(),{});return x&&typeof x==='object'?x:{};}
-function craftTaskText_(it){var name='ein Kind';if(it.typ==='vergessen')return 'Elternnachricht prüfen: '+name+' · '+it.h.punkt+' '+it.h.anzahl+'×'+(it.kurs&&it.kurs.fach?' · '+it.kurs.fach:'');if(it.typ==='positiv')return 'Positive Elternrückmeldung erwägen: '+name+(it.kurs&&it.kurs.fach?' · '+it.kurs.fach:'');if(it.typ==='liste')return 'Einsammel-Liste prüfen: '+it.a.titel+(it.offen!==undefined?' · '+it.offen+' offen':'');if(it.typ==='wiedervorlage')return 'Wiedervorlage Elternkontakt: '+name;if(it.typ==='straf')return 'Offene Strafarbeit prüfen: '+name+(it.kurs&&it.kurs.fach?' · '+it.kurs.fach:'');return it.titel||'Schulapp-Aufgabe';}
+function craftNamenEntfernen_(t){
+  /* Sicherheitsnetz: Kein Name aus der Schülerliste darf in einen Craft-Text gelangen. */
+  t=String(t||'');
+  try{A.list('SuS').forEach(function(x){
+    [String(x.nachname||'').trim()+', '+String(x.vorname||'').trim(),String(x.vorname||'').trim()+' '+String(x.nachname||'').trim(),String(x.nachname||'').trim(),String(x.vorname||'').trim()].forEach(function(n){
+      if(n.length>=3)t=t.split(n).join('ein Kind');
+    });
+  });}catch(e){}
+  return t;
+}
+function craftTaskText_(it){return craftNamenEntfernen_(craftTaskText0_(it));}
+function craftTaskText0_(it){var name='ein Kind';if(it.typ==='vergessen')return 'Elternnachricht prüfen: '+name+' · '+it.h.punkt+' '+it.h.anzahl+'×'+(it.kurs&&it.kurs.fach?' · '+it.kurs.fach:'');if(it.typ==='positiv')return 'Positive Elternrückmeldung erwägen: '+name+(it.kurs&&it.kurs.fach?' · '+it.kurs.fach:'');if(it.typ==='liste')return 'Einsammel-Liste prüfen: '+it.a.titel+(it.offen!==undefined?' · '+it.offen+' offen':'');if(it.typ==='wiedervorlage')return 'Wiedervorlage Elternkontakt: '+name;if(it.typ==='straf')return 'Offene Strafarbeit prüfen: '+name+(it.kurs&&it.kurs.fach?' · '+it.kurs.fach:'');return it.titel||'Schulapp-Aufgabe';}
 function craftPostTasks_(items,datum){var c=craftApiConfig_();if(!craftApiUrlGueltig_(c.url))return Promise.reject(new Error('Craft-Verbindung fehlt'));var url=String(c.url).replace(/\/$/,'')+'/tasks';var tasks=items.map(function(it){return {markdown:craftTaskText_(it),taskInfo:{scheduleDate:datum},location:{type:'dailyNote',date:datum}};});return fetch(url,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({tasks:tasks})}).then(function(r){return r.text().then(function(t){var j={};try{j=t?JSON.parse(t):{};}catch(e){}if(!r.ok)throw new Error((j&&j.message)||('Craft HTTP '+r.status));return j;});});}
 var craftAutoBusy_=false;
 function craftSyncInbox_(datum,onlyKey,silent){
@@ -7399,9 +7421,25 @@ window.toast = function (msg, isError, aktion) {
   }, aktion ? 6000 : (isError ? 4200 : 2000));
 };
 
+var syncSpinAn_ = false, syncSpinTimer_ = null;
 window.onSyncChange = function (status) {
   syncDot.className = 'dot ' + (status === 'busy' ? 'pending' : status);
-  btnSync.classList.toggle('busy', status === 'busy');
+  if (status === 'busy') {
+    /* Das Symbol dreht höchstens 6 Sekunden. Bei bekannter Verbindungsstörung dreht es im Hintergrund gar nicht (nur nach einem Tipp auf das Symbol). Der orange Punkt zeigt den Zustand. */
+    if (!syncSpinAn_) {
+      syncSpinAn_ = true;
+      var erlaubt = !(A.Sync && A.Sync.netzFehler) || (Date.now() - (window.__spinManuell || 0) < 3000);
+      if (erlaubt) {
+        btnSync.classList.add('busy');
+        clearTimeout(syncSpinTimer_);
+        syncSpinTimer_ = setTimeout(function () { btnSync.classList.remove('busy'); }, 6000);
+      }
+    }
+  } else {
+    syncSpinAn_ = false;
+    clearTimeout(syncSpinTimer_);
+    btnSync.classList.remove('busy');
+  }
 };
 
 /* V50: Rote Meldung, wenn das Speichern auf diesem Gerät nicht klappt (statt still zu scheitern). */
@@ -7657,6 +7695,7 @@ function syncDesktopSidebar_(){
 btnSync.addEventListener('click', function () {
   if (VORSCHAU_AKTIV) { window.toast('Vorschau: keine Server-Synchronisation'); return; }
   if (!A.Sync.configured()) { showAuth('login'); return; }
+  window.__spinManuell = Date.now();
   A.Sync.pull().then(function () { window.toast('Daten aktualisiert'); render(); })
     .catch(function (e) { window.toast('Fehler: ' + e.message, true); });
 });
@@ -8198,7 +8237,7 @@ VIEWS.plan = {
       h += card('Kurse', '<div class="card-body">' + gruppen +
         dismissHint('plan-kurs-ablage',
           'Kurs ziehen und im Stundenplan ablegen. Auf Touch-Geräten geht auch: Kurs antippen, dann das gewünschte Feld.',
-          'hint') + '</div>', 'plan-kurswahl');
+          'hint-box') + '</div>', 'plan-kurswahl');
     } else {
       h += '<div class="hint-box">Lege zuerst eine Klasse und darunter mindestens ein Fach an.</div>';
     }
@@ -8339,8 +8378,10 @@ VIEWS.klasse = {
 
     var erledigteListen = listenDerKlasse(k.id, true).filter(function(a){ return !!a.erledigt; });
     h += card('Listen & Abgaben', klassenListenHTML(k.id) +
-      (erledigteListen.length ? '<div class="aufgabe-neu-zeile"><button class="btn block" data-act="listen-archiv" data-klasse="' + k.id + '">Abgeschlossene Listen (' + erledigteListen.length + ')</button></div>' : '') +
-      (kurse.length ? '<div class="aufgabe-neu-zeile"><button class="btn block" data-act="aufgabe-neu-klasse" data-klasse="' + k.id + '">＋ Einsammel-Liste anlegen</button></div>' : ''));
+      ((erledigteListen.length || kurse.length) ? '<div class="aufgabe-neu-zeile aufgabe-duo">' +
+        (kurse.length ? '<button class="btn block" data-act="aufgabe-neu-klasse" data-klasse="' + k.id + '">＋ Einsammel-Liste anlegen</button>' : '') +
+        (erledigteListen.length ? '<button class="btn block" data-act="listen-archiv" data-klasse="' + k.id + '">Abgeschlossene Listen (' + erledigteListen.length + ')</button>' : '') +
+        '</div>' : ''));
 
     h += kommunikationKlasseHTML(k.id);
 
@@ -9017,11 +9058,31 @@ function currentView() {
   return top ? { def: VIEWS[top.view], p: top.p } : { def: VIEWS[route.tab], p: {} };
 }
 
+var RENDER_SCROLL_ = { key: '', pos: [] };
+function renderScrollMerken_() {
+  var key = route.tab + '|' + JSON.stringify(route.stack || []);
+  var pos = [];
+  Array.prototype.forEach.call(main.querySelectorAll('.sitz-scroll, .grid-wrap, .week-grid-wrap'), function (el, i) {
+    pos.push({ sel: el.className, i: i, l: el.scrollLeft, t: el.scrollTop });
+  });
+  RENDER_SCROLL_ = { key: key, pos: pos };
+}
+function renderScrollHerstellen_() {
+  var key = route.tab + '|' + JSON.stringify(route.stack || []);
+  if (RENDER_SCROLL_.key !== key) return;
+  var els = main.querySelectorAll('.sitz-scroll, .grid-wrap, .week-grid-wrap');
+  RENDER_SCROLL_.pos.forEach(function (p) {
+    var el = els[p.i];
+    if (el && el.className === p.sel) { el.scrollLeft = p.l; el.scrollTop = p.t; }
+  });
+}
 function render() {
   applyFarbdesign();
   var cur = currentView();
   if (!cur.def) { route.stack = []; cur = currentView(); }
+  renderScrollMerken_();
   main.innerHTML = cur.def.body(cur.p) + '<button class="quick-fab" data-act="quick-actions" title="Schnellaktionen" aria-label="Schnellaktionen">＋</button>';
+  renderScrollHerstellen_();
   topTitle.textContent = cur.def.title(cur.p);
   topActions.innerHTML = cur.def.actions ? cur.def.actions(cur.p) : '';
   if (VORSCHAU_AKTIV) topActions.insertAdjacentHTML('beforeend', '<span class="preview-chip" title="Lokale Testdaten – keine Serververbindung">Vorschau</span>');
@@ -11326,6 +11387,9 @@ ACT['fehlerprotokoll'] = function () {
 };
 
 var AENDERUNGEN_ = [
+  ['V63', ['Listen & To-dos: Titel und Unterzeile haben jetzt die gleiche Schriftgröße und Abstände wie die übrigen Zeilen.']],
+  ['V62', ['Das Sync-Symbol oben dreht höchstens 6 Sekunden und gar nicht mehr im Hintergrund, wenn der Server nicht erreichbar ist. Der Punkt bleibt dann orange (Änderungen warten) statt rot und wird erst grün, wenn alles übertragen ist.', 'Wartezeit bei hängender Verbindung deutlich kürzer (bei eigenem Server rund 18 statt rund 55 Sekunden).', 'Sicherheitsnetz: Namen aus der Schülerliste werden aus Craft-Aufgaben automatisch entfernt.', 'Sitzplan: Namen brechen sauber nach dem Komma um. Stundenplan: Hinweis zum Ablegen von Kursen war ohne Formatierung und ist jetzt wie die anderen Hinweise gestaltet.']],
+  ['V61', ['Sitzplan am Handy: Nach dem Tauschen von Plätzen bleibt die Ansicht an ihrer Stelle und springt nicht mehr nach links (gilt auch für andere seitlich scrollende Tabellen).', 'Sortierung der Schüler:innen bleibt in einer Zeile.', 'Abstände in „Listen & Abgaben“ korrigiert; die Listen-Knöpfe stehen auf großen Bildschirmen nebeneinander.']],
   ['V60', ['Elternnachricht: Bei „Verhalten“ und „Mitarbeit“ wählst du jetzt aus: sehr gut, gut, schlecht oder ganz schlecht – der Text passt sich an.', 'Craft lässt sich komplett ausschalten: Mehr → „Craft ausschalten“ (oder in „Heute“ über „Ausblenden“). Dann verschwindet Craft aus Heute, aus den Fächern und es wird nichts mehr übertragen.']],
   ['V59', ['Fenster zum Anlegen und Bearbeiten: oben steht „Abbrechen“ statt „Fertig“, gespeichert wird nur mit „Speichern“ unten.', 'Schüler:innen lassen sich sortieren: nach Nachname, Vorname oder in der Reihenfolge der Eingabe (in der Klasse oben und unter Mehr).', 'Craft: Es werden keine Schülerdaten mehr an Craft gesendet. Schülerkartei, Gesprächsvorbereitung und Rückblick sind entfernt. Beobachtungen und Förderziele bleiben in der Schulapp. Craft dient nur noch für Planungsdokumente und Aufgaben ohne Namen.']],
   ['V58', ['Einladung mit einem Link oder Code: Wer den Einladungslink öffnet oder den Einladungscode (beginnt mit SA1.) einfügt, hat Server und Einladung gesetzt und kann sich direkt registrieren. Die Server-Adresse ist nicht mehr fest in der App.', 'Unter Mehr → Server steht, womit das Gerät gerade verbunden ist.']],
