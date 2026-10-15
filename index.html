@@ -11,7 +11,7 @@
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="format-detection" content="telephone=no">
 <title>Schulapp</title>
-<!-- Schulapp V51 – Heute neu geordnet, Sicherungs-Hinweise, Kind-Übersicht als PDF (V50: Gerätespeicher, Papierkorb) -->
+<!-- Schulapp V52 – Elternkommunikation als Blöcke pro Kind, Klassen/Fächer einklappbar (V51: Heute neu geordnet, Sicherungs-Hinweise, Kind-Übersicht als PDF (V50: Gerätespeicher, Papierkorb) -->
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="./icon-192.png">
 <link rel="icon" type="image/png" sizes="192x192" href="./icon-192.png">
@@ -2562,6 +2562,69 @@ body.feedback-pick .main *{cursor:crosshair!important}
 .neu-liste{margin:6px 0 14px 18px;padding:0;font-size:14px;line-height:1.5}.neu-liste li{margin:0 0 4px}
 .verlauf{display:flex;align-items:center;gap:12px;margin:2px 0 10px;color:var(--accent)}
 .verlauf svg{width:150px;height:28px;flex:none}.verlauf-t{font-size:12px;color:var(--ink-3)}
+
+/* ---- V52 Blöcke (Craft-artig, Notion-Optik) und Einklappen ---- */
+.parent-list{border-top:0;display:grid;gap:10px}
+.parent-group{border:1px solid var(--line);border-radius:10px;background:var(--surface);padding:4px 14px 6px;box-shadow:0 1px 2px rgba(15,15,15,.04)}
+.parent-group .parent-item{display:block;padding:10px 0 11px;border-bottom:0;border-top:1px solid var(--line-soft)}
+.parent-group .parent-head+.parent-item{border-top:0;padding-top:2px}
+.parent-group .parent-item:hover{background:transparent}
+.parent-group .parent-item+.parent-item .parent-person{display:inline}
+.parent-head{display:flex;align-items:center;gap:8px;min-height:44px;flex-wrap:wrap}
+.parent-name{border:0;background:transparent;padding:0;margin:0;font:inherit;text-align:left;cursor:pointer;color:var(--ink);min-height:38px;display:inline-flex;align-items:center}
+.parent-name .parent-person{font-size:15px;font-weight:650}
+.parent-name:hover .parent-person{text-decoration:underline}
+.klasse-chip,.fach-chip{display:inline-flex;align-items:center;height:20px;padding:0 8px;border-radius:5px;background:#f1f1ef;color:#5f5e5b;font-size:11px;font-weight:600;letter-spacing:0;white-space:nowrap}
+.klasse-chip{background:#e7f0fa;color:#2f6ea5;margin-left:2px}
+.inbox-main .klasse-chip{display:inline-flex;margin:0 0 0 7px;font-size:11px;color:#2f6ea5;vertical-align:1px}
+@media(prefers-color-scheme:dark){.inbox-main .klasse-chip{color:#8ab8e0}}
+.parent-n{margin-left:auto;font-size:11px;color:var(--ink-3)}
+.parent-line{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.parent-line .parent-context{margin:0}
+.parent-line .parent-reason{margin:0;font-size:13px}
+.parent-group .parent-status{margin-top:5px}
+.parent-group .parent-actions{justify-content:flex-start;margin-top:6px;gap:2px 8px}
+.parent-group .parent-actions .btn.primary{flex:0 0 auto}
+.parent-item.ist-positiv .fach-chip{background:#e8f3ec;color:#448361}
+.parent-rest{margin-top:2px}.parent-rest>.parent-group{margin-top:10px}
+.zu-wrap>.zu-body{display:none}
+.zu-wrap.offen>.zu-body{display:block}
+.zu-head{display:flex;align-items:center;gap:2px}
+.zu-head>:not(.zu-btn){flex:1;min-width:0}
+.zu-btn{flex:none;width:40px;height:44px;border:0;background:transparent;color:var(--ink-3);display:inline-flex;align-items:center;justify-content:center;cursor:pointer;border-radius:6px;padding:0}
+.zu-btn:hover,.zu-titel:hover{background:rgba(55,53,47,.06)}
+.zu-chev{display:inline-block;width:7px;height:7px;border-right:2px solid currentColor;border-bottom:2px solid currentColor;transform:rotate(-45deg);transition:transform .15s;margin:0 3px}
+.zu-wrap.offen>.zu-head>.zu-btn .zu-chev,.zu-wrap.offen>.zu-titel .zu-chev{transform:rotate(45deg)}
+.zu-titel{display:flex;align-items:center;gap:8px;width:100%;min-height:44px;border:0;background:transparent;cursor:pointer;text-align:left;font:inherit;font-weight:650;color:var(--ink-2);padding-left:12px}
+.zu-card>.zu-titel{border-bottom:0}
+.zu-card.offen>.zu-titel{border-bottom:1px solid var(--line-soft)}
+.today-section.zu-wrap{margin-bottom:26px}
+.today-section>.zu-head>.today-section-head{margin-bottom:0;min-height:44px}
+.klassen-card .zu-head>.row{border-bottom:0}
+@media(prefers-color-scheme:dark){.parent-group{background:#252525;border-color:#383836;box-shadow:none}.klasse-chip{background:#1f3447;color:#8ab8e0}.klasse-chip+*{}.fach-chip{background:#333331;color:#c0bfba}.parent-item.ist-positiv .fach-chip{background:#223a2c;color:#7fc49b}.zu-btn:hover,.zu-titel:hover{background:rgba(255,255,255,.07)}}
+@media(max-width:620px){
+  .parent-group .parent-item{grid-template-columns:none;padding:10px 0 11px}
+  .parent-group{padding:2px 10px 6px}
+  .parent-group .parent-actions{gap:0 4px}
+  .parent-group .parent-actions .btn.primary{flex:1 1 100%}
+  .parent-group .parent-actions{margin-top:8px}
+  .parent-group .parent-more{padding:6px 6px;font-size:12px}
+}
+
+/* ---- V52b: Aufgabenzeilen einheitlich (Titel, Zusatzzeile, Pfeil, Knopf) ---- */
+.today-task{min-height:54px;padding:8px 3px}
+.today-task .inbox-main b{font-size:14px;font-weight:600;line-height:1.3}
+.today-task .inbox-main span{font-size:12px;line-height:1.35;margin-top:3px}
+.today-task .chev{flex:none;width:16px;text-align:center;font-size:20px}
+.today-task-actions .btn{font-size:12.5px;padding-left:12px;padding-right:12px;white-space:nowrap}
+@media(min-width:621px){.today-task:has(.today-task-actions .btn) .chev{display:none}}
+@media(max-width:620px){
+  .today-task{flex-wrap:wrap;align-items:center}
+  .today-task .inbox-open{flex:1 1 100%}
+  .today-task-actions{flex-direction:row;flex:1 1 100%;margin:0 0 4px 34px}
+  .today-section-note{display:none}
+  .craft-panel-actions .btn{font-size:12.5px}
+}
 </style>
 </head>
 <body>
@@ -2692,7 +2755,7 @@ var TABLES = ['Klassen', 'Kurse', 'SuS', 'Stundenplan', 'Stunden', 'Mitarbeit',
               'Leistungen', 'Noten', 'Checks', 'Settings'];
 
 /* Eine einzige Stelle für die Versionsangabe (Anzeige unter „Mehr“). */
-var APP_VERSION = 'V51';
+var APP_VERSION = 'V52';
 
 /* V15: Diese Adresse ist die verbindliche Login-Adresse. */
 var DEFAULT_SERVER_URL = 'https://script.google.com/macros/s/AKfycby8ans-FGEWHoCelT97z3jbQJQCMRi2uZl23MDnHtCiEGbjYIAlDLus2anrCVHdjgbs/exec';
@@ -6899,7 +6962,10 @@ function inboxHTML(datum){
   function elternGruppiert(liste){
     var order=[],map={};
     liste.forEach(function(x){var k=x.h&&x.h.susId||'';if(!map[k]){map[k]=[];order.push(k);}map[k].push(x);});
-    function gruppe(k){return '<div class="parent-group">'+map[k].map(elternRow).join('')+'</div>';}
+    function gruppe(k){
+      var arr=map[k],sus=arr[0].sus,name=sus?A.susName(sus):'';
+      return '<div class="parent-group"><div class="parent-head"><button type="button" class="parent-name" data-act="open-sus" data-sus="'+A.esc(k)+'"><span class="parent-person">'+A.esc(name)+'</span></button>'+klasseChip_(sus)+(arr.length>1?'<span class="parent-n">'+arr.length+' Anlässe</span>':'')+'</div>'+arr.map(elternRow).join('')+'</div>';
+    }
     var offen=order.slice(0,5).map(gruppe).join('');
     var rest=order.slice(5);
     if(!rest.length)return offen;
@@ -6907,28 +6973,34 @@ function inboxHTML(datum){
   }
   var eltern=items.filter(function(x){return x.typ==='vergessen'||x.typ==='positiv';});
   var aufgaben=items.filter(function(x){return x.typ!=='vergessen'&&x.typ!=='positiv';});
-  function kursKontext(it){var k=it.kurs,kl=k&&k.klasseId?A.byId('Klassen',k.klasseId):null;return [kl&&kl.name,k&&k.fach].filter(Boolean).join(' · ');}
   function elternRow(it){
-    var h=it.h,person=it.sus?A.susName(it.sus):'',ctx=kursKontext(it),last=elternKontaktText_(h),reason='';
-    if(it.typ==='positiv')reason=h.signal==='mitarbeit_verbessert'?'Mitarbeit in letzter Zeit deutlich verbessert':'Mitarbeit zuletzt besonders zuverlässig und engagiert';
+    var h=it.h,k=it.kurs,fach=k&&k.fach?k.fach:'',last=elternKontaktText_(h),reason='',positiv=it.typ==='positiv';
+    if(positiv)reason=h.signal==='mitarbeit_verbessert'?'Mitarbeit in letzter Zeit deutlich verbessert':'Mitarbeit zuletzt besonders zuverlässig und engagiert';
     else reason=(h.punkt||'Material')+' fehlt · '+h.anzahl+'×';
-    var status=last||((it.typ==='positiv')?'Positive Rückmeldung vorgeschlagen':'Noch nicht zu diesem Anlass kontaktiert');
-    if(it.typ==='positiv')return '<div class="parent-item"><div><div class="parent-person">'+A.esc(person)+'</div><div class="parent-context">'+A.esc(ctx)+'</div><div class="parent-reason">Positive Rückmeldung</div><div class="parent-status positive">'+A.esc(reason)+(last?' · '+A.esc(last):'')+'</div></div><div class="parent-actions"><button class="btn small primary" data-act="positiv-nachricht" data-sus="'+h.susId+'" data-kurs="'+h.kursId+'">Nachricht erstellen</button><button class="parent-more" data-act="positiv-spaeter" data-sus="'+h.susId+'" data-kurs="'+h.kursId+'">Nächste Stunde</button><button class="parent-more" data-act="positiv-ausblenden" data-sus="'+h.susId+'" data-kurs="'+h.kursId+'">Ausblenden</button></div></div>';
-    return '<div class="parent-item"><div><div class="parent-person">'+A.esc(person)+'</div><div class="parent-context">'+A.esc(ctx)+'</div><div class="parent-reason">'+A.esc(reason)+'</div><div class="parent-status">'+A.esc(status)+'</div></div><div class="parent-actions"><button class="btn small primary" data-act="eltern-nachricht" data-sus="'+h.susId+'" data-kurs="'+h.kursId+'" data-punkt="'+A.esc(h.punkt)+'">Nachricht erstellen</button><button class="parent-more" data-act="eltern-spaeter" data-sus="'+h.susId+'" data-kurs="'+h.kursId+'" data-punkt="'+A.esc(h.punkt)+'" data-anzahl="'+h.anzahl+'">Nächste Stunde</button><button class="parent-more" data-act="eltern-besprochen" data-sus="'+h.susId+'" data-kurs="'+h.kursId+'" data-punkt="'+A.esc(h.punkt)+'" data-anzahl="'+h.anzahl+'">Besprochen</button></div></div>';
+    var status=last||(positiv?'Positive Rückmeldung vorgeschlagen':'');
+    var attrs=' data-sus="'+h.susId+'" data-kurs="'+h.kursId+'"'+(positiv?'':' data-punkt="'+A.esc(h.punkt)+'" data-anzahl="'+h.anzahl+'"');
+    var pre=positiv?'positiv':'eltern';
+    return '<div class="parent-item'+(positiv?' ist-positiv':'')+'"><div class="parent-line">'+(fach?'<span class="parent-context fach-chip">'+A.esc(fach)+'</span>':'')+'<span class="parent-reason">'+A.esc(positiv?'Positive Rückmeldung':reason)+'</span></div>'+
+      (positiv||status?'<div class="parent-status'+(positiv?' positive':'')+'">'+A.esc(positiv?(reason+(last?' · '+last:'')):status)+'</div>':'')+
+      '<div class="parent-actions"><button class="btn small primary" data-act="'+pre+'-nachricht"'+attrs+'>Nachricht erstellen</button>'+
+      '<button class="parent-more" data-act="'+pre+'-spaeter"'+attrs+'>Nächste Stunde</button>'+
+      (positiv?'<button class="parent-more" data-act="positiv-ausblenden"'+attrs+'>Ausblenden</button>':'<button class="parent-more" data-act="eltern-besprochen"'+attrs+'>Besprochen</button>')+'</div></div>';
   }
   function taskRow(it){
     if(it.typ==='liste')return '<div class="today-task"><button class="inbox-open" data-act="aufgabe-open" data-aufgabe="'+A.esc(it.a.id)+'"><div class="inbox-icon">□</div><div class="inbox-main"><b>'+A.esc(it.titel)+'</b><span>'+A.esc(it.sub)+(it.offen!==undefined?' · '+it.offen+' offen':'')+'</span></div><div class="chev">›</div></button><div class="today-task-actions">'+(it.offen>0?'<button class="btn small" data-act="eltern-erinnern" data-aufgabe="'+A.esc(it.a.id)+'">Eltern erinnern</button>':'')+'</div></div>';
-    if(it.typ==='wiedervorlage')return '<div class="today-task"><button class="inbox-open" data-act="open-sus" data-sus="'+it.sus.id+'"><div class="inbox-icon">↻</div><div class="inbox-main"><b>'+A.esc(it.titel)+'</b><span>'+A.esc(it.sub)+'</span></div><div class="chev">›</div></button><div class="today-task-actions"><button class="btn small" data-act="wv-erledigt" data-id="'+A.esc(it.wv.id)+'">Erledigt</button></div></div>';
-    return '<div class="today-task"><button class="inbox-open" data-act="open-sus" data-sus="'+it.sus.id+'"><div class="inbox-icon">!</div><div class="inbox-main"><b>'+A.esc(it.titel)+'</b><span>'+A.esc(it.sub)+'</span></div><div class="chev">›</div></button></div>';
+    if(it.typ==='wiedervorlage')return '<div class="today-task"><button class="inbox-open" data-act="open-sus" data-sus="'+it.sus.id+'"><div class="inbox-icon">↻</div><div class="inbox-main"><b>'+A.esc(it.titel)+klasseChip_(it.sus)+'</b>'+'<span>'+A.esc(it.sub)+'</span></div><div class="chev">›</div></button><div class="today-task-actions"><button class="btn small" data-act="wv-erledigt" data-id="'+A.esc(it.wv.id)+'">Erledigt</button></div></div>';
+    return '<div class="today-task"><button class="inbox-open" data-act="open-sus" data-sus="'+it.sus.id+'"><div class="inbox-icon">!</div><div class="inbox-main"><b>'+A.esc(it.titel)+klasseChip_(it.sus)+'</b>'+'<span>'+A.esc(it.sub)+'</span></div><div class="chev">›</div></button></div>';
   }
-  var elternSection='<section class="today-section"><div class="today-section-head"><div class="today-section-title"><h3>Elternkommunikation</h3><span class="today-count">'+eltern.length+'</span></div><button class="ghost-link" data-act="eltern-generator">Neue Nachricht</button></div>'+(eltern.length?'<div class="parent-list">'+elternGruppiert(eltern)+'</div>':'<div class="inbox-empty">Heute ist keine Elternkommunikation offen.</div>')+'</section>';
-  var taskSection='<section class="today-section"><div class="today-section-head"><div class="today-section-title"><h3>Aufgaben & Rückläufe</h3><span class="today-count">'+aufgaben.length+'</span></div><span class="today-section-note">nur für Klassen, die du heute hast</span></div>'+(aufgaben.length?'<div class="task-list">'+aufgaben.map(taskRow).join('')+'</div>':'<div class="inbox-empty">Für heute sind keine Rückläufe oder offenen Aufgaben fällig.</div>')+'</section>';
+  var elternKopf='<div class="today-section-head"><div class="today-section-title"><h3>Elternkommunikation</h3><span class="today-count">'+eltern.length+'</span></div><button class="ghost-link" data-act="eltern-generator">Neue Nachricht</button></div>';
+  var elternSection=zuWrap_('heute.eltern',true,elternKopf,eltern.length?'<div class="parent-list">'+elternGruppiert(eltern)+'</div>':'<div class="inbox-empty">Heute ist keine Elternkommunikation offen.</div>','today-section');
+  var taskKopf='<div class="today-section-head"><div class="today-section-title"><h3>Aufgaben & Rückläufe</h3><span class="today-count">'+aufgaben.length+'</span></div><span class="today-section-note">nur für Klassen, die du heute hast</span></div>';
+  var taskSection=zuWrap_('heute.aufgaben',true,taskKopf,aufgaben.length?'<div class="task-list">'+aufgaben.map(taskRow).join('')+'</div>':'<div class="inbox-empty">Für heute sind keine Rückläufe oder offenen Aufgaben fällig.</div>','today-section');
   var cleanN=inboxAufraeumItems_().length;
   return '<section class="workspace-section today-inbox"><div class="today-inbox-head"><div><h2>Für heute</h2><p>'+(items.length?items.length+' offene'+(items.length===1?'r Punkt':' Punkte'):'Alles erledigt')+'</p></div><div class="today-inbox-actions">'+(cleanN?'<button class="btn small" data-act="inbox-cleanup">Inbox aufräumen · '+cleanN+'</button>':'')+'<button class="btn small" data-act="craft-quick-note">Beobachtung festhalten</button></div></div>'+elternSection+taskSection+'</section>';
 }
 function craftHeuteHTML(datum){
   var items=inboxDaten_(datum),sync=craftSyncMap_(),c=craftApiConfig_(),verbunden=craftApiUrlGueltig_(c.url),pending=items.filter(function(it){return !sync[it.key];});
-  function label(it){return it.typ==='vergessen'?(A.susName(it.sus)+' · '+it.h.punkt+' '+it.h.anzahl+'×'):it.typ==='positiv'?(A.susName(it.sus)+' · positive Rückmeldung'):it.titel;}
+  function label(it){var kn=it.sus?klasseNameSus_(it.sus):'',nm=it.sus?(A.susName(it.sus)+(kn?' ('+kn+')':'')):'';return it.typ==='vergessen'?(nm+' · '+it.h.punkt+' '+it.h.anzahl+'×'):it.typ==='positiv'?(nm+' · positive Rückmeldung'):it.titel;}
   var rows=items.slice(0,8).map(function(it){var done=!!sync[it.key];return '<div class="craft-ready-row"><span>'+A.esc(label(it))+'</span><span class="craft-ready-state '+(done?'done':'pending')+'">'+(done?'✓ übertragen':'Nicht übertragen')+'</span>'+(!done&&verbunden?'<button class="parent-more" data-act="craft-sync-one" data-craft-key="'+A.esc(it.key)+'">Übertragen</button>':'')+'</div>';}).join('');
   var karteiN=craftKarteiVerknuepftAnzahl_(),karteiGes=A.list('SuS',function(x){return String(x.aktiv||'1')!=='0';}).length,sub=verbunden?(pending.length?pending.length+' nicht übertragen':'Heute alles übertragen'):'Noch nicht verbunden';
   return '<section class="workspace-section craft-after-lessons"><div class="today-section-head craft-tab-head"><div class="today-section-title"><div class="craft-mark">C</div><div><h3>Craft</h3><span class="today-section-note">'+A.esc(sub)+'</span></div></div><div class="craft-panel-actions">'+(items.length?'<button class="btn small '+(verbunden?'primary':'')+'" data-act="craft-sync-inbox">'+(verbunden?'Alle übertragen':'Verbinden')+'</button>':'')+'<button class="btn small" data-act="craft-api">Einstellungen</button></div></div><div class="craft-panel">'+(items.length?'<div class="craft-ready">'+rows+(items.length>8?'<div class="craft-ready-row"><span>+'+(items.length-8)+' weitere</span><span class="craft-ready-state pending">Nicht übertragen</span></div>':'')+'</div>':'<div class="inbox-empty">Keine offenen Punkte für Craft.</div>')+'<div class="craft-kartei-summary"><span>Schülerkartei · '+karteiN+'/'+karteiGes+' angelegt/verknüpft'+(c.karteiAutoCreate?' · automatisch gepflegt':'')+'</span><button class="parent-more" data-act="craft-kartei-settings">Kartei verwalten</button></div></div></section>';
@@ -7261,6 +7333,33 @@ function dismissHint(key, html, cls) {
     html +
     '<button type="button" class="dismiss-hint-x" data-act="hint-dismiss" data-hint="' +
     A.esc(key) + '" aria-label="Hinweis ausblenden">×</button></div>';
+}
+
+/* V52: Ein-/Ausklappen – Zustand pro Gerät in localStorage, ohne Neuaufbau der Seite */
+function zuOffen_(key, std) {
+  var m = A.LS.get('zu', {});
+  if (!m || typeof m !== 'object' || m[key] === undefined) return !!std;
+  return !!m[key];
+}
+function zuWrap_(key, std, kopf, body, cls) {
+  var o = zuOffen_(key, std);
+  return '<div class="zu-wrap' + (o ? ' offen' : '') + (cls ? ' ' + cls : '') + '" data-zu="' + A.esc(key) + '">' +
+    '<div class="zu-head"><button type="button" class="zu-btn" data-act="zu-toggle" aria-expanded="' + (o ? 'true' : 'false') + '" aria-label="Ein- oder ausklappen"><span class="zu-chev"></span></button>' + kopf + '</div>' +
+    '<div class="zu-body">' + body + '</div></div>';
+}
+function zuCard_(key, std, titel, body, cls) {
+  var o = zuOffen_(key, std);
+  return '<div class="card zu-wrap zu-card' + (o ? ' offen' : '') + (cls ? ' ' + cls : '') + '" data-zu="' + A.esc(key) + '">' +
+    '<button type="button" class="zu-titel card-head" data-act="zu-toggle" aria-expanded="' + (o ? 'true' : 'false') + '"><span class="zu-chev"></span><span>' + A.esc(titel) + '</span></button>' +
+    '<div class="zu-body">' + body + '</div></div>';
+}
+function klasseNameSus_(sus) {
+  var k = sus && sus.klasseId ? A.byId('Klassen', sus.klasseId) : null;
+  return k ? String(k.name || '') : '';
+}
+function klasseChip_(sus) {
+  var n = klasseNameSus_(sus);
+  return n ? '<span class="klasse-chip">' + A.esc(n) + '</span>' : '';
 }
 
 function card(title, inner, cls) {
@@ -7852,7 +7951,9 @@ VIEWS.klassen = {
       var plus = '<button class="row sub" data-act="neuer-kurs" data-klasse="' + k.id + '">' +
         '<div class="row-main"><div class="row-title accent-text">＋ Fach hinzufügen</div></div></button>';
 
-      return card('', kopf + kursZeilen + plus);
+      var std = k.id === A.standardKlasseId();
+      return '<div class="card klassen-card">' +
+        zuWrap_('klassen.' + k.id, std, kopf, kursZeilen + plus) + '</div>';
     }).join('');
 
     var arch = A.klassen(true).filter(function (k) { return String(k.archiviert) === '1'; });
@@ -7887,7 +7988,7 @@ VIEWS.klasse = {
       'Jedes weitere Fach übernimmt sie automatisch.</div>';
 
     h += card('Klassenstatus', klassenAmpelHTML_(k.id));
-    h += card('Fächer', (kurse.length ? kurse.map(function (ku) {
+    h += zuCard_('klasse.' + k.id + '.faecher', true, 'Fächer (' + kurse.length + ')', (kurse.length ? kurse.map(function (ku) {
       var schnitt = kursSchnitt(ku);
       var lz = A.list('Leistungen', function (l) { return l.kursId === ku.id; }).length;
       return '<button class="row" data-act="open-kurs" data-kurs="' + ku.id + '">' +
@@ -7930,7 +8031,7 @@ VIEWS.klasse = {
         '<div class="chev">›</div></button>';
     }).join('') : empty('🧑‍🎓', 'Noch keine Schüler:innen angelegt.');
 
-    h += card('Schüler:innen (' + sus.length + ')', sus.length ? '<div class="sus-grid">' + susRows + '</div>' : susRows);
+    h += zuCard_('klasse.' + k.id + '.sus', true, 'Schüler:innen (' + sus.length + ')', sus.length ? '<div class="sus-grid">' + susRows + '</div>' : susRows);
     h += '<div class="btn-row">' +
       '<button class="btn" data-act="sus-neu" data-klasse="' + k.id + '">Einzeln</button>' +
       '<button class="btn" data-act="sus-liste" data-klasse="' + k.id + '">Liste einfügen</button></div>';
@@ -8270,7 +8371,7 @@ VIEWS.noten = {
           (offen > 0 ? ' · <span class="badge warn">' + offen + ' offen</span>' : '') + '</div></div>' +
           '<div class="row-val">' + A.fmtNote(schnitt) + '</div><div class="chev">›</div></button>';
       }).join('');
-      h += card(A.kursLabel(kurs), rows);
+      h += zuCard_('noten.' + kurs.id, kurs.klasseId === A.standardKlasseId(), A.kursLabel(kurs) + ' (' + leistungen.length + ')', rows);
     });
 
     if (leer) h += card('', empty('📊', 'Noch keine Leistungen erfasst.'));
@@ -8596,6 +8697,18 @@ window.render = render;
 /* ====================================================================== */
 
 var ACT = {};
+
+ACT['zu-toggle'] = function (el) {
+  var w = el.closest('.zu-wrap');
+  if (!w) return;
+  var offen = !w.classList.contains('offen');
+  w.classList.toggle('offen', offen);
+  Array.prototype.forEach.call(w.querySelectorAll(':scope > .zu-head > .zu-btn, :scope > .zu-titel'), function (b) { b.setAttribute('aria-expanded', offen ? 'true' : 'false'); });
+  var m = A.LS.get('zu', {});
+  if (!m || typeof m !== 'object') m = {};
+  m[w.getAttribute('data-zu')] = offen;
+  A.LS.set('zu', m);
+};
 
 /* --- Heute ------------------------------------------------------------ */
 
@@ -10852,6 +10965,7 @@ ACT['fehlerprotokoll'] = function () {
 };
 
 var AENDERUNGEN_ = [
+  ['V52', ['Elternkommunikation als übersichtliche Blöcke pro Kind, mit Klasse neben dem Namen.', 'Klassen, Fächer, Schüler:innen und Noten lassen sich ein- und ausklappen (wird pro Gerät gemerkt).', 'Klasse steht jetzt auch bei Wiedervorlagen, Strafarbeiten und in der Craft-Übersicht beim Kind.']],
   ['V51', ['„Für heute“ steht oben, Elternhinweise sind pro Kind gruppiert (fünf offen, Rest eingeklappt).', 'Dateisicherung: Erinnerung höchstens einmal pro Woche; Hinweis zum Home-Bildschirm auf iPhone und iPad.', 'Kind-Übersicht als PDF und Notenverlauf pro Fach.', 'Elterngespräch protokollieren, mit Vereinbarung und Wiedervorlage.', 'Ferien Baden-Württemberg, Feiertage und eigene freie Tage; Stunden können „vertreten“ sein.', 'Rückgängig-Knopf nach dem Löschen, Fehlerprotokoll, dieses Fenster.']],
   ['V50', ['Daten liegen in der Geräte-Datenbank (IndexedDB), schneller Abgleich, Papierkorb, Mac-Layout über die volle Breite.']]
 ];
