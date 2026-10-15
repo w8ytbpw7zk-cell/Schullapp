@@ -2625,6 +2625,28 @@ body.feedback-pick .main *{cursor:crosshair!important}
   .today-section-note{display:none}
   .craft-panel-actions .btn{font-size:12.5px}
 }
+
+/* ---- V53 Sitzplan: Konflikte und Prioritäten ---- */
+.sitz-regel-block{margin:0 0 12px}
+.sitz-regel-block .sitz-regel-status{margin:0}
+.sitz-regel-chip.warn{color:var(--warn);border-color:color-mix(in srgb,var(--warn) 35%,var(--line-soft));background:color-mix(in srgb,var(--warn) 9%,var(--surface))}
+.konf-liste{padding:2px 2px 4px}
+.konf-titel{margin:12px 0 4px;font-size:12px;font-weight:650;color:var(--ink-2)}.konf-titel.bad{color:var(--bad)}
+.konf-allok{margin:10px 0 2px;font-size:13px;color:var(--good)}
+.konf-zeile{display:flex;align-items:flex-start;gap:9px;padding:8px 2px;border-bottom:1px solid var(--line-soft)}
+.konf-dot{flex:none;width:8px;height:8px;border-radius:50%;margin-top:6px;background:#c8c7c4}
+.konf-zeile.bad .konf-dot{background:var(--bad)}.konf-zeile.warn .konf-dot{background:var(--warn)}.konf-zeile.wunsch .konf-dot{background:#d9a441}.konf-zeile.ok .konf-dot{background:var(--good)}
+.konf-text{flex:1;min-width:0}.konf-text b{display:block;font-size:13px;font-weight:600}.konf-text span{display:block;margin-top:2px;font-size:12px;color:var(--ink-2)}
+.konf-zeile.bad .konf-text span{color:var(--bad)}
+.konf-prio,.prio-btn{flex:none;display:inline-flex;align-items:center;height:22px;padding:0 8px;border-radius:5px;font-size:11px;font-weight:650;border:0;font-family:inherit}
+.konf-prio.muss,.prio-btn.muss{background:#fbe4e1;color:#b3342a}.konf-prio.wichtig,.prio-btn.wichtig{background:#fdf0d5;color:#8a6116}.konf-prio.wunsch,.prio-btn.wunsch{background:#f1f1ef;color:#5f5e5b}
+.prio-btn{cursor:pointer}.regel-row .prio-btn{font-size:11px!important;padding:0 8px}
+.konf-ok>summary,.konf-details>summary{cursor:pointer;min-height:44px;display:flex;align-items:center;font-size:13px;font-weight:600;color:var(--ink-2)}
+.konf-details{margin-top:6px}
+.sitzplatz.konflikt-muss{outline:2px solid var(--bad);outline-offset:-2px;background:color-mix(in srgb,var(--bad) 10%,var(--surface))}
+.sitzplatz.konflikt-wichtig{outline:2px solid var(--warn);outline-offset:-2px;background:color-mix(in srgb,var(--warn) 10%,var(--surface))}
+.sitzplatz.konflikt-wunsch{outline:2px dashed #d9a441;outline-offset:-2px}
+@media(prefers-color-scheme:dark){.konf-prio.muss,.prio-btn.muss{background:#4a2420;color:#f0a49c}.konf-prio.wichtig,.prio-btn.wichtig{background:#463a1c;color:#e6c27a}.konf-prio.wunsch,.prio-btn.wunsch{background:#333331;color:#c0bfba}}
 </style>
 </head>
 <body>
@@ -2755,7 +2777,7 @@ var TABLES = ['Klassen', 'Kurse', 'SuS', 'Stundenplan', 'Stunden', 'Mitarbeit',
               'Leistungen', 'Noten', 'Checks', 'Settings'];
 
 /* Eine einzige Stelle für die Versionsangabe (Anzeige unter „Mehr“). */
-var APP_VERSION = 'V52';
+var APP_VERSION = 'V53';
 
 /* V15: Diese Adresse ist die verbindliche Login-Adresse. */
 var DEFAULT_SERVER_URL = 'https://script.google.com/macros/s/AKfycby8ans-FGEWHoCelT97z3jbQJQCMRi2uZl23MDnHtCiEGbjYIAlDLus2anrCVHdjgbs/exec';
@@ -7013,6 +7035,7 @@ function sitzRegelnFuer(klasseId) {
   if (!Array.isArray(r.paare)) r.paare = [];
   if (!r.zonen || typeof r.zonen !== 'object') r.zonen = {};
   if (!r.fixiert || typeof r.fixiert !== 'object') r.fixiert = {};
+  if (!r.prio || typeof r.prio !== 'object') r.prio = {};
   return r;
 }
 function setSitzRegelnFuer(klasseId, regeln) {
@@ -7026,21 +7049,83 @@ function sitzPositionen(plan) {
 function sitzPlanAusBelegung(plan, belegung) {
   var neu=A.clone(plan); (neu.items||[]).forEach(function(it,ti){ if(!it||it.type!=='table') return; it.seats=(it.seats||[]).map(function(_,si){ return belegung[sitzKey(ti,si)]||''; }); }); return neu;
 }
-function sitzAuswertung(klasseId, plan) {
-  var r=sitzRegelnFuer(klasseId), pos=sitzPositionen(plan), byId={}; pos.forEach(function(p){if(p.id)byId[p.id]=p;});
-  var hart=0,wunsch=0,wunschGes=0, details=[];
-  r.paare.forEach(function(x){ var a=byId[x.a],b=byId[x.b]; if(!a||!b)return; var sameT=a.tisch===b.tisch, next=sameT&&Math.abs(a.platz-b.platz)===1; var bad=false, ok=false;
-    if(x.typ==='nicht-neben'){bad=next;if(bad)hart++;}
-    else if(x.typ==='nicht-tisch'){bad=sameT;if(bad)hart++;}
-    else if(x.typ==='gern-neben'){wunschGes++;ok=sameT;if(ok)wunsch++;}
-    else if(x.typ==='weit'){wunschGes++;ok=!sameT&&Math.abs(a.row-b.row)+Math.abs(a.col-b.col)>=2;if(ok)wunsch++;}
-    if(bad)details.push(x);
-  });
-  Object.keys(r.zonen).forEach(function(id){ var p=byId[id],z=r.zonen[id]; if(!p)return; wunschGes++; var rows=Math.max(1,Math.ceil((plan.items||[]).length/Math.max(1,plan.tischeProReihe))); var ok=z==='vorne'?p.row===0:z==='hinten'?p.row>=rows-1:z==='rand'?(p.col===0||p.col===plan.tischeProReihe-1):true; if(ok)wunsch++; });
-  Object.keys(r.fixiert).forEach(function(id){ if(byId[id]&&byId[id].key!==r.fixiert[id])hart++; });
-  return {hart:hart,wunsch:wunsch,wunschGes:wunschGes,details:details};
+/* V53: Prioritäten (Muss / Wichtig / Wunsch) und eine Liste, welche Regel erfüllt, verletzt oder nicht prüfbar ist */
+var SITZ_PRIO = { muss: 'Muss', wichtig: 'Wichtig', wunsch: 'Wunsch' };
+var SITZ_PRIO_RANG = { muss: 3, wichtig: 2, wunsch: 1 };
+function sitzPrioStd_(art, typ) {
+  return (art === 'fix' || (art === 'paar' && (typ === 'nicht-neben' || typ === 'nicht-tisch'))) ? 'muss' : 'wunsch';
 }
-function sitzScore(klasseId, plan){ var a=sitzAuswertung(klasseId,plan); return a.hart*10000+(a.wunschGes-a.wunsch)*25; }
+function sitzPrio_(r, art, key, typ, paar) {
+  var v = art === 'paar' ? (paar && paar.prio) : (r.prio || {})[(art === 'zone' ? 'z:' : 'f:') + key];
+  return SITZ_PRIO[v] ? v : sitzPrioStd_(art, typ);
+}
+function sitzSusN_(id) { var x = A.byId('SuS', id); return x ? A.susName(x) : '?'; }
+function sitzRegelText_(r) {
+  var lab = { 'nicht-neben': 'nicht neben', 'nicht-tisch': 'nicht am selben Tisch wie', 'gern-neben': 'bevorzugt neben', 'weit': 'möglichst weit weg von' }[r.typ] || r.typ;
+  return sitzSusN_(r.a) + ' · ' + lab + ' · ' + sitzSusN_(r.b);
+}
+function sitzAuswertung(klasseId, plan) {
+  var r = sitzRegelnFuer(klasseId), pos = sitzPositionen(plan), byId = {}; pos.forEach(function (p) { if (p.id) byId[p.id] = p; });
+  var liste = [], betroffen = {};
+  function add(e) {
+    liste.push(e);
+    if (e.status === 'verletzt') (e.sus || []).forEach(function (id) { if (!betroffen[id] || SITZ_PRIO_RANG[e.prio] > SITZ_PRIO_RANG[betroffen[id]]) betroffen[id] = e.prio; });
+  }
+  r.paare.forEach(function (x) {
+    var a = byId[x.a], b = byId[x.b], e = { art: 'paar', prio: sitzPrio_(r, 'paar', null, x.typ, x), text: sitzRegelText_(x), sus: [x.a, x.b] };
+    if (!a || !b) { e.status = 'nicht-pruefbar'; var fehl = !a ? x.a : x.b; e.grund = A.byId('SuS', fehl) ? sitzSusN_(fehl) + ' sitzt aktuell auf keinem Platz.' : 'Eine der Personen gibt es nicht mehr – Regel löschen oder ersetzen.'; add(e); return; }
+    var sameT = a.tisch === b.tisch, next = sameT && Math.abs(a.platz - b.platz) === 1, ok = true, grund = '';
+    if (x.typ === 'nicht-neben') { ok = !next; grund = 'sitzen direkt nebeneinander'; }
+    else if (x.typ === 'nicht-tisch') { ok = !sameT; grund = 'sitzen am selben Tisch'; }
+    else if (x.typ === 'gern-neben') { ok = sameT; grund = 'sitzen an verschiedenen Tischen'; }
+    else if (x.typ === 'weit') { ok = !sameT && Math.abs(a.row - b.row) + Math.abs(a.col - b.col) >= 2; grund = 'sitzen zu nah beieinander'; }
+    e.status = ok ? 'ok' : 'verletzt'; e.grund = ok ? '' : grund; add(e);
+  });
+  Object.keys(r.zonen).forEach(function (id) {
+    var p = byId[id], z = r.zonen[id], e = { art: 'zone', prio: sitzPrio_(r, 'zone', id), text: sitzSusN_(id) + ' · bevorzugt ' + z, sus: [id] };
+    if (!p) { e.status = 'nicht-pruefbar'; e.grund = 'sitzt aktuell auf keinem Platz.'; add(e); return; }
+    var rows = Math.max(1, Math.ceil((plan.items || []).length / Math.max(1, plan.tischeProReihe)));
+    var ok = z === 'vorne' ? p.row === 0 : z === 'hinten' ? p.row >= rows - 1 : z === 'rand' ? (p.col === 0 || p.col === plan.tischeProReihe - 1) : true;
+    e.status = ok ? 'ok' : 'verletzt'; e.grund = ok ? '' : 'sitzt nicht ' + (z === 'vorne' ? 'vorne' : z === 'hinten' ? 'hinten' : 'am Rand'); add(e);
+  });
+  Object.keys(r.fixiert).forEach(function (id) {
+    var p = byId[id], e = { art: 'fix', prio: sitzPrio_(r, 'fix', id), text: sitzSusN_(id) + ' · Platz fixiert', sus: [id] };
+    if (!p) { e.status = 'nicht-pruefbar'; e.grund = 'sitzt aktuell auf keinem Platz.'; add(e); return; }
+    var ok = p.key === r.fixiert[id];
+    e.status = ok ? 'ok' : 'verletzt'; e.grund = ok ? '' : 'sitzt nicht auf dem fixierten Platz'; add(e);
+  });
+  var hart = 0, wichtig = 0, wunsch = 0, wunschGes = 0, details = [];
+  liste.forEach(function (e) {
+    if (e.status === 'nicht-pruefbar') return;
+    if (e.prio === 'muss') { if (e.status === 'verletzt') { hart++; if (e.art === 'paar') details.push(e); } }
+    else { wunschGes++; if (e.status === 'ok') wunsch++; else if (e.prio === 'wichtig') wichtig++; }
+  });
+  var st = { verletzt: 0, 'nicht-pruefbar': 1, ok: 2 };
+  liste.sort(function (a, b) { return (st[a.status] - st[b.status]) || (SITZ_PRIO_RANG[b.prio] - SITZ_PRIO_RANG[a.prio]); });
+  return { hart: hart, wichtig: wichtig, wunsch: wunsch, wunschGes: wunschGes, details: details, liste: liste, betroffen: betroffen };
+}
+function sitzScore(klasseId, plan) { var a = sitzAuswertung(klasseId, plan); return a.hart * 10000 + (a.wunschGes - a.wunsch) * 25 + a.wichtig * 375; }
+function sitzKonfliktHTML_(aus) {
+  var L = aus.liste || [];
+  if (!L.length) return '<div class="small muted">Noch keine Regeln angelegt. Über „Regeln“ kannst du welche festlegen.</div>';
+  function zeile(e) {
+    var cls = e.status === 'verletzt' ? (e.prio === 'muss' ? 'bad' : e.prio === 'wichtig' ? 'warn' : 'wunsch') : e.status === 'ok' ? 'ok' : 'np';
+    return '<div class="konf-zeile ' + cls + '"><i class="konf-dot"></i><div class="konf-text"><b>' + A.esc(e.text) + '</b>' + (e.grund ? '<span>' + A.esc(e.grund) + '</span>' : '') + '</div><span class="konf-prio ' + e.prio + '">' + SITZ_PRIO[e.prio] + '</span></div>';
+  }
+  var v = L.filter(function (e) { return e.status === 'verletzt'; }), np = L.filter(function (e) { return e.status === 'nicht-pruefbar'; }), ok = L.filter(function (e) { return e.status === 'ok'; });
+  var h = '';
+  h += v.length ? '<div class="konf-titel bad">Nicht eingehalten (' + v.length + ')</div>' + v.map(zeile).join('') : '<div class="konf-allok">Alle prüfbaren Regeln sind eingehalten.</div>';
+  if (np.length) h += '<div class="konf-titel">Nicht prüfbar (' + np.length + ')</div>' + np.map(zeile).join('');
+  if (ok.length) h += '<details class="konf-ok"><summary>Eingehalten (' + ok.length + ')</summary>' + ok.map(zeile).join('') + '</details>';
+  return h;
+}
+function sitzChipsHTML_(regeln, aus) {
+  var n = regeln.paare.length + Object.keys(regeln.zonen).length + Object.keys(regeln.fixiert).length;
+  return '<div class="sitz-regel-status"><span class="sitz-regel-chip">' + n + ' Regeln</span>' +
+    '<span class="sitz-regel-chip ' + (aus.hart ? 'bad' : 'good') + '">' + (aus.hart ? aus.hart + ' Muss verletzt' : 'Muss-Regeln ok') + '</span>' +
+    (aus.wichtig ? '<span class="sitz-regel-chip warn">' + aus.wichtig + ' wichtig offen</span>' : '') +
+    (aus.wunschGes ? '<span class="sitz-regel-chip">' + aus.wunsch + '/' + aus.wunschGes + ' Wichtig/Wunsch erfüllt</span>' : '') + '</div>';
+}
 function sitzVorschlaege(klasseId, anzahl) {
   var plan=sitzPlanFlex(klasseId), reg=sitzRegelnFuer(klasseId), pos=sitzPositionen(plan), ids=A.susDerKlasse(klasseId).map(function(x){return x.id;});
   if(pos.length<ids.length) return [];
@@ -7059,7 +7144,7 @@ function sitzVorschlagTischeHTML(v){ return (v.plan.items||[]).filter(function(i
 function gruppenMitRegeln(sus, modus, zahl) {
   var basis=gruppenNormal(sus,modus,zahl), klasseId=sus[0]&&sus[0].klasseId, reg=klasseId?sitzRegelnFuer(klasseId):{paare:[]}; if(!reg.paare.length)return basis;
   var best=basis,bestScore=1e9;
-  function score(gs){var gi={};gs.forEach(function(g,i){g.forEach(function(s){gi[s.id]=i;});});var sc=0;reg.paare.forEach(function(r){if(gi[r.a]===undefined||gi[r.b]===undefined)return;var same=gi[r.a]===gi[r.b];if((r.typ==='nicht-tisch'||r.typ==='nicht-neben')&&same)sc+=1000;else if(r.typ==='gern-neben'&&!same)sc+=8;else if(r.typ==='weit'&&same)sc+=40;});return sc;}
+  function score(gs){var gi={};gs.forEach(function(g,i){g.forEach(function(s){gi[s.id]=i;});});var sc=0;reg.paare.forEach(function(r){if(gi[r.a]===undefined||gi[r.b]===undefined)return;var same=gi[r.a]===gi[r.b];var pr=sitzPrio_(reg,'paar',null,r.typ,r),f=pr==='muss'?1000:pr==='wichtig'?100:0;if((r.typ==='nicht-tisch'||r.typ==='nicht-neben')&&same)sc+=f||25;else if(r.typ==='gern-neben'&&!same)sc+=f||8;else if(r.typ==='weit'&&same)sc+=f||40;});return sc;}
   for(var i=0;i<250;i++){var g=gruppenNormal(sus,modus,zahl),sc=score(g);if(sc<bestScore){best=g;bestScore=sc;if(sc===0)break;}}
   return best;
 }
@@ -8060,6 +8145,7 @@ VIEWS.sitzplan = {
     var plan = sitzPlanFlex(k.id);
     var layout = !!ui.sitzLayout;
     var perspektive = ui.sitzPerspektive === 'pult' ? 'pult' : 'raum';
+    var aus = sitzAuswertung(k.id, plan);
     var renderItems = plan.items.slice();
 
     if (layout) {
@@ -8097,6 +8183,7 @@ VIEWS.sitzplan = {
         var s = sid ? A.byId('SuS', sid) : null;
         var key = sitzKey(ti, si);
         return '<button class="sitzplatz' + (!s ? ' frei' : '') +
+          (s && aus.betroffen[sid] ? ' konflikt-' + aus.betroffen[sid] : '') +
           (ui.sitzAuswahl === key ? ' selected' : '') + '" data-act="sitzplatz" ' +
           'data-tisch="' + ti + '" data-platz="' + si + '" data-sitz-drag="' + key + '" data-sitz-drop="' + key + '" draggable="true">' +
           (s ? A.esc(A.susKurz(s)) : 'frei') + '</button>';
@@ -8112,10 +8199,8 @@ VIEWS.sitzplan = {
     var vorne = '<div class="sitz-front-marker' + (perspektive === 'pult' ? ' unten' : '') + '"><div class="sitz-tafel">' +
       (perspektive === 'pult' ? 'Pult / vorne' : 'Tafel / vorne') + '</div></div>';
     var regeln = sitzRegelnFuer(k.id);
-    var aus = sitzAuswertung(k.id, plan);
-    var regelStatus = '<div class="sitz-regel-status"><span class="sitz-regel-chip">' + (regeln.paare.length + Object.keys(regeln.zonen).length + Object.keys(regeln.fixiert).length) + ' Regeln</span>' +
-      '<span class="sitz-regel-chip ' + (aus.hart ? 'bad' : 'good') + '">' + (aus.hart ? aus.hart + ' Konflikt(e)' : 'keine harten Konflikte') + '</span>' +
-      (aus.wunschGes ? '<span class="sitz-regel-chip">' + aus.wunsch + '/' + aus.wunschGes + ' Wünsche erfüllt</span>' : '') + '</div>';
+    var regelStatus = zuWrap_('sitz.' + k.id + '.regeln', (aus.hart > 0 || aus.wichtig > 0), sitzChipsHTML_(regeln, aus),
+      '<div class="konf-liste">' + sitzKonfliktHTML_(aus) + '</div>', 'sitz-regel-block');
 
     return card('', '<div class="card-body sitz-raum sitz-perspektive-' + perspektive + '">' + regelStatus +
         '<div class="sitz-perspektive-bar"><div class="segmented" role="group" aria-label="Perspektive">' +
@@ -10965,6 +11050,7 @@ ACT['fehlerprotokoll'] = function () {
 };
 
 var AENDERUNGEN_ = [
+  ['V53', ['Sitzplan: Regelübersicht zeigt, welche Regeln eingehalten, verletzt oder nicht prüfbar sind (mit Grund); betroffene Plätze sind farbig markiert.', 'Sitzplan-Regeln haben Prioritäten: Muss, Wichtig, Wunsch. Die Vorschläge richten sich danach.']],
   ['V52', ['Elternkommunikation als übersichtliche Blöcke pro Kind, mit Klasse neben dem Namen.', 'Klassen, Fächer, Schüler:innen und Noten lassen sich ein- und ausklappen (wird pro Gerät gemerkt).', 'Klasse steht jetzt auch bei Wiedervorlagen, Strafarbeiten und in der Craft-Übersicht beim Kind.']],
   ['V51', ['„Für heute“ steht oben, Elternhinweise sind pro Kind gruppiert (fünf offen, Rest eingeklappt).', 'Dateisicherung: Erinnerung höchstens einmal pro Woche; Hinweis zum Home-Bildschirm auf iPhone und iPad.', 'Kind-Übersicht als PDF und Notenverlauf pro Fach.', 'Elterngespräch protokollieren, mit Vereinbarung und Wiedervorlage.', 'Ferien Baden-Württemberg, Feiertage und eigene freie Tage; Stunden können „vertreten“ sein.', 'Rückgängig-Knopf nach dem Löschen, Fehlerprotokoll, dieses Fenster.']],
   ['V50', ['Daten liegen in der Geräte-Datenbank (IndexedDB), schneller Abgleich, Papierkorb, Mac-Layout über die volle Breite.']]
@@ -11165,10 +11251,12 @@ ACT['sitzregeln'] = function(el){
   var klasseId=el.getAttribute('data-klasse')||currentView().p.id, sus=A.susDerKlasse(klasseId), reg=sitzRegelnFuer(klasseId), plan=sitzPlanFlex(klasseId);
   function optionen(){return sus.map(function(x){return '<option value="'+x.id+'">'+A.esc(A.susName(x))+'</option>';}).join('');}
   function regelText(r){var a=A.byId('SuS',r.a),b=A.byId('SuS',r.b),lab={ 'nicht-neben':'nicht neben','nicht-tisch':'nicht am selben Tisch wie','gern-neben':'bevorzugt neben','weit':'möglichst weit weg von'}[r.typ]||r.typ;return (a?A.susName(a):'?')+' · '+lab+' · '+(b?A.susName(b):'?');}
-  function body(){var paar=reg.paare.map(function(r,i){return '<div class="regel-row"><span>'+A.esc(regelText(r))+'</span><button data-del-pair="'+i+'">×</button></div>';}).join('');var zon=Object.keys(reg.zonen).map(function(id){var x=A.byId('SuS',id);return '<div class="regel-row"><span>'+A.esc(x?A.susName(x):'?')+' · bevorzugt '+A.esc(reg.zonen[id])+'</span><button data-del-zone="'+id+'">×</button></div>';}).join('');var fix=Object.keys(reg.fixiert).map(function(id){var x=A.byId('SuS',id);return '<div class="regel-row"><span>'+A.esc(x?A.susName(x):'?')+' · Platz fixiert</span><button data-del-fix="'+id+'">×</button></div>';}).join('');return '<div class="hint-box">Harte Regeln werden bei Vorschlägen möglichst nie verletzt. Wünsche werden optimiert, wenn es gleichzeitig möglich ist.</div><div class="field"><label>Person A</label><select id="regelA">'+optionen()+'</select></div><div class="field"><label>Regel</label><select id="regelTyp"><option value="nicht-neben">nicht neben</option><option value="nicht-tisch">nicht am selben Tisch</option><option value="gern-neben">bevorzugt neben</option><option value="weit">möglichst weit weg</option></select></div><div class="field"><label>Person B</label><select id="regelB">'+optionen()+'</select></div><button class="btn block" data-add-pair>Regel hinzufügen</button><div class="regel-liste" data-pair-list>'+paar+'</div><hr style="border:0;border-top:1px solid var(--line-soft);margin:16px 0"><div class="field"><label>Platzwunsch</label><select id="zonePerson">'+optionen()+'</select><select id="zoneTyp" style="margin-top:7px"><option value="vorne">vorne</option><option value="hinten">hinten</option><option value="rand">am Rand</option></select></div><button class="btn block" data-add-zone>Platzwunsch hinzufügen</button><div class="regel-liste" data-zone-list>'+zon+'</div><hr style="border:0;border-top:1px solid var(--line-soft);margin:16px 0"><div class="field"><label>Aktuellen Platz fixieren</label><select id="fixPerson">'+optionen()+'</select></div><button class="btn block" data-add-fix>Aktuellen Platz fixieren</button><div class="regel-liste" data-fix-list>'+fix+'</div>';}
-  Modal.open({title:'Sitzplan-Regeln',body:body(),foot:'<button class="btn primary" data-close-rules>Fertig</button>',after:function(bg,close){function save(){setSitzRegelnFuer(klasseId,reg);}function rer(){close();setTimeout(function(){var f=document.createElement('button');f.setAttribute('data-klasse',klasseId);ACT['sitzregeln'](f);},0);}bg.querySelector('[data-add-pair]').addEventListener('click',function(){var a=bg.querySelector('#regelA').value,b=bg.querySelector('#regelB').value,typ=bg.querySelector('#regelTyp').value;if(!a||!b||a===b){window.toast('Bitte zwei verschiedene Personen wählen.',true);return;}reg.paare.push({a:a,b:b,typ:typ});save();rer();});bg.querySelector('[data-add-zone]').addEventListener('click',function(){reg.zonen[bg.querySelector('#zonePerson').value]=bg.querySelector('#zoneTyp').value;save();rer();});bg.querySelector('[data-add-fix]').addEventListener('click',function(){var id=bg.querySelector('#fixPerson').value,key='';sitzPositionen(plan).some(function(p){if(p.id===id){key=p.key;return true;}return false;});if(!key){window.toast('Person sitzt aktuell auf keinem Platz.',true);return;}reg.fixiert[id]=key;save();rer();});bg.addEventListener('click',function(e){var b=e.target.closest('[data-del-pair]');if(b){reg.paare.splice(Number(b.getAttribute('data-del-pair')),1);save();rer();return;}b=e.target.closest('[data-del-zone]');if(b){delete reg.zonen[b.getAttribute('data-del-zone')];save();rer();return;}b=e.target.closest('[data-del-fix]');if(b){delete reg.fixiert[b.getAttribute('data-del-fix')];save();rer();}});bg.querySelector('[data-close-rules]').addEventListener('click',close);}});
+  function prioBtn(attr,p){return '<button type="button" class="prio-btn '+p+'" '+attr+' title="Priorität wechseln">'+SITZ_PRIO[p]+'</button>';}
+  function prioOptionen(){return '<option value="">Standard</option><option value="muss">Muss – nie verletzen</option><option value="wichtig">Wichtig</option><option value="wunsch">Wunsch</option>';}
+  function body(){var paar=reg.paare.map(function(r,i){return '<div class="regel-row"><span>'+A.esc(regelText(r))+'</span>'+prioBtn('data-prio-pair="'+i+'"',sitzPrio_(reg,'paar',null,r.typ,r))+'<button data-del-pair="'+i+'">×</button></div>';}).join('');var zon=Object.keys(reg.zonen).map(function(id){var x=A.byId('SuS',id);return '<div class="regel-row"><span>'+A.esc(x?A.susName(x):'?')+' · bevorzugt '+A.esc(reg.zonen[id])+'</span>'+prioBtn('data-prio-zone="'+id+'"',sitzPrio_(reg,'zone',id))+'<button data-del-zone="'+id+'">×</button></div>';}).join('');var fix=Object.keys(reg.fixiert).map(function(id){var x=A.byId('SuS',id);return '<div class="regel-row"><span>'+A.esc(x?A.susName(x):'?')+' · Platz fixiert</span>'+prioBtn('data-prio-fix="'+id+'"',sitzPrio_(reg,'fix',id))+'<button data-del-fix="'+id+'">×</button></div>';}).join('');return '<div class="hint-box">Priorität: <b>Muss</b> darf nicht verletzt werden, <b>Wichtig</b> zählt stark, <b>Wunsch</b> wird erfüllt, wenn es geht. Tippe auf das Etikett einer Regel, um die Priorität zu wechseln.</div><div class="field"><label>Person A</label><select id="regelA">'+optionen()+'</select></div><div class="field"><label>Regel</label><select id="regelTyp"><option value="nicht-neben">nicht neben</option><option value="nicht-tisch">nicht am selben Tisch</option><option value="gern-neben">bevorzugt neben</option><option value="weit">möglichst weit weg</option></select></div><div class="field"><label>Person B</label><select id="regelB">'+optionen()+'</select></div><div class="field"><label>Priorität</label><select id="prioPair">'+prioOptionen()+'</select></div><button class="btn block" data-add-pair>Regel hinzufügen</button><div class="regel-liste" data-pair-list>'+paar+'</div><hr style="border:0;border-top:1px solid var(--line-soft);margin:16px 0"><div class="field"><label>Platzwunsch</label><select id="zonePerson">'+optionen()+'</select><select id="zoneTyp" style="margin-top:7px"><option value="vorne">vorne</option><option value="hinten">hinten</option><option value="rand">am Rand</option></select></div><div class="field"><label>Priorität</label><select id="prioZone">'+prioOptionen()+'</select></div><button class="btn block" data-add-zone>Platzwunsch hinzufügen</button><div class="regel-liste" data-zone-list>'+zon+'</div><hr style="border:0;border-top:1px solid var(--line-soft);margin:16px 0"><div class="field"><label>Aktuellen Platz fixieren</label><select id="fixPerson">'+optionen()+'</select></div><div class="field"><label>Priorität</label><select id="prioFix">'+prioOptionen()+'</select></div><button class="btn block" data-add-fix>Aktuellen Platz fixieren</button><div class="regel-liste" data-fix-list>'+fix+'</div>';}
+  Modal.open({title:'Sitzplan-Regeln',body:body(),foot:'<button class="btn primary" data-close-rules>Fertig</button>',after:function(bg,close){function save(){setSitzRegelnFuer(klasseId,reg);}function rer(){close();setTimeout(function(){var f=document.createElement('button');f.setAttribute('data-klasse',klasseId);ACT['sitzregeln'](f);},0);}bg.querySelector('[data-add-pair]').addEventListener('click',function(){var a=bg.querySelector('#regelA').value,b=bg.querySelector('#regelB').value,typ=bg.querySelector('#regelTyp').value;if(!a||!b||a===b){window.toast('Bitte zwei verschiedene Personen wählen.',true);return;}var pv=bg.querySelector('#prioPair').value,np={a:a,b:b,typ:typ};if(pv)np.prio=pv;reg.paare.push(np);save();rer();});bg.querySelector('[data-add-zone]').addEventListener('click',function(){var zid=bg.querySelector('#zonePerson').value,zv=bg.querySelector('#prioZone').value;reg.zonen[zid]=bg.querySelector('#zoneTyp').value;if(zv)reg.prio['z:'+zid]=zv;else delete reg.prio['z:'+zid];save();rer();});bg.querySelector('[data-add-fix]').addEventListener('click',function(){var id=bg.querySelector('#fixPerson').value,key='';sitzPositionen(plan).some(function(p){if(p.id===id){key=p.key;return true;}return false;});if(!key){window.toast('Person sitzt aktuell auf keinem Platz.',true);return;}reg.fixiert[id]=key;var fv=bg.querySelector('#prioFix').value;if(fv)reg.prio['f:'+id]=fv;else delete reg.prio['f:'+id];save();rer();});bg.addEventListener('click',function(e){var b=e.target.closest('[data-prio-pair],[data-prio-zone],[data-prio-fix]');if(b){var nxt={muss:'wichtig',wichtig:'wunsch',wunsch:'muss'};if(b.hasAttribute('data-prio-pair')){var px=reg.paare[Number(b.getAttribute('data-prio-pair'))];if(px)px.prio=nxt[sitzPrio_(reg,'paar',null,px.typ,px)];}else{var pa=b.hasAttribute('data-prio-zone')?'zone':'fix',pid=b.getAttribute(pa==='zone'?'data-prio-zone':'data-prio-fix');reg.prio[(pa==='zone'?'z:':'f:')+pid]=nxt[sitzPrio_(reg,pa,pid)];}save();rer();return;}b=e.target.closest('[data-del-pair]');if(b){reg.paare.splice(Number(b.getAttribute('data-del-pair')),1);save();rer();return;}b=e.target.closest('[data-del-zone]');if(b){delete reg.prio['z:'+b.getAttribute('data-del-zone')];delete reg.zonen[b.getAttribute('data-del-zone')];save();rer();return;}b=e.target.closest('[data-del-fix]');if(b){delete reg.prio['f:'+b.getAttribute('data-del-fix')];delete reg.fixiert[b.getAttribute('data-del-fix')];save();rer();}});bg.querySelector('[data-close-rules]').addEventListener('click',close);}});
 };
-ACT['sitzplan-vorschlaege'] = function(el){var klasseId=el.getAttribute('data-klasse')||currentView().p.id,vs=sitzVorschlaege(klasseId,3);if(!vs.length){window.toast('Es gibt nicht genug Sitzplätze für alle Schüler:innen.',true);return;}Modal.open({title:'Sitzplan-Vorschläge',body:'<div class="hint-box">Die Vorschläge berücksichtigen deine Regeln. Harte Konflikte werden zuerst minimiert, danach die Wünsche.</div>'+vs.map(function(v,i){return '<div class="vorschlag-box '+(i===0?'best':'')+'"><b>Vorschlag '+(i+1)+'</b><div class="small muted" style="margin-top:3px">'+v.aus.hart+' harte Konflikte · '+v.aus.wunsch+'/'+v.aus.wunschGes+' Wünsche erfüllt</div><div class="vorschlag-tische">'+sitzVorschlagTischeHTML(v)+'</div><button class="btn '+(i===0?'primary':'')+' block" data-use-v="'+i+'">Übernehmen</button></div>';}).join(''),after:function(bg,close){bg.addEventListener('click',function(e){var b=e.target.closest('[data-use-v]');if(!b)return;var v=vs[Number(b.getAttribute('data-use-v'))];setSitzPlanFlex(klasseId,v.plan);ui.sitzAuswahl=null;close();render();window.toast('Sitzplan übernommen');});}});};
+ACT['sitzplan-vorschlaege'] = function(el){var klasseId=el.getAttribute('data-klasse')||currentView().p.id,vs=sitzVorschlaege(klasseId,3);if(!vs.length){window.toast('Es gibt nicht genug Sitzplätze für alle Schüler:innen.',true);return;}Modal.open({title:'Sitzplan-Vorschläge',body:'<div class="hint-box">Die Vorschläge berücksichtigen deine Regeln nach Priorität: zuerst „Muss“, dann „Wichtig“, dann „Wunsch“. Unter „Regeln im Detail“ siehst du, was klappt und was nicht.</div>'+vs.map(function(v,i){return '<div class="vorschlag-box '+(i===0?'best':'')+'"><b>Vorschlag '+(i+1)+'</b><div class="small muted" style="margin-top:3px">'+v.aus.hart+' Muss-Regel(n) verletzt'+(v.aus.wichtig?' · '+v.aus.wichtig+' wichtige offen':'')+' · '+v.aus.wunsch+'/'+v.aus.wunschGes+' Wichtig/Wunsch erfüllt</div><div class="vorschlag-tische">'+sitzVorschlagTischeHTML(v)+'</div><details class="konf-details"'+((v.aus.hart||v.aus.wichtig)?' open':'')+'><summary>Regeln im Detail</summary><div class="konf-liste">'+sitzKonfliktHTML_(v.aus)+'</div></details><button class="btn '+(i===0?'primary':'')+' block" data-use-v="'+i+'">Übernehmen</button></div>';}).join(''),after:function(bg,close){bg.addEventListener('click',function(e){var b=e.target.closest('[data-use-v]');if(!b)return;var v=vs[Number(b.getAttribute('data-use-v'))];setSitzPlanFlex(klasseId,v.plan);ui.sitzAuswahl=null;close();render();window.toast('Sitzplan übernommen');});}});};
 
 ACT['suche'] = function(){
   Modal.open({title:'Suche',body:'<div class="field"><label>Suchen</label><input id="appSearch" type="search" placeholder="Name, Klasse, Fach oder Liste …" autocomplete="off"></div><div class="search-results" id="searchResults"><div class="small muted">Suchbegriff eingeben.</div></div>',after:function(bg,close){var inp=bg.querySelector('#appSearch'),out=bg.querySelector('#searchResults');function draw(){var q=String(inp.value||'').trim().toLowerCase();if(q.length<2){out.innerHTML='<div class="small muted">Mindestens zwei Zeichen eingeben.</div>';return;}var hits=[];A.klassen(true).forEach(function(k){if(String(k.name).toLowerCase().includes(q))hits.push({typ:'Klasse',titel:k.name,sub:'Klasse',view:'klasse',id:k.id});});A.list('SuS').forEach(function(x){var n=A.susName(x),kl=A.byId('Klassen',x.klasseId);if(n.toLowerCase().includes(q))hits.push({typ:'Kind',titel:n,sub:kl?kl.name:'',view:'sus',id:x.id});});A.alleKurse(true).forEach(function(k){var l=A.kursLabel(k);if(l.toLowerCase().includes(q))hits.push({typ:'Kurs',titel:l,sub:'Fach',view:'kurs',id:k.id});});aufgabenAlle().forEach(function(a){if(String(a.titel||'').toLowerCase().includes(q)){var k=A.byId('Kurse',a.kursId);hits.push({typ:a.typ==='liste'?'Liste':'To-do',titel:a.titel,sub:k?A.kursLabel(k):'',aufgabe:a.id});}});out.innerHTML=hits.length?hits.slice(0,30).map(function(h,i){return '<button class="search-hit" data-hit="'+i+'"><span class="search-type">'+A.esc(h.typ)+'</span><span><b>'+A.esc(h.titel)+'</b><small>'+A.esc(h.sub||'')+'</small></span></button>';}).join(''):'<div class="small muted">Nichts gefunden.</div>';out._hits=hits;}inp.addEventListener('input',draw);out.addEventListener('click',function(e){var b=e.target.closest('[data-hit]');if(!b)return;var h=out._hits&&out._hits[Number(b.getAttribute('data-hit'))];if(!h)return;close();setTimeout(function(){if(h.aufgabe){var f=document.createElement('button');f.setAttribute('data-aufgabe',h.aufgabe);ACT['aufgabe-open'](f);}else push(h.view,{id:h.id});},0);});setTimeout(function(){inp.focus();},30);}});
