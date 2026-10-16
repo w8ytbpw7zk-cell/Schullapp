@@ -2711,6 +2711,7 @@ input::placeholder,textarea::placeholder{color:var(--ink-3)}
       <label class="auth-check"><input id="loginRemember" type="checkbox" checked> Eingeloggt bleiben</label>
       <button class="btn primary block" type="submit" data-busy-text="Anmeldung läuft …">Anmelden</button>
       <button class="btn block" type="button" id="bioLoginBtn" hidden style="margin-top:9px">🔐 Mit Face ID / Touch ID anmelden</button>
+      <button class="btn block" type="button" id="offlineOpenBtn" hidden style="margin-top:9px">Ohne Server öffnen (Daten dieses Geräts)</button>
       <div class="auth-switch"><button type="button" id="showReset">Passwort vergessen?</button></div>
       <div class="auth-switch">Noch kein Konto? <button type="button" id="showRegister">Konto erstellen</button></div>
     </form>
@@ -2832,7 +2833,7 @@ var TABLES = ['Klassen', 'Kurse', 'SuS', 'Stundenplan', 'Stunden', 'Mitarbeit',
               'Leistungen', 'Noten', 'Checks', 'Settings'];
 
 /* Eine einzige Stelle für die Versionsangabe (Anzeige unter „Mehr“). */
-var APP_VERSION = 'V63';
+var APP_VERSION = 'V64';
 
 /* V15: Diese Adresse ist die verbindliche Login-Adresse. */
 /* V58: Keine feste Server-Adresse mehr in der App. Sie wird über den Einladungslink/-code oder Mehr → Server gesetzt. */
@@ -4198,8 +4199,10 @@ function requestApi(url, body, jsonpFallback, timeouts) {
   return postRequest(zeit1).catch(function () {
     return warte(450).then(function () { return postRequest(zeit2); });
   }).catch(function () {
-    /* Eigener Server: kein JSONP-Umweg (das gab es nur für Google Apps Script). */
-    if (!eigener) throw new Error('Der Server antwortet gerade sehr langsam. Bitte später erneut abgleichen.');
+    /* Eigener Server: kein JSONP-Umweg (das gab es nur für Google Apps Script).
+       V64: Die Bedingung war seit V62 vertauscht – der eigene Server bekam den Umweg (und damit
+       fast doppelt so lange Wartezeit sowie das Passwort in der Adresszeile), Google nicht. */
+    if (eigener) throw new Error('Server nicht erreichbar. Läuft der Mac und ist Tailscale verbunden?');
     if (jsonpFallback !== false && payloadText.length < 6500) {
       return jsonpRequest(20000);
     }
@@ -5798,6 +5801,7 @@ function showAuth(mode) {
   var details = $('#authServerDetails');
   if (details && !A.Auth.serverUrl()) details.open = true;
   biometrieLoginButtonAktualisieren();
+  var offBtn = document.getElementById('offlineOpenBtn'); if (offBtn) offBtn.hidden = true;
   if (einl) {
     var ri = $('#registerInvite'); if (ri) ri.value = einl.code;
     authStatus('Einladung erkannt: Server ist eingestellt. Bitte jetzt dein Konto erstellen.', false);
@@ -5873,6 +5877,34 @@ function biometrieLoginButtonAktualisieren() {
   if (!b) return;
   var stored = A.Auth._stored ? A.Auth._stored() : null;
   b.hidden = !(biometrieAktiv() && stored && stored.sessionToken);
+}
+/* V64: Offline öffnen. Ist der Server nicht erreichbar, soll die App trotzdem mit den Daten auf dem
+   Gerät aufgehen (lokal arbeiten, später abgleichen). Das geht nur, wenn das Gerät selbst geschützt
+   ist: mit Face ID / Touch ID oder mit der PIN-Sperre der App. */
+function netzFehlerMeldung_(err) {
+  return /nicht erreichbar|sehr langsam|zeitüberschreitung|verbindung|offline|keine gültige antwort|failed to fetch|load failed|networkerror/i.test(String(err && err.message || err));
+}
+function gespeicherteSitzung_() {
+  var st = A.Auth._stored ? A.Auth._stored() : null;
+  return !!(st && st.sessionToken && st.user);
+}
+function offlineOeffnenMoeglich_() {
+  return gespeicherteSitzung_() && (biometrieAktiv() || !!A.cfg('pin'));
+}
+function offlineOeffnenAnbieten_(err) {
+  var b = document.getElementById('offlineOpenBtn');
+  if (!b) return;
+  b.hidden = true;
+  if (!netzFehlerMeldung_(err)) return;
+  var basis = 'Der Server ist gerade nicht erreichbar (Mac aus oder Tailscale getrennt?).';
+  if (offlineOeffnenMoeglich_()) {
+    b.hidden = false;
+    authStatus(basis + ' Du kannst die App mit den Daten auf diesem Gerät trotzdem öffnen; sie gleicht später ab.', false);
+  } else if (gespeicherteSitzung_()) {
+    authStatus(basis + ' Tipp: Richte in den Einstellungen Face ID oder eine PIN ein, dann lässt sich die App auch ohne Server öffnen.', false);
+  } else {
+    authStatus(basis + ' Bitte Verbindung prüfen und noch einmal versuchen.', false);
+  }
 }
 function biometrieLoeschen() {
   A.LS.del('bioEnabled');
@@ -5966,10 +5998,19 @@ function biometrieSchnellLogin() {
       throw new Error('Die gespeicherte Anmeldung passt nicht mehr. Bitte einmal mit Passwort anmelden.');
     }
     if (!A.Auth.restore()) throw new Error('Keine gespeicherte Anmeldung vorhanden.');
-    return A.Auth.ready.then(function () { return A.Auth.validate(); });
+    return A.Auth.ready;
   }).then(function () {
+    /* V64: Face ID / Touch ID ist die Bestätigung auf dem Gerät. Die App öffnet sofort mit den
+       Daten dieses Geräts – auch wenn der Server (Mac) gerade aus ist. Die Prüfung der Server-Sitzung
+       läuft im Hintergrund; nur eine echte Abweisung (abgelaufen / Konto nicht aktiv) meldet ab. */
     anmeldungHeuteMerken_();
     startAuthenticatedApp(true);
+    A.Auth.validate().catch(function (err) {
+      if (/abgelaufen|nicht aktiv|angemeldet/i.test(String(err && err.message || err))) {
+        biometrieLoeschen();
+        A.Auth.logout().then(function () { showAuth('login'); });
+      }
+    });
     return true;
   }).catch(function (err) {
     if (/abgelaufen|nicht aktiv|angemeldet/i.test(String(err && err.message || err))) biometrieLoeschen();
@@ -6081,8 +6122,22 @@ loginForm.addEventListener('submit', function (e) {
   authBusy(loginForm, true);
   A.Auth.login($('#loginEmail').value, $('#loginPassword').value, $('#loginRemember').checked, url)
     .then(function () { $('#loginPassword').value = ''; anmeldungHeuteMerken_(); startAuthenticatedApp(true); })
-    .catch(function (err) { authStatus(err.message || String(err), false); })
+    .catch(function (err) { authStatus(err.message || String(err), false); offlineOeffnenAnbieten_(err); })
     .then(function () { authBusy(loginForm, false); });
+});
+
+$('#offlineOpenBtn').addEventListener('click', function () {
+  if (biometrieAktiv()) {
+    authStatus('Face ID / Touch ID wird geprüft …', true);
+    authBusy(loginForm, true);
+    biometrieSchnellLogin()
+      .catch(function (err) { authStatus(err.message || String(err), false); })
+      .then(function () { authBusy(loginForm, false); });
+    return;
+  }
+  /* Nur PIN: Sitzung vom Gerät laden; die PIN-Sperre der App fragt gleich danach. */
+  if (!A.Auth.restore()) { authStatus('Keine gespeicherte Anmeldung vorhanden.', false); return; }
+  A.Auth.ready.then(function () { anmeldungHeuteMerken_(); startAuthenticatedApp(true); });
 });
 
 registerForm.addEventListener('submit', function (e) {
@@ -11387,6 +11442,7 @@ ACT['fehlerprotokoll'] = function () {
 };
 
 var AENDERUNGEN_ = [
+  ['V64', ['Anmeldung ohne Server: Ist der Mac aus oder Tailscale getrennt, öffnet Face ID / Touch ID die App trotzdem mit den Daten auf dem Gerät und gleicht später ab. Ohne Face ID gibt es bei Verbindungsfehler den Knopf „Ohne Server öffnen“ (mit PIN-Sperre der App).', 'Fehler behoben: Bei nicht erreichbarem Server wartete die App seit V62 fast doppelt so lange wie vorgesehen und schickte dabei die Anmeldedaten in der Adresszeile mit. Jetzt kommt nach rund 19 Sekunden die Meldung „Server nicht erreichbar“.']],
   ['V63', ['Listen & To-dos: Titel und Unterzeile haben jetzt die gleiche Schriftgröße und Abstände wie die übrigen Zeilen.']],
   ['V62', ['Das Sync-Symbol oben dreht höchstens 6 Sekunden und gar nicht mehr im Hintergrund, wenn der Server nicht erreichbar ist. Der Punkt bleibt dann orange (Änderungen warten) statt rot und wird erst grün, wenn alles übertragen ist.', 'Wartezeit bei hängender Verbindung deutlich kürzer (bei eigenem Server rund 18 statt rund 55 Sekunden).', 'Sicherheitsnetz: Namen aus der Schülerliste werden aus Craft-Aufgaben automatisch entfernt.', 'Sitzplan: Namen brechen sauber nach dem Komma um. Stundenplan: Hinweis zum Ablegen von Kursen war ohne Formatierung und ist jetzt wie die anderen Hinweise gestaltet.']],
   ['V61', ['Sitzplan am Handy: Nach dem Tauschen von Plätzen bleibt die Ansicht an ihrer Stelle und springt nicht mehr nach links (gilt auch für andere seitlich scrollende Tabellen).', 'Sortierung der Schüler:innen bleibt in einer Zeile.', 'Abstände in „Listen & Abgaben“ korrigiert; die Listen-Knöpfe stehen auf großen Bildschirmen nebeneinander.']],
