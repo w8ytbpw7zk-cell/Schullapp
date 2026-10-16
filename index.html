@@ -2833,7 +2833,7 @@ var TABLES = ['Klassen', 'Kurse', 'SuS', 'Stundenplan', 'Stunden', 'Mitarbeit',
               'Leistungen', 'Noten', 'Checks', 'Settings'];
 
 /* Eine einzige Stelle für die Versionsangabe (Anzeige unter „Mehr“). */
-var APP_VERSION = 'V64';
+var APP_VERSION = 'V65';
 
 /* V15: Diese Adresse ist die verbindliche Login-Adresse. */
 /* V58: Keine feste Server-Adresse mehr in der App. Sie wird über den Einladungslink/-code oder Mehr → Server gesetzt. */
@@ -4215,8 +4215,8 @@ function apiCall(action, payload, timeouts) {
   return requestApi(CONN.url, Object.assign({ action: action, session: CONN.sessionToken }, payload || {}), true, timeouts);
 }
 
-function publicApiCall(action, payload, url) {
-  return requestApi(url || CONN.url, Object.assign({ action: action }, payload || {}), true);
+function publicApiCall(action, payload, url, timeouts) {
+  return requestApi(url || CONN.url, Object.assign({ action: action }, payload || {}), true, timeouts);
 }
 
 /* ---------------------------------------------------------------- Anmeldung */
@@ -4314,11 +4314,11 @@ var Auth = {
     });
   },
 
-  login: function (email, password, remember, url) {
+  login: function (email, password, remember, url, timeouts) {
     var self = this;
     url = String(url || this.serverUrl()).trim();
     this.setServerUrl(url);
-    return publicApiCall('login', { email: String(email || '').trim(), password: String(password || ''), remember: remember !== false }, url)
+    return publicApiCall('login', { email: String(email || '').trim(), password: String(password || ''), remember: remember !== false }, url, timeouts)
       .then(function (res) {
         if (!res || !res.ok) throw new Error((res && res.message) || (res && res.error) || 'Anmeldung fehlgeschlagen.');
         res.url = url;
@@ -4369,7 +4369,7 @@ var Auth = {
     var sessionToken = CONN.sessionToken;
     var logoutUserId = CONN.user && CONN.user.id ? String(CONN.user.id) : '';
 
-    if (logoutUserId) LS.del('authDaily.' + logoutUserId);
+    if (logoutUserId) { LS.del('authDaily.' + logoutUserId); LS.del('pwv.' + logoutUserId); }
     LS.del('auth');
     try { sessionStorage.removeItem('schulapp.auth.session'); } catch (e) {}
     try { sessionStorage.removeItem('schulapp.unlocked'); } catch (e2) {}
@@ -5891,6 +5891,54 @@ function gespeicherteSitzung_() {
 function offlineOeffnenMoeglich_() {
   return gespeicherteSitzung_() && (biometrieAktiv() || !!A.cfg('pin'));
 }
+/* V65: Passwort auch ohne Server prüfen. Gespeichert wird NICHT das Passwort, sondern nur ein gesalzener
+   PBKDF2-Prüfwert. Er liegt nur auf diesem Gerät (wird nicht synchronisiert), entsteht bei jeder erfolgreichen
+   Anmeldung mit Passwort bei laufendem Server und verschwindet beim Abmelden. */
+var PW_ITER_ = 300000;
+function pwKryptoOk_() { return !!(window.crypto && crypto.subtle && window.TextEncoder); }
+function pwAbleiten_(passwort, salzB64, iter) {
+  return crypto.subtle.importKey('raw', new TextEncoder().encode(String(passwort || '')), 'PBKDF2', false, ['deriveBits'])
+    .then(function (k) { return crypto.subtle.deriveBits({ name: 'PBKDF2', salt: bytesVonB64url(salzB64), iterations: iter, hash: 'SHA-256' }, k, 256); })
+    .then(function (bits) { return b64urlVonBytes(bits); });
+}
+function pwMerken_(userId, passwort) {
+  if (!pwKryptoOk_() || !userId) return Promise.resolve(false);
+  var salz = b64urlVonBytes(bytesZufall(16));
+  return pwAbleiten_(passwort, salz, PW_ITER_).then(function (h) {
+    return A.LS.set('pwv.' + userId, { s: salz, i: PW_ITER_, h: h });
+  }).catch(function () { return false; });
+}
+/* Ergebnis: true (stimmt), false (stimmt nicht) oder null (keine Prüfung möglich). */
+function pwPruefen_(userId, passwort) {
+  var v = A.LS.get('pwv.' + userId, null);
+  if (!v || !v.s || !v.h || !pwKryptoOk_()) return Promise.resolve(null);
+  return pwAbleiten_(passwort, v.s, v.i || PW_ITER_).then(function (h) { return h === v.h; }).catch(function () { return null; });
+}
+/* Liefert die Nutzer-ID, wenn auf diesem Gerät eine Sitzung zu dieser E-Mail und ein Prüfwert vorhanden sind, sonst ''. */
+function pwOfflineNutzer_(email) {
+  var st = A.Auth._stored ? A.Auth._stored() : null;
+  if (!st || !st.sessionToken || !st.user || !st.user.id) return '';
+  if (String(st.user.email || '').trim().toLowerCase() !== String(email || '').trim().toLowerCase()) return '';
+  return A.LS.get('pwv.' + st.user.id, null) ? String(st.user.id) : '';
+}
+function offlinePasswortLogin_(uid, pw) {
+  authStatus('Server nicht erreichbar – Passwort wird auf dem Gerät geprüft …', true);
+  return pwPruefen_(uid, pw).then(function (ok) {
+    if (ok === true && A.Auth.restore()) {
+      return A.Auth.ready.then(function () {
+        $('#loginPassword').value = '';
+        anmeldungHeuteMerken_();
+        startAuthenticatedApp(true);
+        window.toast('Ohne Server angemeldet – Änderungen werden später abgeglichen');
+      });
+    }
+    authStatus(ok === false
+      ? 'Server nicht erreichbar. Das Passwort stimmt nicht mit dem überein, das zuletzt bei laufendem Server benutzt wurde.'
+      : 'Server nicht erreichbar. Auf diesem Gerät ist keine Prüfung ohne Server möglich.', false);
+    var b = document.getElementById('offlineOpenBtn');
+    if (b) b.hidden = !offlineOeffnenMoeglich_();
+  });
+}
 function offlineOeffnenAnbieten_(err) {
   var b = document.getElementById('offlineOpenBtn');
   if (!b) return;
@@ -5901,7 +5949,7 @@ function offlineOeffnenAnbieten_(err) {
     b.hidden = false;
     authStatus(basis + ' Du kannst die App mit den Daten auf diesem Gerät trotzdem öffnen; sie gleicht später ab.', false);
   } else if (gespeicherteSitzung_()) {
-    authStatus(basis + ' Tipp: Richte in den Einstellungen Face ID oder eine PIN ein, dann lässt sich die App auch ohne Server öffnen.', false);
+    authStatus(basis + ' Tipp: Melde dich einmal bei laufendem Server mit deinem Passwort an, dann geht die Anmeldung künftig auch ohne Server (alternativ: Face ID oder PIN in den Einstellungen).', false);
   } else {
     authStatus(basis + ' Bitte Verbindung prüfen und noch einmal versuchen.', false);
   }
@@ -6120,9 +6168,19 @@ loginForm.addEventListener('submit', function (e) {
   if (!url) { authStatus('Bitte zuerst unten den Einladungscode oder die Server-Adresse eintragen.', false); var d = $('#authServerDetails'); if (d) d.open = true; return; }
   authStatus('Verbindung zum Server …', true);
   authBusy(loginForm, true);
-  A.Auth.login($('#loginEmail').value, $('#loginPassword').value, $('#loginRemember').checked, url)
-    .then(function () { $('#loginPassword').value = ''; anmeldungHeuteMerken_(); startAuthenticatedApp(true); })
-    .catch(function (err) { authStatus(err.message || String(err), false); offlineOeffnenAnbieten_(err); })
+  var loginMail = $('#loginEmail').value, loginPw = $('#loginPassword').value;
+  /* V65: Gibt es auf dem Gerät einen Prüfwert, wartet die Anmeldung nur kurz auf den Server und prüft sonst lokal. */
+  var offUid = pwOfflineNutzer_(loginMail);
+  A.Auth.login(loginMail, loginPw, $('#loginRemember').checked, url, offUid ? [4000, 4000] : null)
+    .then(function () {
+      $('#loginPassword').value = ''; anmeldungHeuteMerken_();
+      var u = A.Auth.currentUser(); if (u && u.id) pwMerken_(u.id, loginPw);
+      startAuthenticatedApp(true);
+    })
+    .catch(function (err) {
+      if (offUid && netzFehlerMeldung_(err)) return offlinePasswortLogin_(offUid, loginPw);
+      authStatus(err.message || String(err), false); offlineOeffnenAnbieten_(err);
+    })
     .then(function () { authBusy(loginForm, false); });
 });
 
@@ -6152,11 +6210,13 @@ registerForm.addEventListener('submit', function (e) {
   if ($('#registerPassword').value !== $('#registerPassword2').value) { authStatus('Die beiden Passwörter stimmen nicht überein.', false); return; }
   authStatus('Konto wird auf dem Server angelegt …', true);
   authBusy(registerForm, true);
+  var regPw = $('#registerPassword').value;
   A.Auth.register($('#registerName').value, $('#registerEmail').value, $('#registerPassword').value,
       $('#registerInvite').value, $('#registerRemember').checked, url)
     .then(function (res) {
       $('#registerPassword').value = ''; $('#registerPassword2').value = ''; $('#registerInvite').value = '';
       anmeldungHeuteMerken_();
+      var ru = A.Auth.currentUser(); if (ru && ru.id) pwMerken_(ru.id, regPw);
       startAuthenticatedApp(true);
       if (res.legacyClaimed) window.toast('Vorhandene Daten wurden deinem Konto zugeordnet.');
     })
@@ -11442,6 +11502,7 @@ ACT['fehlerprotokoll'] = function () {
 };
 
 var AENDERUNGEN_ = [
+  ['V65', ['Anmeldung mit Passwort geht jetzt auch ohne Server. Auf dem Gerät liegt dafür nur ein gesalzener Prüfwert, nicht das Passwort selbst. Er entsteht bei jeder Anmeldung mit Passwort bei laufendem Server (auf jedem Gerät einmal nötig), bleibt nur auf dem Gerät und verschwindet beim Abmelden.', 'Ist ein Prüfwert da, wartet die Anmeldung nur noch etwa 8 Sekunden auf den Server und prüft dann das Passwort lokal.']],
   ['V64', ['Anmeldung ohne Server: Ist der Mac aus oder Tailscale getrennt, öffnet Face ID / Touch ID die App trotzdem mit den Daten auf dem Gerät und gleicht später ab. Ohne Face ID gibt es bei Verbindungsfehler den Knopf „Ohne Server öffnen“ (mit PIN-Sperre der App).', 'Fehler behoben: Bei nicht erreichbarem Server wartete die App seit V62 fast doppelt so lange wie vorgesehen und schickte dabei die Anmeldedaten in der Adresszeile mit. Jetzt kommt nach rund 19 Sekunden die Meldung „Server nicht erreichbar“.']],
   ['V63', ['Listen & To-dos: Titel und Unterzeile haben jetzt die gleiche Schriftgröße und Abstände wie die übrigen Zeilen.']],
   ['V62', ['Das Sync-Symbol oben dreht höchstens 6 Sekunden und gar nicht mehr im Hintergrund, wenn der Server nicht erreichbar ist. Der Punkt bleibt dann orange (Änderungen warten) statt rot und wird erst grün, wenn alles übertragen ist.', 'Wartezeit bei hängender Verbindung deutlich kürzer (bei eigenem Server rund 18 statt rund 55 Sekunden).', 'Sicherheitsnetz: Namen aus der Schülerliste werden aus Craft-Aufgaben automatisch entfernt.', 'Sitzplan: Namen brechen sauber nach dem Komma um. Stundenplan: Hinweis zum Ablegen von Kursen war ohne Formatierung und ist jetzt wie die anderen Hinweise gestaltet.']],
