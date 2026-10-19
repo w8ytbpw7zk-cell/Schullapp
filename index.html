@@ -2833,7 +2833,7 @@ var TABLES = ['Klassen', 'Kurse', 'SuS', 'Stundenplan', 'Stunden', 'Mitarbeit',
               'Leistungen', 'Noten', 'Checks', 'Settings'];
 
 /* Eine einzige Stelle für die Versionsangabe (Anzeige unter „Mehr“). */
-var APP_VERSION = 'V65';
+var APP_VERSION = 'V67';
 
 /* V15: Diese Adresse ist die verbindliche Login-Adresse. */
 /* V58: Keine feste Server-Adresse mehr in der App. Sie wird über den Einladungslink/-code oder Mehr → Server gesetzt. */
@@ -3081,6 +3081,147 @@ function speicherFehlerText_(err) {
 }
 
 /**
+ * V66: Verschlüsselung des Gerätespeichers (AES-256-GCM).
+ * - Pro Konto gibt es einen zufälligen Datenschlüssel. Er liegt auf dem Gerät nur
+ *   verschlüsselt („eingepackt“) mit einem Schlüssel, der aus dem Passwort abgeleitet wird (PBKDF2).
+ * - Nach der Anmeldung mit Passwort gilt der entsperrte Schlüssel bis Mitternacht (Tagesschlüssel,
+ *   nicht auslesbar in IndexedDB). Danach ist einmal das Passwort nötig.
+ * - Ohne Schlüssel wird nichts geladen und nichts geschrieben (gesperrt).
+ */
+var Krypto = {
+  ITER: 310000,
+  _keys: {},
+  _pw: null,
+  _verworfen: {},
+  gesperrt: false,
+  hinweis: '',
+
+  verfuegbar: function () {
+    return !!(global.crypto && global.crypto.subtle && global.TextEncoder && global.TextDecoder && global.isSecureContext !== false);
+  },
+  passwortVormerken: function (pw) { this._pw = String(pw || ''); },
+  passwortVergessen: function () { this._pw = null; },
+  schluessel: function (uid) { return this._keys[uid] || null; },
+  eingerichtet: function (uid) { return !!LS.get('dek.' + uid, null); },
+
+  _zufall: function (n) { var b = new Uint8Array(n); global.crypto.getRandomValues(b); return b; },
+  _b64: function (buf) {
+    var b = new Uint8Array(buf), s = '';
+    for (var i = 0; i < b.length; i++) s += String.fromCharCode(b[i]);
+    return btoa(s);
+  },
+  _bytes: function (b64) {
+    var s = atob(String(b64 || '')), b = new Uint8Array(s.length);
+    for (var i = 0; i < s.length; i++) b[i] = s.charCodeAt(i);
+    return b;
+  },
+  _kek: function (pw, salz, iter) {
+    var sub = global.crypto.subtle;
+    return sub.importKey('raw', new TextEncoder().encode(pw), 'PBKDF2', false, ['deriveKey']).then(function (k) {
+      return sub.deriveKey({ name: 'PBKDF2', salt: salz, iterations: iter, hash: 'SHA-256' }, k, { name: 'AES-GCM', length: 256 }, false, ['encrypt', 'decrypt']);
+    });
+  },
+  _importieren: function (roh) {
+    return global.crypto.subtle.importKey('raw', roh, { name: 'AES-GCM' }, false, ['encrypt', 'decrypt']);
+  },
+  /* Neuen Datenschlüssel anlegen und mit dem Passwort eingepackt ablegen. */
+  _neu: function (uid, pw) {
+    var self = this, roh = this._zufall(32), salz = this._zufall(16), iv = this._zufall(12);
+    return this._kek(pw, salz, this.ITER).then(function (kek) {
+      return global.crypto.subtle.encrypt({ name: 'AES-GCM', iv: iv }, kek, roh);
+    }).then(function (c) {
+      if (!LS.set('dek.' + uid, { v: 1, s: self._b64(salz), i: self.ITER, iv: self._b64(iv), c: self._b64(c) })) throw new Error('Schlüssel konnte nicht gespeichert werden');
+      return self._importieren(roh);
+    });
+  },
+  /* Datenschlüssel mit dem Passwort entsperren (bzw. beim ersten Mal anlegen). */
+  _ausPasswort: function (uid, pw) {
+    var self = this, w = LS.get('dek.' + uid, null);
+    if (!w || !w.s || !w.iv || !w.c) return this._neu(uid, pw);
+    return this._kek(pw, this._bytes(w.s), w.i || this.ITER).then(function (kek) {
+      return global.crypto.subtle.decrypt({ name: 'AES-GCM', iv: self._bytes(w.iv) }, kek, self._bytes(w.c));
+    }).then(function (roh) { return self._importieren(roh); }, function () {
+      /* Der Server hat das Passwort angenommen, der alte Schlüssel passt aber nicht (Passwort wurde
+         zurückgesetzt). Die Gerätekopie ist dann nicht mehr lesbar und wird neu vom Server geladen. */
+      self._verworfen[uid] = true;
+      return self._neu(uid, pw);
+    });
+  },
+  _tagSchluessel: function (db, uid) {
+    var self = this;
+    if (!db) return Promise.resolve(null);
+    return new Promise(function (resolve) {
+      try {
+        var tx = db.transaction('kv', 'readonly'), rq = tx.objectStore('kv').get('ek:' + uid);
+        rq.onsuccess = function () {
+          var v = rq.result;
+          if (v && v.k && v.tag === todayISO()) resolve(v.k);
+          else { if (v) self._tagLoeschen(db, uid); resolve(null); }
+        };
+        rq.onerror = function () { resolve(null); };
+      } catch (e) { resolve(null); }
+    });
+  },
+  _tagMerken: function (db, uid, key) {
+    if (!db) return Promise.resolve(false);
+    return new Promise(function (resolve) {
+      try {
+        var tx = db.transaction('kv', 'readwrite');
+        tx.objectStore('kv').put({ k: key, tag: todayISO() }, 'ek:' + uid);
+        tx.oncomplete = function () { resolve(true); };
+        tx.onabort = tx.onerror = function () { resolve(false); };
+      } catch (e) { resolve(false); }
+    });
+  },
+  _tagLoeschen: function (db, uid) {
+    if (!db) return;
+    try { db.transaction('kv', 'readwrite').objectStore('kv').delete('ek:' + uid); } catch (e) {}
+  },
+  /* Liefert den Schlüssel des Kontos: aus dem Arbeitsspeicher, aus dem vorgemerkten Passwort
+     oder aus dem Tagesschlüssel. null = gesperrt (bzw. Verschlüsselung nicht verfügbar). */
+  bereitstellen: function (uid, db) {
+    var self = this;
+    if (!this.verfuegbar() || !uid) return Promise.resolve(null);
+    var pw = this._pw;
+    if (pw !== null) {
+      this._pw = null;
+      return this._ausPasswort(uid, pw).then(function (key) {
+        self._keys[uid] = key;
+        return self._tagMerken(db, uid, key).then(function () { return key; });
+      }, function () { return self._keys[uid] || null; });
+    }
+    if (this._keys[uid]) return Promise.resolve(this._keys[uid]);
+    return this._tagSchluessel(db, uid).then(function (k) { if (k) self._keys[uid] = k; return k; });
+  },
+  /* Beim Abmelden: Schlüssel aus dem Arbeitsspeicher und den Tagesschlüssel entfernen.
+     Der eingepackte Datenschlüssel bleibt, damit nicht gesendete Änderungen beim nächsten Login lesbar sind. */
+  vergessen: function (uid, db) {
+    delete this._keys[uid];
+    this._tagLoeschen(db, uid);
+  },
+  verwerfenPruefen: function (uid) { var v = !!this._verworfen[uid]; delete this._verworfen[uid]; return v; },
+
+  istVerpackt: function (v) { return !!(v && typeof v === 'object' && v.enc === 1 && v.iv && v.c); },
+  /* Wert → { enc: 1, iv, c } (Binärdaten; mit text=true als Base64 für localStorage). */
+  verpacken: function (key, wert, text) {
+    var self = this, iv = this._zufall(12);
+    var daten = new TextEncoder().encode(JSON.stringify(wert === undefined ? null : wert));
+    return global.crypto.subtle.encrypt({ name: 'AES-GCM', iv: iv }, key, daten).then(function (c) {
+      return text ? { enc: 1, iv: self._b64(iv), c: self._b64(c) } : { enc: 1, iv: iv, c: c };
+    });
+  },
+  auspacken: function (key, v) {
+    if (!this.istVerpackt(v)) return Promise.resolve(v);
+    if (!key) return Promise.reject(new Error('Gerätespeicher ist gesperrt'));
+    var iv = typeof v.iv === 'string' ? this._bytes(v.iv) : v.iv;
+    var c = typeof v.c === 'string' ? this._bytes(v.c) : v.c;
+    return global.crypto.subtle.decrypt({ name: 'AES-GCM', iv: iv }, key, c).then(function (klar) {
+      return JSON.parse(new TextDecoder().decode(klar));
+    });
+  }
+};
+
+/**
  * Geräte-Datenbank (IndexedDB).
  * Der Bestand liegt weiter komplett im Arbeitsspeicher (DB/QUEUE), damit die
  * App synchron bleibt. Geändert wird nur gebündelt und im Hintergrund auf die
@@ -3179,10 +3320,74 @@ var Store = {
       TABLES.forEach(function (t) { hole('u:' + uid + ':t:' + t, function (v) { if (v !== undefined) out.tables[t] = v; }); });
       tx.oncomplete = function () { resolve(out); };
       tx.onabort = tx.onerror = function () { reject(tx.error || new Error('Lesefehler')); };
+    }).then(function (out) { return Store._entschluesseln(uid, out); });
+  },
+
+  /* V66: Entschlüsselt einen gelesenen Stand. out.klartext = true, wenn noch unverschlüsselte Werte dabei waren. */
+  _entschluesseln: function (uid, out) {
+    var key = Krypto.schluessel(uid);
+    var jobs = [];
+    out.klartext = false;
+    function eins(v, setzen) {
+      if (v === null || v === undefined) return;
+      if (!Krypto.istVerpackt(v)) { out.klartext = true; return; }
+      jobs.push(Krypto.auspacken(key, v).then(setzen));
+    }
+    eins(out.meta, function (w) { out.meta = w; });
+    eins(out.queue, function (w) { out.queue = w; });
+    Object.keys(out.tables).forEach(function (t) { eins(out.tables[t], function (w) { out.tables[t] = w; }); });
+    return Promise.all(jobs).then(function () { return out; });
+  },
+
+  /* V66: Verschlüsselt einen Stand vor dem Schreiben. Ohne Schlüssel wird nicht geschrieben. */
+  _verschluesseln: function (uid, snap) {
+    if (!Krypto.verfuegbar()) return Promise.resolve(snap);
+    var key = Krypto.schluessel(uid);
+    if (!key) return Promise.reject(new Error('Gerätespeicher ist gesperrt'));
+    var out = { tables: {}, queue: null, meta: null };
+    var jobs = [];
+    Object.keys(snap.tables || {}).forEach(function (t) { jobs.push(Krypto.verpacken(key, snap.tables[t]).then(function (v) { out.tables[t] = v; })); });
+    if (snap.queue) jobs.push(Krypto.verpacken(key, snap.queue).then(function (v) { out.queue = v; }));
+    if (snap.meta) jobs.push(Krypto.verpacken(key, snap.meta).then(function (v) { out.meta = v; }));
+    return Promise.all(jobs).then(function () { return out; });
+  },
+
+  /* V66: Entfernt den gesamten Gerätebestand eines Kontos (nur wenn er nicht mehr entschlüsselbar ist). */
+  _kontoLeeren: function (uid) {
+    var db = this._db;
+    if (!db) return Promise.resolve();
+    return new Promise(function (resolve) {
+      try {
+        var tx = db.transaction(['kv', 'q'], 'readwrite'), st = tx.objectStore('kv');
+        st.delete('u:' + uid + ':meta');
+        TABLES.forEach(function (t) { st.delete('u:' + uid + ':t:' + t); });
+        tx.objectStore('q').delete('u:' + uid);
+        tx.oncomplete = tx.onabort = tx.onerror = function () { resolve(); };
+      } catch (e) { resolve(); }
     });
   },
 
+  /* V66: localStorage-Ausweichspeicher, ebenfalls verschlüsselt. Liefert true/false. */
+  _lsSchreiben: function (uid, name, wert) {
+    if (!Krypto.verfuegbar()) return Promise.resolve(LS.set('user.' + uid + '.' + name, wert));
+    var key = Krypto.schluessel(uid);
+    if (!key) return Promise.reject(new Error('Gerätespeicher ist gesperrt'));
+    return Krypto.verpacken(key, wert, true).then(function (v) { return LS.set('user.' + uid + '.' + name, v); });
+  },
+  _lsLesen: function (uid, name, fallback) {
+    var v = LS.get('user.' + uid + '.' + name, null);
+    if (v === null) return Promise.resolve(fallback);
+    return Krypto.auspacken(Krypto.schluessel(uid), v);
+  },
+
   _schreiben: function (uid, snap) {
+    var self = this;
+    return this._verschluesseln(uid, snap).then(function (enc) {
+      return self._schreibenRoh(uid, enc);
+    });
+  },
+
+  _schreibenRoh: function (uid, snap) {
     var db = this._db;
     return new Promise(function (resolve, reject) {
       var tx, st;
@@ -3200,6 +3405,14 @@ var Store = {
 
   /** Schreibt nur die Warteschlange (noch nicht gesendete Änderungen). Klein und schnell. */
   _schreibenQueue: function (uid, queue) {
+    var self = this;
+    var p = Krypto.verfuegbar()
+      ? (Krypto.schluessel(uid) ? Krypto.verpacken(Krypto.schluessel(uid), queue) : Promise.reject(new Error('Gerätespeicher ist gesperrt')))
+      : Promise.resolve(queue);
+    return p.then(function (enc) { return self._schreibenQueueRoh(uid, enc); });
+  },
+
+  _schreibenQueueRoh: function (uid, queue) {
     var db = this._db;
     return new Promise(function (resolve, reject) {
       var tx;
@@ -3223,7 +3436,7 @@ var Store = {
 
   /** Merkt Änderungen vor. Die Warteschlange wird fast sofort gesichert, die Tabellen gebündelt nach kurzer Pause. */
   markieren: function (tabellen, queue, meta) {
-    if (!CURRENT_USER_ID || this.istVorschau()) return;
+    if (!CURRENT_USER_ID || this.istVorschau() || Krypto.gesperrt) return;
     var self = this;
     if (!tabellen) TABLES.forEach(function (t) { self._dirty[t] = true; });
     else tabellen.forEach(function (t) { self._dirty[t] = true; });
@@ -3251,10 +3464,14 @@ var Store = {
     clearTimeout(this._qTimer);
     this._qTimer = null;
     var uid = CURRENT_USER_ID;
-    if (!uid || this.istVorschau() || !this._queueDirty) return this._qKette;
+    if (!uid || this.istVorschau() || !this._queueDirty || Krypto.gesperrt) return this._qKette;
     if (this.mode === 'ls') {
-      if (LS.set('user.' + uid + '.queue', QUEUE)) this._queueDirty = false;
-      return Promise.resolve();
+      this._queueDirty = false;
+      var lsSnap = QUEUE;
+      this._qKette = this._qKette.then(function () { return self._lsSchreiben(uid, 'queue', lsSnap); }).then(function (ok) {
+        if (!ok) self._queueDirty = true;
+      }, function (err) { self._queueDirty = true; self.fehlerMelden(speicherFehlerText_(err)); });
+      return this._qKette;
     }
     if (this.mode !== 'idb' || !this._db) return this._qKette;   // Datenbank noch nicht offen: bleibt vorgemerkt
     this._queueDirty = false;
@@ -3276,7 +3493,7 @@ var Store = {
     this._timer = null;
     this._erster = 0;
     var uid = CURRENT_USER_ID;
-    if (!uid || this.istVorschau()) {
+    if (!uid || this.istVorschau() || Krypto.gesperrt) {
       this._dirty = {}; this._queueDirty = false; this._metaDirty = false;
       return Promise.resolve();
     }
@@ -3289,10 +3506,13 @@ var Store = {
       var o = {};
       TABLES.forEach(function (t) { o[t] = DB[t]; });
       o._meta = this.metaStand();
-      var ok1 = LS.set('user.' + uid + '.db', o);
-      var ok2 = LS.set('user.' + uid + '.queue', QUEUE);
-      if (ok1 && ok2) { this.letzteSicherung = new Date().toISOString(); this.fehlerLoeschen(); }
-      return Promise.resolve();
+      var qSnap = QUEUE;
+      this._kette = this._kette.then(function () {
+        return Promise.all([self._lsSchreiben(uid, 'db', o), self._lsSchreiben(uid, 'queue', qSnap)]);
+      }).then(function (r) {
+        if (r[0] && r[1]) { self.letzteSicherung = new Date().toISOString(); self.fehlerLoeschen(); }
+      }, function (err) { self.fehlerMelden(speicherFehlerText_(err)); });
+      return this._kette;
     }
     if (this.mode !== 'idb' || !this._db) return this._kette;   // Datenbank noch nicht offen: Vormerkungen bleiben stehen
 
@@ -3402,17 +3622,28 @@ function loadLocal() {
   if (Store.istVorschau()) { Store.mode = 'speicher'; return Promise.resolve(true); }
 
   function ausLS() {
-    var d = LS.get('user.' + uid + '.db', null);
-    if (d) TABLES.forEach(function (t) { DB[t] = Array.isArray(d[t]) ? d[t] : []; });
-    QUEUE = LS.get('user.' + uid + '.queue', {}) || {};
-    Store.meta = (d && d._meta) ? d._meta : {};
-    sxVerwerfen_();
-    return true;
+    return Promise.all([Store._lsLesen(uid, 'db', null), Store._lsLesen(uid, 'queue', {})]).then(function (r) {
+      if (gen !== LOADGEN) return false;
+      var d = r[0];
+      if (d) TABLES.forEach(function (t) { DB[t] = Array.isArray(d[t]) ? d[t] : []; });
+      QUEUE = r[1] || {};
+      Store.meta = (d && d._meta) ? d._meta : {};
+      sxVerwerfen_();
+      if (Krypto.schluessel(uid) && (d && !Krypto.istVerpackt(LS.get('user.' + uid + '.db', null)))) Store.markieren(null, true, true);
+      return true;
+    }, function () {
+      if (gen !== LOADGEN) return false;
+      Store.fehlerMelden('Die verschlüsselten Daten auf diesem Gerät ließen sich nicht lesen. Der Stand wird neu vom Server geladen.');
+      LS.del('user.' + uid + '.db'); LS.del('user.' + uid + '.queue');
+      Store.meta = {};
+      return true;
+    });
   }
 
   function migrationAusLS() {
     var d = LS.get('user.' + uid + '.db', null);
     var q = LS.get('user.' + uid + '.queue', {}) || {};
+    if (Krypto.istVerpackt(d) || Krypto.istVerpackt(q)) { d = null; q = {}; }
     if (!d) {
       Store.meta = { v: 1, cursor: '', vollAm: '' };
       return true;
@@ -3440,8 +3671,25 @@ function loadLocal() {
     });
   }
 
+  var dbOffen = null;
   return Store.oeffnen().then(function (db) {
+    if (gen !== LOADGEN) return null;
+    dbOffen = db;
+    /* V66: Ohne Schlüssel bleibt der Gerätespeicher zu. */
+    return Krypto.bereitstellen(uid, db);
+  }).then(function (key) {
     if (gen !== LOADGEN) return false;
+    Krypto.gesperrt = Krypto.verfuegbar() && !key;
+    if (Krypto.gesperrt) return false;
+    var db = dbOffen;
+    if (Krypto.verwerfenPruefen(uid)) {
+      Krypto.hinweis = 'Dein Passwort wurde geändert. Die alte, verschlüsselte Kopie auf diesem Gerät war damit nicht mehr lesbar und wurde verworfen; der Stand kommt neu vom Server.';
+      Store.fehlerMelden(Krypto.hinweis);
+      LS.del('user.' + uid + '.db'); LS.del('user.' + uid + '.queue');
+      if (db) return Store._kontoLeeren(uid).then(function () { Store.meta = { v: 1, cursor: '', vollAm: '' }; return true; });
+      Store.meta = {};
+      return true;
+    }
     if (!db) return ausLS();
     return Store._lesen(uid).then(function (data) {
       if (gen !== LOADGEN) return false;
@@ -3451,12 +3699,19 @@ function loadLocal() {
         Store.meta = data.meta || {};
         sxVerwerfen_();
         queueEinarbeiten_();
+        /* V66: Bisher unverschlüsselt gespeicherte Werte werden jetzt verschlüsselt neu geschrieben. */
+        if (data.klartext && key) Store.markieren(null, true, true);
         legacyAufraeumen_(uid);
         return true;
       }
       return migrationAusLS();
     }, function (err) {
       if (gen !== LOADGEN) return false;
+      if (key && /OperationError|entschl|gesperrt/i.test(String(err && (err.name + ' ' + err.message) || err))) {
+        Krypto.hinweis = 'Die verschlüsselten Daten auf diesem Gerät ließen sich nicht lesen. Der Stand wird neu vom Server geladen.';
+        Store.fehlerMelden(Krypto.hinweis);
+        return Store._kontoLeeren(uid).then(function () { Store.meta = { v: 1, cursor: '', vollAm: '' }; return true; });
+      }
       Store.fehlerMelden('Der Gerätespeicher konnte nicht gelesen werden (' + String(err && err.name || err) + '). Es wird der bisherige Speicher benutzt.');
       Store.mode = 'ls';
       return ausLS();
@@ -3494,7 +3749,8 @@ function legacyAufraeumen_(uid) {
   var m = Store.meta || {};
   if (!m.migriertAus) return;
   var alter = Date.now() - Date.parse(m.migriertAm || '');
-  if (!isFinite(alter) || alter < 3 * 86400000) return;
+  /* V66: Mit Verschlüsselung bleibt keine Klartextkopie liegen. */
+  if (!Krypto.schluessel(uid) && (!isFinite(alter) || alter < 3 * 86400000)) return;
   LS.del('user.' + uid + '.db');
   LS.del('user.' + uid + '.queue');
   LS.del('db');
@@ -4373,11 +4629,18 @@ var Auth = {
     LS.del('auth');
     try { sessionStorage.removeItem('schulapp.auth.session'); } catch (e) {}
     try { sessionStorage.removeItem('schulapp.unlocked'); } catch (e2) {}
-    /* Noch nicht gesicherte Änderungen zuerst festhalten, dann den Arbeitsspeicher leeren. */
-    Store.sichern();
+    /* Noch nicht gesicherte Änderungen zuerst festhalten, dann den Arbeitsspeicher leeren.
+       V66: Erst danach den Schlüssel vergessen (die Sicherung braucht ihn noch). */
+    var sicherung = Store.sichern();
+    if (logoutUserId) {
+      Promise.resolve(sicherung).then(null, function () {}).then(function () {
+        if (CURRENT_USER_ID !== logoutUserId) Krypto.vergessen(logoutUserId, Store._db);
+      });
+    }
     CONN.sessionToken = '';
     CONN.user = null;
     CURRENT_USER_ID = '';
+    Krypto.gesperrt = false;
     LOADGEN++;
     resetMemory();
     Store.zuruecksetzen();
@@ -4460,7 +4723,7 @@ var Sync = {
 
   flush: function (silent) {
     var self = this;
-    if (!this.configured()) return Promise.resolve(false);
+    if (!this.configured() || Krypto.gesperrt) return Promise.resolve(false);
 
     /* Läuft bereits eine Übertragung, warten weitere Änderungen auf dieselbe
        Übertragung und werden direkt danach nachgeschoben. */
@@ -4557,6 +4820,7 @@ var Sync = {
     var self = this;
     opts = opts || {};
     if (!this.configured()) return Promise.reject(new Error('Nicht angemeldet.'));
+    if (Krypto.gesperrt) return Promise.resolve(null);
 
     if (this._pullPromise) {
       var laufend = this._pullPromise;
@@ -5501,7 +5765,7 @@ global.A = {
   mitarbeitBewertung: mitarbeitBewertung, setMitarbeitBewertung: setMitarbeitBewertung,
   CHECK_VORLAGEN: CHECK_VORLAGEN, CHECK_ZUSTAENDE: CHECK_ZUSTAENDE,
   VERSION: APP_VERSION,
-  DB: DB, LS: LS, Sync: Sync, Auth: Auth, Store: Store,
+  DB: DB, LS: LS, Sync: Sync, Auth: Auth, Store: Store, Krypto: Krypto,
   loadLocal: loadLocal, saveLocal: saveLocal, migriere: migriere, settingsMigrieren: settingsMigrieren,
   papierkorbListe: papierkorbListe, papierkorbWiederherstellen: papierkorbWiederherstellen, papierkorbVerwerfen: papierkorbVerwerfen,
   doppelteKlassen: doppelteKlassen, klassenZusammenfuehren: klassenZusammenfuehren, klassenDuplikate: klassenDuplikate, klassenGetrenntMerken: klassenGetrenntMerken, klassenGruppeZusammenfuehren: klassenGruppeZusammenfuehren, namensSchluessel: namensSchluessel,
@@ -5924,6 +6188,7 @@ function pwOfflineNutzer_(email) {
 function offlinePasswortLogin_(uid, pw) {
   authStatus('Server nicht erreichbar – Passwort wird auf dem Gerät geprüft …', true);
   return pwPruefen_(uid, pw).then(function (ok) {
+    if (ok === true) A.Krypto.passwortVormerken(pw);
     if (ok === true && A.Auth.restore()) {
       return A.Auth.ready.then(function () {
         $('#loginPassword').value = '';
@@ -6105,8 +6370,19 @@ function klassenDuplikateFragen_() {
   });
 }
 
+/* V66: Gerätespeicher ist verschlüsselt und heute noch nicht entsperrt → Anmeldung mit Passwort. */
+function kryptoSperreZeigen_() {
+  showAuth('login');
+  var st = A.Auth._stored ? A.Auth._stored() : null;
+  if (st && st.user && st.user.email) $('#loginEmail').value = st.user.email;
+  authStatus('Die Daten auf diesem Gerät sind verschlüsselt. Bitte heute einmal mit deinem Passwort entsperren (auf iPad/iPhone: ins Passwortfeld tippen und mit Face ID einsetzen).', false);
+  var b = document.getElementById('offlineOpenBtn'); if (b) b.hidden = true;
+}
+
 function startAuthenticatedApp(pullNow) {
+  if (A.Krypto.gesperrt) { kryptoSperreZeigen_(); return; }
   hideAuth();
+  if (A.Krypto.hinweis) { var kh = A.Krypto.hinweis; A.Krypto.hinweis = ''; setTimeout(function () { window.toast(kh, true); }, 600); }
   A.migriere();
   A.Sync.update();
   pinSetup();
@@ -6171,6 +6447,7 @@ loginForm.addEventListener('submit', function (e) {
   var loginMail = $('#loginEmail').value, loginPw = $('#loginPassword').value;
   /* V65: Gibt es auf dem Gerät einen Prüfwert, wartet die Anmeldung nur kurz auf den Server und prüft sonst lokal. */
   var offUid = pwOfflineNutzer_(loginMail);
+  A.Krypto.passwortVormerken(loginPw);
   A.Auth.login(loginMail, loginPw, $('#loginRemember').checked, url, offUid ? [4000, 4000] : null)
     .then(function () {
       $('#loginPassword').value = ''; anmeldungHeuteMerken_();
@@ -6181,7 +6458,7 @@ loginForm.addEventListener('submit', function (e) {
       if (offUid && netzFehlerMeldung_(err)) return offlinePasswortLogin_(offUid, loginPw);
       authStatus(err.message || String(err), false); offlineOeffnenAnbieten_(err);
     })
-    .then(function () { authBusy(loginForm, false); });
+    .then(function () { authBusy(loginForm, false); A.Krypto.passwortVergessen(); });
 });
 
 $('#offlineOpenBtn').addEventListener('click', function () {
@@ -6211,6 +6488,7 @@ registerForm.addEventListener('submit', function (e) {
   authStatus('Konto wird auf dem Server angelegt …', true);
   authBusy(registerForm, true);
   var regPw = $('#registerPassword').value;
+  A.Krypto.passwortVormerken(regPw);
   A.Auth.register($('#registerName').value, $('#registerEmail').value, $('#registerPassword').value,
       $('#registerInvite').value, $('#registerRemember').checked, url)
     .then(function (res) {
@@ -6221,7 +6499,7 @@ registerForm.addEventListener('submit', function (e) {
       if (res.legacyClaimed) window.toast('Vorhandene Daten wurden deinem Konto zugeordnet.');
     })
     .catch(function (err) { authStatus(err.message || String(err), false); })
-    .then(function () { authBusy(registerForm, false); });
+    .then(function () { authBusy(registerForm, false); A.Krypto.passwortVergessen(); });
 });
 
 resetForm.addEventListener('submit', function (e) {
@@ -7357,7 +7635,7 @@ function inboxHTML(datum){
     if(it.typ==='wiedervorlage')return '<div class="today-task"><button class="inbox-open" data-act="open-sus" data-sus="'+it.sus.id+'"><div class="inbox-icon">↻</div><div class="inbox-main"><b>'+A.esc(it.titel)+klasseChip_(it.sus)+'</b>'+'<span>'+A.esc(it.sub)+'</span></div><div class="chev">›</div></button><div class="today-task-actions"><button class="btn small" data-act="wv-erledigt" data-id="'+A.esc(it.wv.id)+'">Erledigt</button></div></div>';
     return '<div class="today-task"><button class="inbox-open" data-act="open-sus" data-sus="'+it.sus.id+'"><div class="inbox-icon">!</div><div class="inbox-main"><b>'+A.esc(it.titel)+klasseChip_(it.sus)+'</b>'+'<span>'+A.esc(it.sub)+'</span></div><div class="chev">›</div></button></div>';
   }
-  var elternKopf='<div class="today-section-head"><div class="today-section-title"><h3>Elternkommunikation</h3><span class="today-count">'+eltern.length+'</span></div><button class="ghost-link" data-act="eltern-generator">Neue Nachricht</button></div>';
+  var elternKopf='<div class="today-section-head"><div class="today-section-title"><h3>Elternkommunikation</h3><span class="today-count">'+eltern.length+'</span></div><button class="btn small" style="white-space:nowrap;flex-shrink:0" data-act="eltern-generator">Neue Nachricht</button></div>';
   var elternSection=zuWrap_('heute.eltern',true,elternKopf,eltern.length?'<div class="parent-list">'+elternGruppiert(eltern)+'</div>':'<div class="inbox-empty">Heute ist keine Elternkommunikation offen.</div>','today-section');
   var taskKopf='<div class="today-section-head"><div class="today-section-title"><h3>Aufgaben & Rückläufe</h3><span class="today-count">'+aufgaben.length+'</span></div><span class="today-section-note">nur für Klassen, die du heute hast</span></div>';
   var taskSection=zuWrap_('heute.aufgaben',true,taskKopf,aufgaben.length?'<div class="task-list">'+aufgaben.map(taskRow).join('')+'</div>':'<div class="inbox-empty">Für heute sind keine Rückläufe oder offenen Aufgaben fällig.</div>','today-section');
@@ -8659,7 +8937,22 @@ VIEWS.kurs = {
 
     var craftUrl=craftLinkFuer_(kurs.id);
     var h = !craftAn_()?'':'<section class="craft-strip"><div><span class="craft-mark">C</span><div><b>Unterrichtsplanung in Craft</b><small>' + (craftUrl?'Dokument verknüpft':'Noch kein Dokument verknüpft') + '</small></div></div><div class="craft-actions">' + (craftUrl?'<button class="btn" data-act="craft-open" data-kurs="'+kurs.id+'">In Craft öffnen</button>':'') + '<button class="btn" data-act="craft-link" data-kurs="'+kurs.id+'">' + (craftUrl?'Link ändern':'Craft verknüpfen') + '</button></div></section>';
-    h += card('Aktuelle Unterrichtsreihe', unterrichtsreiheHTML_(kurs.id,false));
+    /* V67: Leistungen stehen oben, die Unterrichtsreihe ganz unten (wird selten gebraucht). */
+    var leistungen = A.list('Leistungen', function (l) { return l.kursId === kurs.id; })
+      .sort(function (a, b) { return String(b.datum).localeCompare(String(a.datum)); });
+
+    var lRows = leistungen.length ? leistungen.map(function (l) {
+      var noten = sus.map(function (s) { return A.noteFuer(l, s.id, kurs); }).filter(function (n) { return n !== null; });
+      var schnitt = noten.length ? noten.reduce(function (a, b) { return a + b; }, 0) / noten.length : null;
+      return '<button class="row" data-act="open-leistung" data-leistung="' + l.id + '">' +
+        '<div class="row-main"><div class="row-title">' + A.esc(l.titel || l.kategorie) + '</div>' +
+        '<div class="row-sub">' + A.esc(l.kategorie) + ' · ' + (l.datum ? A.fmtDateShort(l.datum) : 'ohne Datum') +
+        ' · ' + noten.length + '/' + sus.length + ' eingetragen</div></div>' +
+        '<div class="row-val">' + A.fmtNote(schnitt) + '</div><div class="chev">›</div></button>';
+    }).join('') : empty('📝', 'Noch keine Leistungen erfasst.');
+
+    h += card('Leistungen', lRows);
+    h += '<button class="btn primary block" data-act="leistung-neu" data-kurs="' + kurs.id + '">Neue Leistung</button>';
     h += card('Listen & To-dos', aufgabenRows(kurs, true), 'aufgaben-card');
 
     h += card('Notenspiegel (Gesamtnoten)',
@@ -8703,22 +8996,6 @@ VIEWS.kurs = {
       h += '<button class="btn primary block" data-act="noten-pdf" data-kurs="' + kurs.id + '">📄 Noten als PDF exportieren</button>';
     }
 
-    var leistungen = A.list('Leistungen', function (l) { return l.kursId === kurs.id; })
-      .sort(function (a, b) { return String(b.datum).localeCompare(String(a.datum)); });
-
-    var lRows = leistungen.length ? leistungen.map(function (l) {
-      var noten = sus.map(function (s) { return A.noteFuer(l, s.id, kurs); }).filter(function (n) { return n !== null; });
-      var schnitt = noten.length ? noten.reduce(function (a, b) { return a + b; }, 0) / noten.length : null;
-      return '<button class="row" data-act="open-leistung" data-leistung="' + l.id + '">' +
-        '<div class="row-main"><div class="row-title">' + A.esc(l.titel || l.kategorie) + '</div>' +
-        '<div class="row-sub">' + A.esc(l.kategorie) + ' · ' + (l.datum ? A.fmtDateShort(l.datum) : 'ohne Datum') +
-        ' · ' + noten.length + '/' + sus.length + ' eingetragen</div></div>' +
-        '<div class="row-val">' + A.fmtNote(schnitt) + '</div><div class="chev">›</div></button>';
-    }).join('') : empty('📝', 'Noch keine Leistungen erfasst.');
-
-    h += card('Leistungen', lRows);
-    h += '<button class="btn primary block" data-act="leistung-neu" data-kurs="' + kurs.id + '">Neue Leistung</button>';
-
     var sch = A.schluesselVon(kurs, null);
     h += card('Bewertung', '<div class="card-body">' +
       kats.map(function (c) {
@@ -8735,6 +9012,8 @@ VIEWS.kurs = {
       (kurs.fach ? '<button class="btn small block" style="margin-top:8px" data-act="fach-vorgabe-speichern" data-kurs="' + kurs.id + '">' +
         'Als Vorgabe für ' + A.esc(kurs.fach) + ' merken</button>' : '') +
       '</div>');
+
+    h += card('Aktuelle Unterrichtsreihe', unterrichtsreiheHTML_(kurs.id,false));
 
     return h;
   }
@@ -8895,7 +9174,7 @@ VIEWS.leistung = {
     var sch = A.schluesselVon(kurs, l);
 
     var h = '<div class="hint-box"><b>' + A.esc(A.kursLabel(kurs)) + '</b> · ' + A.esc(l.kategorie) +
-      (l.datum ? ' · ' + A.fmtDate(l.datum) : '') + ' · Gewicht ×' + A.esc(l.gewicht || 1) + '<br>' +
+      (l.datum ? ' · ' + A.fmtDate(l.datum) : '') + ' · ' + A.fmtNote(leistungAnteil_(l), 1) + ' % der Art „' + A.esc(l.kategorie) + '“<br>' +
       (mitPunkten
         ? 'Maximal ' + A.esc(l.maxPunkte) + ' Punkte · ' +
           (sch === 'linear'
@@ -8942,6 +9221,8 @@ VIEWS.leistung = {
     }).join('');
 
     h += card(mitPunkten ? 'Punkte eintragen' : 'Noten eintragen', rows);
+    h += '<button class="btn primary block" data-act="noten-fertig">Speichern</button>' +
+      '<p class="small muted" style="margin:-4px 2px 14px">Jede Eingabe wird zusätzlich sofort gespeichert.</p>';
 
     if (zeigtVorschlag) {
       h += '<div class="btn-row"><button class="btn small" data-act="vorschlaege-alle">Vorschläge in leere Felder</button>' +
@@ -9021,6 +9302,7 @@ VIEWS.mehr = {
     h += card('Speicher & Sicherung',
       '<button class="row" data-act="speicher-info"><div class="row-main"><div class="row-title">Speicher auf diesem Gerät</div>' +
         '<div class="row-sub">' + ({ idb: 'Geräte-Datenbank', ls: 'Browser-Speicher (begrenzt)', speicher: 'nur Arbeitsspeicher', start: '–' }[A.Store.mode] || '–') +
+        (A.Krypto.schluessel((A.Auth.currentUser() || {}).id) ? ' · verschlüsselt' : '') +
         ' · ' + anzahlZeilen + ' Einträge' + (A.Store.fehler ? ' · ⚠️ Problem' : '') + '</div></div><div class="chev">›</div></button>' +
       '<button class="row" data-act="papierkorb"><div class="row-main"><div class="row-title">Zuletzt gelöscht</div>' +
         '<div class="row-sub">' + (pkAnzahl ? pkAnzahl + ' Eintrag/Einträge wiederherstellbar' : 'gelöschte Klassen, Fächer, Schüler:innen wiederherstellen') + '</div></div><div class="chev">›</div></button>' +
@@ -10525,7 +10807,7 @@ function notenPdfLeistungCmds_(kurs, leistung) {
     var metaTeile = [];
     if (leistung.kategorie) metaTeile.push(leistung.kategorie);
     if (leistung.datum) metaTeile.push(A.fmtDateShort(leistung.datum));
-    if (leistung.gewicht) metaTeile.push('Gewicht ×' + leistung.gewicht);
+    if (leistung.gewicht) metaTeile.push(A.fmtNote(leistungAnteil_(leistung), 1) + ' % der Art');
     if (maxP !== null) metaTeile.push(maxP + ' P.');
     var seitenHinweis = sus.length > perPage ? ' · ' + (start + 1) + '–' + Math.min(start + perPage, sus.length) + ' von ' + sus.length : '';
     var cmd = { value: notenPdfKopf_((leistung.titel || leistung.kategorie || 'Leistung') + ' · ' + A.kursLabel(kurs), 'Klassenschnitt: ' + A.fmtNote(schnitt, 2) + seitenHinweis, metaTeile.join(' · ')) };
@@ -10875,6 +11157,39 @@ ACT['sus-bearbeiten'] = function (el) {
 
 /* --- Leistungen ------------------------------------------------------- */
 
+/* V67: Gewicht innerhalb einer Art als Prozentanteil. Intern bleiben es relative Gewichte
+   (die Note der Art ist das gewichtete Mittel); der Prozentwert wird in ein passendes Gewicht umgerechnet. */
+function anteilAndere_(kursId, kat, ohneId) {
+  var sum = 0, n = 0;
+  A.list('Leistungen', function (x) { return x.kursId === kursId && x.kategorie === kat && x.id !== ohneId && A.inZeitraum(x.datum); })
+    .forEach(function (x) { var g = A.num(x.gewicht, 1); if (g === null || g <= 0) g = 1; sum += g; n++; });
+  return { sum: sum, n: n };
+}
+function leistungAnteil_(l) {
+  var o = anteilAndere_(l.kursId, l.kategorie, l.id);
+  var g = A.num(l.gewicht, 1); if (g === null || g <= 0) g = 1;
+  return Math.round(g / (g + o.sum) * 1000) / 10;
+}
+function anteilVorschlag_(kursId, kat) {
+  var o = anteilAndere_(kursId, kat, '');
+  return Math.round(100 / (o.n + 1) * 10) / 10;
+}
+function anteilFehler_(kursId, kat, ohneId, wert) {
+  var p = A.num(String(wert || '').replace('%', '').replace(',', '.'), null);
+  if (p === null) return 'Bitte den Anteil als Zahl in Prozent angeben (z. B. 50).';
+  var o = anteilAndere_(kursId, kat, ohneId);
+  if (!o.n) return (p > 0 && p <= 100) ? null : 'Der Anteil muss zwischen 1 und 100 % liegen.';
+  if (p <= 0 || p >= 100) return 'Es gibt in dieser Art noch ' + o.n + ' weitere Leistung(en). Der Anteil muss daher über 0 und unter 100 % liegen.';
+  return null;
+}
+function gewichtAusAnteil_(kursId, kat, ohneId, wert) {
+  var p = A.num(String(wert || '').replace('%', '').replace(',', '.'), null);
+  var o = anteilAndere_(kursId, kat, ohneId);
+  if (p === null || !o.n || p <= 0 || p >= 100) return '1';
+  var g = p / (100 - p) * o.sum;
+  return String(Math.round(g * 10000) / 10000);
+}
+
 ACT['leistung-neu'] = function (el) {
   var kurse = A.alleKurse();
   if (!kurse.length) { window.toast('Zuerst eine Klasse mit Fach anlegen.', true); return; }
@@ -10892,21 +11207,32 @@ ACT['leistung-neu'] = function (el) {
       { key: 'datum', label: 'Datum', type: 'date', value: A.todayISO() },
       { key: 'maxPunkte', label: 'Maximalpunkte', type: 'text', inputmode: 'decimal',
         hint: 'Leer lassen, um Noten direkt einzutragen.' },
-      { key: 'gewicht', label: 'Gewicht innerhalb der Art', type: 'text', inputmode: 'decimal', value: '1' }
+      { key: 'anteil', label: 'Anteil innerhalb der Art (%)', type: 'text', inputmode: 'decimal', value: String(anteilVorschlag_(k0.id, (A.kategorienVon(k0)[0] || {}).name)),
+        hint: 'z. B. 50 = diese Leistung zählt die Hälfte der Note dieser Art. Die übrigen Leistungen der Art teilen sich den Rest im bisherigen Verhältnis.' }
     ],
+    validate: function (v) { return anteilFehler_(v.kursId, v.kategorie, '', v.anteil); },
     onSave: function (v) {
       var kurs = A.byId('Kurse', v.kursId);
       var l = A.put('Leistungen', {
         id: A.uid('le'), kursId: v.kursId, klasseId: kurs ? kurs.klasseId : '',
         kategorie: v.kategorie, titel: v.titel.trim(), datum: v.datum,
         maxPunkte: String(v.maxPunkte).replace(',', '.'),
-        gewicht: String(v.gewicht).replace(',', '.') || '1',
+        gewicht: gewichtAusAnteil_(v.kursId, v.kategorie, '', v.anteil),
         notenschluessel: ''
       });
       push('leistung', { id: l.id });
     },
     focus: false
   });
+};
+
+/* V67: Deutlicher Abschluss beim Noteneintragen: offene Eingaben sichern, Rückmeldung, zurück. */
+ACT['noten-fertig'] = function () {
+  var felder = Array.prototype.slice.call(main.querySelectorAll('[data-note-input]'));
+  felder.forEach(function (ni) { clearTimeout(ni._saveTimer); ni._saveTimer = null; });
+  felder.forEach(function (ni) { if (ni.isConnected) speichereNote(ni); });
+  window.toast('Noten gespeichert');
+  back();
 };
 
 ACT['open-leistung'] = function (el) { push('leistung', { id: el.getAttribute('data-leistung') }); };
@@ -10921,12 +11247,14 @@ ACT['leistung-bearbeiten'] = function (el) {
       { key: 'kategorie', label: 'Art', type: 'select', value: l.kategorie, options: A.kategorienVon(kurs).map(function (c) { return c.name; }) },
       { key: 'datum', label: 'Datum', type: 'date', value: l.datum },
       { key: 'maxPunkte', label: 'Maximalpunkte', type: 'text', inputmode: 'decimal', value: l.maxPunkte },
-      { key: 'gewicht', label: 'Gewicht', type: 'text', inputmode: 'decimal', value: l.gewicht }
+      { key: 'anteil', label: 'Anteil innerhalb der Art (%)', type: 'text', inputmode: 'decimal', value: String(leistungAnteil_(l)),
+        hint: 'Die übrigen Leistungen der Art teilen sich den Rest im bisherigen Verhältnis.' }
     ],
+    validate: function (v) { return anteilFehler_(l.kursId, v.kategorie, l.id, v.anteil); },
     onSave: function (v) {
       l.titel = v.titel.trim(); l.kategorie = v.kategorie; l.datum = v.datum;
       l.maxPunkte = String(v.maxPunkte).replace(',', '.');
-      l.gewicht = String(v.gewicht).replace(',', '.') || '1';
+      l.gewicht = gewichtAusAnteil_(l.kursId, v.kategorie, l.id, v.anteil);
       A.put('Leistungen', l);
     },
     onDelete: function () { A.delKaskade('Leistungen', l.id); window.toast('Gelöscht – unter Mehr → „Zuletzt gelöscht“ wiederherstellbar'); back(); },
@@ -11502,6 +11830,8 @@ ACT['fehlerprotokoll'] = function () {
 };
 
 var AENDERUNGEN_ = [
+  ['V67', ['Neue Leistung: Der Anteil innerhalb der Art wird jetzt in Prozent angegeben; die anderen Leistungen der Art teilen sich den Rest im bisherigen Verhältnis.', 'Noten eintragen: deutlicher „Speichern“-Knopf unter der Liste (Eingaben werden weiterhin auch sofort gespeichert).', 'Kurs: Leistungen stehen oben, die Unterrichtsreihe ganz unten.', 'Heute: „Neue Nachricht“ bei der Elternkommunikation ist jetzt ein richtiger Knopf.']],
+  ['V66', ['Die Daten auf dem Gerät (Bestand und noch nicht gesendete Änderungen) sind jetzt mit AES-256 verschlüsselt. Der Schlüssel entsteht aus deinem Passwort und gilt bis Mitternacht; danach entsperrst du einmal am Tag mit dem Passwort (auf iPad/iPhone per Face ID aus der Passwörter-App).', 'Beim ersten Start nach dem Update ist einmal das Passwort nötig; danach werden die bisher unverschlüsselten Daten automatisch verschlüsselt neu gespeichert.']],
   ['V65', ['Anmeldung mit Passwort geht jetzt auch ohne Server. Auf dem Gerät liegt dafür nur ein gesalzener Prüfwert, nicht das Passwort selbst. Er entsteht bei jeder Anmeldung mit Passwort bei laufendem Server (auf jedem Gerät einmal nötig), bleibt nur auf dem Gerät und verschwindet beim Abmelden.', 'Ist ein Prüfwert da, wartet die Anmeldung nur noch etwa 8 Sekunden auf den Server und prüft dann das Passwort lokal.']],
   ['V64', ['Anmeldung ohne Server: Ist der Mac aus oder Tailscale getrennt, öffnet Face ID / Touch ID die App trotzdem mit den Daten auf dem Gerät und gleicht später ab. Ohne Face ID gibt es bei Verbindungsfehler den Knopf „Ohne Server öffnen“ (mit PIN-Sperre der App).', 'Fehler behoben: Bei nicht erreichbarem Server wartete die App seit V62 fast doppelt so lange wie vorgesehen und schickte dabei die Anmeldedaten in der Adresszeile mit. Jetzt kommt nach rund 19 Sekunden die Meldung „Server nicht erreichbar“.']],
   ['V63', ['Listen & To-dos: Titel und Unterzeile haben jetzt die gleiche Schriftgröße und Abstände wie die übrigen Zeilen.']],
@@ -11773,7 +12103,7 @@ ACT['suche'] = function(){
 ACT['klassenleitung'] = function(){var ks=A.klassen(true);if(!ks.length){window.toast('Noch keine Klasse angelegt.',true);return;}var def=A.standardKlasseId();Modal.form({title:'Meine Klasse / Klassenleitung',hinweis:'Diese Klasse wird bei Beobachtungen und anderen Schüler:innen-Auswahlen automatisch vorausgewählt. Du kannst den Filter dort jederzeit ändern.',fields:[{key:'klasseId',label:'Standardklasse',type:'select',value:def,options:ks.map(function(k){return{value:k.id,label:k.name};})}],onSave:function(v){A.setCfg('klassenleitungId',v.klasseId||'');render();window.toast('Standardklasse gespeichert');},focus:false});};
 ACT['startseite'] = function(){Modal.form({title:'Startseite',fields:[{key:'s',label:'Beim Öffnen anzeigen',type:'select',value:A.cfg('startseite')||'heute',options:[{value:'heute',label:'Heute'},{value:'plan',label:'Stundenplan'},{value:'klassen',label:'Klassen'},{value:'noten',label:'Noten'}]}],onSave:function(v){A.setCfg('startseite',v.s);},focus:false});};
 ACT['auto-lock'] = function(){Modal.form({title:'Automatisch sperren',hinweis:'Funktioniert zusammen mit der vierstelligen PIN. Wenn die App länger im Hintergrund war, wird beim Zurückkehren erneut gesperrt.',fields:[{key:'m',label:'Nach',type:'select',value:String(A.cfg('autoLockMin')||0),options:[{value:'0',label:'aus'},{value:'1',label:'1 Minute'},{value:'2',label:'2 Minuten'},{value:'5',label:'5 Minuten'},{value:'10',label:'10 Minuten'}]}],onSave:function(v){A.setCfg('autoLockMin',Number(v.m)||0);},focus:false});};
-ACT['daily-login'] = function(){Modal.form({title:'Anmeldung',hinweis:'Die Server-Sitzung bleibt gespeichert. Bei „einmal pro Tag“ bestätigst du deine Anmeldung nur beim ersten Öffnen eines neuen Kalendertags. Manuelles Abmelden wirkt immer sofort; eine PIN-Sperre bleibt davon unabhängig.',fields:[{key:'modus',label:'Auf diesem Gerät',type:'select',value:taeglicheAnmeldungAktiv_()?'daily':'session',options:[{value:'daily',label:'einmal pro Tag bestätigen'},{value:'session',label:'gespeicherte Sitzung direkt öffnen'}]}],onSave:function(v){A.setCfg('dailyLogin',v.modus==='daily');if(v.modus==='daily'&&A.Auth.isLoggedIn())anmeldungHeuteMerken_();},focus:false});};
+ACT['daily-login'] = function(){Modal.form({title:'Anmeldung',hinweis:'Die Server-Sitzung bleibt gespeichert. Bei „einmal pro Tag“ bestätigst du deine Anmeldung nur beim ersten Öffnen eines neuen Kalendertags. Manuelles Abmelden wirkt immer sofort; eine PIN-Sperre bleibt davon unabhängig. Die Daten auf dem Gerät sind verschlüsselt: Der Schlüssel gilt bis Mitternacht, danach ist in jedem Fall einmal das Passwort nötig.',fields:[{key:'modus',label:'Auf diesem Gerät',type:'select',value:taeglicheAnmeldungAktiv_()?'daily':'session',options:[{value:'daily',label:'einmal pro Tag bestätigen'},{value:'session',label:'gespeicherte Sitzung direkt öffnen'}]}],onSave:function(v){A.setCfg('dailyLogin',v.modus==='daily');if(v.modus==='daily'&&A.Auth.isLoggedIn())anmeldungHeuteMerken_();},focus:false});};
 
 
 /* ---------------------------------------------------------- V40 Kommunikation & Craft */
