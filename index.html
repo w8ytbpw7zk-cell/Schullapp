@@ -2833,7 +2833,7 @@ var TABLES = ['Klassen', 'Kurse', 'SuS', 'Stundenplan', 'Stunden', 'Mitarbeit',
               'Leistungen', 'Noten', 'Checks', 'Settings'];
 
 /* Eine einzige Stelle für die Versionsangabe (Anzeige unter „Mehr“). */
-var APP_VERSION = 'V67';
+var APP_VERSION = 'V68';
 
 /* V15: Diese Adresse ist die verbindliche Login-Adresse. */
 /* V58: Keine feste Server-Adresse mehr in der App. Sie wird über den Einladungslink/-code oder Mehr → Server gesetzt. */
@@ -7071,6 +7071,7 @@ var ELTERN_ANLAESSE = [
   {key:'organisation',label:'Arbeitsorganisation / Vorbereitung'},
   {key:'mitarbeit',label:'Mitarbeit / Beteiligung'},
   {key:'verhalten',label:'Verhalten im Unterricht'},
+  {key:'klassenregeln',label:'Verstoß gegen Klassenregeln (Entschuldigung)'},
   {key:'leistung',label:'Lernentwicklung / Leistungsstand'},
   {key:'gespraech',label:'Gesprächswunsch'},
   {key:'lob',label:'Positive Rückmeldung / Lob'},
@@ -7181,6 +7182,7 @@ function elternNachrichtText_(sus, grund, ton, anzahlNennen, zusatz) {
       organisation:'mir ist aufgefallen, dass die Vorbereitung und Arbeitsorganisation bei '+name+' derzeit noch nicht zuverlässig gelingt. Es wäre hilfreich, wenn Sie dies zu Hause noch einmal gemeinsam besprechen könnten.',
       mitarbeit:'ich möchte Ihnen eine kurze Rückmeldung zur Mitarbeit von '+name+' geben. Die Beteiligung im Unterricht könnte derzeit noch regelmäßiger bzw. aktiver sein.',
       verhalten:'ich möchte Ihnen eine kurze Rückmeldung zum Verhalten von '+name+' im Unterricht geben. Es gab zuletzt Situationen, die ich gern gemeinsam mit Ihnen in den Blick nehmen möchte.',
+      klassenregeln:'ich muss Ihnen leider mitteilen, dass '+name+' gegen unsere Klassenregeln verstoßen hat. Diese Regeln hat die Klasse gemeinsam vereinbart, und alle Schülerinnen und Schüler haben sie unterschrieben. Wie in der Klasse abgesprochen, schreibt '+name+' deshalb einen Entschuldigungsbrief und bringt als Zeichen der Entschuldigung eine Kleinigkeit mit, zum Beispiel eine kleine Süßigkeit. Bitte sprechen Sie zu Hause noch einmal mit Ihrem Kind darüber und unterstützen Sie es dabei, den Brief zu schreiben.',
       leistung:'ich möchte Ihnen eine kurze Rückmeldung zur aktuellen Lernentwicklung von '+name+' geben. Ich würde den derzeitigen Stand gern transparent mit Ihnen teilen und bei Bedarf gemeinsam nächste Schritte besprechen.',
       gespraech:'ich würde mich gern kurz mit Ihnen über '+name+' austauschen. Melden Sie sich bitte, damit wir einen passenden Gesprächstermin finden können.',
       lob:'ich möchte Ihnen gern eine positive Rückmeldung geben: '+name+' ist mir in letzter Zeit besonders erfreulich aufgefallen. Die Mitarbeit und Verlässlichkeit entwickeln sich sehr positiv.',
@@ -11830,6 +11832,7 @@ ACT['fehlerprotokoll'] = function () {
 };
 
 var AENDERUNGEN_ = [
+  ['V68', ['Elternnachricht: neuer Anlass „Verstoß gegen Klassenregeln (Entschuldigung)“ mit vorformuliertem Text (Entschuldigungsbrief und kleine Aufmerksamkeit).']],
   ['V67', ['Neue Leistung: Der Anteil innerhalb der Art wird jetzt in Prozent angegeben; die anderen Leistungen der Art teilen sich den Rest im bisherigen Verhältnis.', 'Noten eintragen: deutlicher „Speichern“-Knopf unter der Liste (Eingaben werden weiterhin auch sofort gespeichert).', 'Kurs: Leistungen stehen oben, die Unterrichtsreihe ganz unten.', 'Heute: „Neue Nachricht“ bei der Elternkommunikation ist jetzt ein richtiger Knopf.']],
   ['V66', ['Die Daten auf dem Gerät (Bestand und noch nicht gesendete Änderungen) sind jetzt mit AES-256 verschlüsselt. Der Schlüssel entsteht aus deinem Passwort und gilt bis Mitternacht; danach entsperrst du einmal am Tag mit dem Passwort (auf iPad/iPhone per Face ID aus der Passwörter-App).', 'Beim ersten Start nach dem Update ist einmal das Passwort nötig; danach werden die bisher unverschlüsselten Daten automatisch verschlüsselt neu gespeichert.']],
   ['V65', ['Anmeldung mit Passwort geht jetzt auch ohne Server. Auf dem Gerät liegt dafür nur ein gesalzener Prüfwert, nicht das Passwort selbst. Er entsteht bei jeder Anmeldung mit Passwort bei laufendem Server (auf jedem Gerät einmal nötig), bleibt nur auf dem Gerät und verschwindet beim Abmelden.', 'Ist ein Prüfwert da, wartet die Anmeldung nur noch etwa 8 Sekunden auf den Server und prüft dann das Passwort lokal.']],
