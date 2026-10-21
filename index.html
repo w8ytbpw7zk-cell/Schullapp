@@ -2833,7 +2833,7 @@ var TABLES = ['Klassen', 'Kurse', 'SuS', 'Stundenplan', 'Stunden', 'Mitarbeit',
               'Leistungen', 'Noten', 'Checks', 'Settings'];
 
 /* Eine einzige Stelle für die Versionsangabe (Anzeige unter „Mehr“). */
-var APP_VERSION = 'V68';
+var APP_VERSION = 'V69';
 
 /* V15: Diese Adresse ist die verbindliche Login-Adresse. */
 /* V58: Keine feste Server-Adresse mehr in der App. Sie wird über den Einladungslink/-code oder Mehr → Server gesetzt. */
@@ -7118,7 +7118,7 @@ function elternVorlageKey_(grund){
 function elternVorlageKontext_(sus,grund){
   var kurs=grund&&grund.kursId?A.byId('Kurse',grund.kursId):null,a=null,thema='';
   if(grund&&grund.typ==='liste'){a=aufgabeById(grund.aufgabeId)||{titel:grund.titel||''};thema=listenThema_(a,listenArtErkennen_(a));}
-  return {name:sus?A.susName(sus):'',vorname:String((sus&&sus.vorname)||'').trim(),fach:String((kurs&&kurs.fach)||''),anzahl:String((grund&&grund.anzahl)||''),thema:thema};
+  return {name:sus?A.susName(sus):'',vorname:elternRufname_(sus),fach:String((kurs&&kurs.fach)||''),anzahl:String((grund&&grund.anzahl)||''),thema:thema};
 }
 function elternVorlageSpeichern_(sus,grund,text){
   var key=elternVorlageKey_(grund),ctx=elternVorlageKontext_(sus,grund),tpl=String(text||'').trim();if(!tpl)return false;
@@ -7143,8 +7143,10 @@ function elternLetzterKontakt_(h){
 }
 function elternKontaktText_(h){var x=elternLetzterKontakt_(h);if(!x)return '';var d=A.fmtDateShort(String(x.zeit||'').slice(0,10)),s=x.status==='besprochen'?'besprochen':'Eltern informiert';if(h&&h.typ==='vergessen'&&x.anzahl)s+=' bei '+x.anzahl+'×';return 'Zuletzt '+d+' · '+s;}
 
+/* V69: Rufname für Elternnachrichten. Ist nur ein Namensfeld gefüllt (z. B. „Anne“ steht im Nachnamen), wird dieses genommen. */
+function elternRufname_(sus){var vn=String((sus&&sus.vorname)||'').trim();if(vn)return vn;return String((sus&&sus.nachname)||'').trim();}
 function elternNachrichtText_(sus, grund, ton, anzahlNennen, zusatz) {
-  var vorname=String((sus&&sus.vorname)||'').trim();
+  var vorname=elternRufname_(sus);
   var name=vorname||'Ihrem Kind';
   var anrede='Liebe Eltern'+(vorname?' von '+vorname:'')+',';
   ton=ton||'freundlich'; zusatz=String(zusatz||'').trim();
@@ -11832,6 +11834,7 @@ ACT['fehlerprotokoll'] = function () {
 };
 
 var AENDERUNGEN_ = [
+  ['V69', ['Elternnachricht: Der Name des Kindes wird jetzt auch eingesetzt, wenn bei einem Kind nur ein Namensfeld ausgefüllt ist (vorher stand dann „Ihrem Kind“).']],
   ['V68', ['Elternnachricht: neuer Anlass „Verstoß gegen Klassenregeln (Entschuldigung)“ mit vorformuliertem Text (Entschuldigungsbrief und kleine Aufmerksamkeit).']],
   ['V67', ['Neue Leistung: Der Anteil innerhalb der Art wird jetzt in Prozent angegeben; die anderen Leistungen der Art teilen sich den Rest im bisherigen Verhältnis.', 'Noten eintragen: deutlicher „Speichern“-Knopf unter der Liste (Eingaben werden weiterhin auch sofort gespeichert).', 'Kurs: Leistungen stehen oben, die Unterrichtsreihe ganz unten.', 'Heute: „Neue Nachricht“ bei der Elternkommunikation ist jetzt ein richtiger Knopf.']],
   ['V66', ['Die Daten auf dem Gerät (Bestand und noch nicht gesendete Änderungen) sind jetzt mit AES-256 verschlüsselt. Der Schlüssel entsteht aus deinem Passwort und gilt bis Mitternacht; danach entsperrst du einmal am Tag mit dem Passwort (auf iPad/iPhone per Face ID aus der Passwörter-App).', 'Beim ersten Start nach dem Update ist einmal das Passwort nötig; danach werden die bisher unverschlüsselten Daten automatisch verschlüsselt neu gespeichert.']],
