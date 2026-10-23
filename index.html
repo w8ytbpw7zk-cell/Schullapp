@@ -2833,7 +2833,7 @@ var TABLES = ['Klassen', 'Kurse', 'SuS', 'Stundenplan', 'Stunden', 'Mitarbeit',
               'Leistungen', 'Noten', 'Checks', 'Settings'];
 
 /* Eine einzige Stelle für die Versionsangabe (Anzeige unter „Mehr“). */
-var APP_VERSION = 'V69';
+var APP_VERSION = 'V72';
 
 /* V15: Diese Adresse ist die verbindliche Login-Adresse. */
 /* V58: Keine feste Server-Adresse mehr in der App. Sie wird über den Einladungslink/-code oder Mehr → Server gesetzt. */
@@ -3998,7 +3998,7 @@ function papierkorbVerwerfen(gid) {
  */
 var SPLIT_KEYS = {
   aufgaben: 'array', beobachtungen: 'array', foerderziele: 'array', elternVerlauf: 'array',
-  elternVorgaenge: 'map', elternHinweise: 'map', strafHinweise: 'map', strafErledigt: 'map',
+  elternVorgaenge: 'map', elternHinweise: 'map', strafHinweise: 'map', strafErledigt: 'map', strafFristen: 'map',
   mitarbeitNoten: 'map', sitzplaene: 'map', sitzregeln: 'map', weiterNotizen: 'map',
   unterrichtsreihen: 'map', susLastSeen: 'map', craftLinks: 'map', elternVorlagen: 'map',
   listenSmartVorlagen: 'map', elternListenVorlagen: 'map', papierkorb: 'map', klassenGetrennt: 'map'
@@ -5590,6 +5590,7 @@ function strafAufgaben(kursId, susId) {
   var v = vergessen(kursId, susId);
   var anzahl = Math.floor(v.gesamt / grenze);
   var erledigt = cfg('strafErledigt') || {};
+  var fristen = cfg('strafFristen') || {};
   var out = [];
   for (var i = 1; i <= anzahl; i++) {
     var id = kursId + '|' + susId + '|' + i;
@@ -5598,10 +5599,25 @@ function strafAufgaben(kursId, susId) {
       nr: i,
       schwelle: i * grenze,
       erledigt: !!erledigt[id],
-      erledigtAm: erledigt[id] && erledigt[id].datum ? erledigt[id].datum : ''
+      erledigtAm: erledigt[id] && erledigt[id].datum ? erledigt[id].datum : '',
+      frist: (fristen[id] || {}).frist || '',
+      nachsitzen: (fristen[id] || {}).nachsitzen || null
     });
   }
   return out;
+}
+
+/* V72: Frist und Nachsitzen je Strafarbeit (id = kursId|susId|nr). */
+function strafFristen() { var x = cfg('strafFristen'); return x && typeof x === 'object' ? clone(x) : {}; }
+function strafFristSetzen(id, frist) {
+  var alle = strafFristen(), r = alle[id] || {};
+  r.frist = String(frist || ''); if (!r.vergeben) r.vergeben = todayISO();
+  alle[id] = r; setCfg('strafFristen', alle);
+}
+function strafNachsitzenSetzen(id, datum, zeit) {
+  var alle = strafFristen(), r = alle[id] || {};
+  r.nachsitzen = { datum: String(datum || ''), zeit: String(zeit || ''), am: todayISO() };
+  alle[id] = r; setCfg('strafFristen', alle);
 }
 
 function strafAufgabeErledigen(id, istErledigt) {
@@ -5795,7 +5811,7 @@ global.A = {
   checkBilanzStunde: checkBilanzStunde, checkBilanzSus: checkBilanzSus,
   vergessen: vergessen, vergessenGesamt: vergessenGesamt, strafGrenze: strafGrenze,
   strafStand: strafStand, strafFaellig: strafFaellig, strafGemeldet: strafGemeldet,
-  strafAufgaben: strafAufgaben, strafAufgabeErledigen: strafAufgabeErledigen, offeneStrafarbeiten: offeneStrafarbeiten,
+  strafAufgaben: strafAufgaben, strafAufgabeErledigen: strafAufgabeErledigen, offeneStrafarbeiten: offeneStrafarbeiten, strafFristSetzen: strafFristSetzen, strafNachsitzenSetzen: strafNachsitzenSetzen,
   sitzplanFuerKlasse: sitzplanFuerKlasse, setSitzplan: setSitzplan,
   exportJSON: exportJSON, importJSON: importJSON, neuesPasswort: neuesPasswort
 };
@@ -7072,6 +7088,7 @@ var ELTERN_ANLAESSE = [
   {key:'mitarbeit',label:'Mitarbeit / Beteiligung'},
   {key:'verhalten',label:'Verhalten im Unterricht'},
   {key:'klassenregeln',label:'Verstoß gegen Klassenregeln (Entschuldigung)'},
+  {key:'nachsitzen',label:'Nachsitzen (Strafarbeit nicht abgegeben)'},
   {key:'leistung',label:'Lernentwicklung / Leistungsstand'},
   {key:'gespraech',label:'Gesprächswunsch'},
   {key:'lob',label:'Positive Rückmeldung / Lob'},
@@ -7184,6 +7201,7 @@ function elternNachrichtText_(sus, grund, ton, anzahlNennen, zusatz) {
       organisation:'mir ist aufgefallen, dass die Vorbereitung und Arbeitsorganisation bei '+name+' derzeit noch nicht zuverlässig gelingt. Es wäre hilfreich, wenn Sie dies zu Hause noch einmal gemeinsam besprechen könnten.',
       mitarbeit:'ich möchte Ihnen eine kurze Rückmeldung zur Mitarbeit von '+name+' geben. Die Beteiligung im Unterricht könnte derzeit noch regelmäßiger bzw. aktiver sein.',
       verhalten:'ich möchte Ihnen eine kurze Rückmeldung zum Verhalten von '+name+' im Unterricht geben. Es gab zuletzt Situationen, die ich gern gemeinsam mit Ihnen in den Blick nehmen möchte.',
+      nachsitzen:(function(){var ku=grund&&grund.kursId?A.byId('Kurse',grund.kursId):null,f=ku&&ku.fach?' im Fach '+ku.fach:'';var fr=grund&&grund.frist?', die bis zum '+A.fmtDate(grund.frist)+' abgegeben werden sollte,':'';var dat=grund&&grund.datum?A.fmtDate(grund.datum):'[Datum]',zt=grund&&grund.zeit?' von '+grund.zeit:' um [Uhrzeit]';return 'ich muss Ihnen leider mitteilen, dass '+name+' die Strafarbeit'+f+fr+' nicht abgegeben hat. Deshalb muss '+name+' am '+dat+zt+' nachsitzen und die Strafarbeit in dieser Zeit erledigen. Bitte sorgen Sie dafür, dass '+name+' an diesem Termin teilnimmt, und bestätigen Sie mir kurz, dass Sie diese Nachricht erhalten haben.';})(),
       klassenregeln:'ich muss Ihnen leider mitteilen, dass '+name+' gegen unsere Klassenregeln verstoßen hat. Diese Regeln hat die Klasse gemeinsam vereinbart, und alle Schülerinnen und Schüler haben sie unterschrieben. Wie in der Klasse abgesprochen, schreibt '+name+' deshalb einen Entschuldigungsbrief und bringt als Zeichen der Entschuldigung eine Kleinigkeit mit, zum Beispiel eine kleine Süßigkeit. Bitte sprechen Sie zu Hause noch einmal mit Ihrem Kind darüber und unterstützen Sie es dabei, den Brief zu schreiben.',
       leistung:'ich möchte Ihnen eine kurze Rückmeldung zur aktuellen Lernentwicklung von '+name+' geben. Ich würde den derzeitigen Stand gern transparent mit Ihnen teilen und bei Bedarf gemeinsam nächste Schritte besprechen.',
       gespraech:'ich würde mich gern kurz mit Ihnen über '+name+' austauschen. Melden Sie sich bitte, damit wir einen passenden Gesprächstermin finden können.',
@@ -7318,7 +7336,8 @@ function craftApiLocalKey_(){var u=A.Auth.currentUser&&A.Auth.currentUser();retu
 function craftApiConfig_(){var d={url:'',auto:false,namen:false,karteiFolderId:'',karteiFolderName:'',karteiAutoKommunikation:false,karteiAutoCreate:false,karteiAutoSnapshot:false};var c=A.LS.get(craftApiLocalKey_(),null);var o=Object.assign(d,(c&&typeof c==='object')?c:{});o.namen=false;o.karteiAutoKommunikation=false;o.karteiAutoCreate=false;o.karteiAutoSnapshot=false;o.karteiFolderId='';return o;}
 function craftApiSet_(c){var alt=craftApiConfig_();A.LS.set(craftApiLocalKey_(),Object.assign({},alt,c||{}));}
 function craftApiUrlGueltig_(u){return /^https:\/\/connect\.craft\.do\/links\/[^/]+\/api\/v1\/?$/i.test(String(u||'').trim());}
-function craftAn_(){return A.cfg('craftAus')!==true;}
+/* V71: Craft ist aus der App herausgenommen (Wunsch). Daten in Craft bleiben unberührt. */
+function craftAn_(){return false;}
 function craftSyncMapKey_(){return craftApiLocalKey_()+'.sync';}
 function craftSyncMap_(){var x=A.LS.get(craftSyncMapKey_(),{});return x&&typeof x==='object'?x:{};}
 function craftNamenEntfernen_(t){
@@ -7601,7 +7620,7 @@ function inboxDaten_(datum){
     elternInbox_().forEach(function(h){var sus=A.byId('SuS',h.susId),k=A.byId('Kurse',h.kursId);if(k&&!inboxKursAmDatum_(k.id,datum))return;items.push({key:'eltern|'+elternVorgangKey_(h),typ:h.typ,h:h,sus:sus,kurs:k,titel:h.typ==='positiv'?'Positive Rückmeldung möglich':(sus?A.susName(sus):''),sub:h.typ==='positiv'?((h.signal==='mitarbeit_verbessert'?'Mitarbeit deutlich verbessert':'Mitarbeit zuletzt besonders stark')+(k&&k.fach?' · '+k.fach:'')):(h.punkt+' · '+h.anzahl+'×'+(k&&k.fach?' · '+k.fach:''))});});
   }
   aufgabenAlle().filter(function(a){if(!a||a.erledigt)return false;if(a.typ==='liste')return aufgabeErinnerungAmDatum_(a,datum);return !!a.frist&&a.frist<=datum&&inboxKursAmDatum_(a.kursId,datum);}).slice(0,12).forEach(function(a){var k=a.typ==='liste'?aufgabeErinnerKursAmDatum_(a,datum):A.byId('Kurse',a.kursId),st=a.typ==='liste'?listenStand(a,k):null,off=st?Math.max(0,st.gesamt-st.erledigt):undefined,fristText='offen';if(a.frist){fristText=a.frist<datum?'seit '+A.fmtDateShort(a.frist)+' fällig':(a.frist===datum?'heute fällig':'bis '+A.fmtDateShort(a.frist));}items.push({key:'liste|'+a.id+'|'+(a.frist||''),typ:'liste',a:a,kurs:k,offen:off,titel:a.titel,sub:fristText+(k?' · '+A.kursLabel(k):'')});});
-  A.alleKurse().forEach(function(k){if(!inboxKursAmDatum_(k.id,datum))return;A.offeneStrafarbeiten(k.id).slice(0,4).forEach(function(x){items.push({key:'straf|'+(x.aufgabe&&x.aufgabe.id||k.id+'|'+x.sus.id),typ:'straf',sus:x.sus,kurs:k,x:x,titel:A.susName(x.sus),sub:'offene Strafarbeit · '+(k.fach||'')});});});
+  A.alleKurse().forEach(function(k){var heuteKurs=inboxKursAmDatum_(k.id,datum);A.offeneStrafarbeiten(k.id).filter(function(x){var f=x.aufgabe.frist;return heuteKurs||(f&&f<=datum);}).slice(0,4).forEach(function(x){var f=x.aufgabe.frist,ns=x.aufgabe.nachsitzen,faellig=!!(f&&f<=datum);var sub=ns?('Nachsitzen am '+A.fmtDateShort(ns.datum)+(ns.zeit?' · '+ns.zeit:'')):(faellig?(f===datum?'Strafarbeit heute fällig – abgegeben?':'Strafarbeit seit '+A.fmtDateShort(f)+' fällig – abgegeben?'):('offene Strafarbeit'+(f?' · abgeben bis '+A.fmtDateShort(f):'')));items.push({key:'straf|'+(x.aufgabe&&x.aufgabe.id||k.id+'|'+x.sus.id),typ:'straf',sus:x.sus,kurs:k,x:x,faellig:faellig,titel:A.susName(x.sus),sub:sub+' · '+(k.fach||'')});});});
   return items;
 }
 function inboxHTML(datum){
@@ -7637,6 +7656,7 @@ function inboxHTML(datum){
   function taskRow(it){
     if(it.typ==='liste')return '<div class="today-task"><button class="inbox-open" data-act="aufgabe-open" data-aufgabe="'+A.esc(it.a.id)+'"><div class="inbox-icon">□</div><div class="inbox-main"><b>'+A.esc(it.titel)+'</b><span>'+A.esc(it.sub)+(it.offen!==undefined?' · '+it.offen+' offen':'')+'</span></div><div class="chev">›</div></button><div class="today-task-actions">'+(it.offen>0?'<button class="btn small" data-act="eltern-erinnern" data-aufgabe="'+A.esc(it.a.id)+'">Eltern erinnern</button>':'')+'</div></div>';
     if(it.typ==='wiedervorlage')return '<div class="today-task"><button class="inbox-open" data-act="open-sus" data-sus="'+it.sus.id+'"><div class="inbox-icon">↻</div><div class="inbox-main"><b>'+A.esc(it.titel)+klasseChip_(it.sus)+'</b>'+'<span>'+A.esc(it.sub)+'</span></div><div class="chev">›</div></button><div class="today-task-actions"><button class="btn small" data-act="wv-erledigt" data-id="'+A.esc(it.wv.id)+'">Erledigt</button></div></div>';
+    if(it.typ==='straf')return '<div class="today-task"><button class="inbox-open" data-act="open-sus" data-sus="'+it.sus.id+'"><div class="inbox-icon">!</div><div class="inbox-main"><b>'+A.esc(it.titel)+klasseChip_(it.sus)+'</b>'+'<span>'+A.esc(it.sub)+'</span></div><div class="chev">›</div></button><div class="today-task-actions">'+(it.faellig?'<button class="btn small" data-act="straf-erledigt" data-straf-id="'+A.esc(it.x.aufgabe.id)+'">Abgegeben ✓</button>'+(it.x.aufgabe.nachsitzen?'':'<button class="btn small" data-act="straf-nachsitzen" data-straf-id="'+A.esc(it.x.aufgabe.id)+'">Nicht abgegeben</button>'):'')+'</div></div>';
     return '<div class="today-task"><button class="inbox-open" data-act="open-sus" data-sus="'+it.sus.id+'"><div class="inbox-icon">!</div><div class="inbox-main"><b>'+A.esc(it.titel)+klasseChip_(it.sus)+'</b>'+'<span>'+A.esc(it.sub)+'</span></div><div class="chev">›</div></button></div>';
   }
   var elternKopf='<div class="today-section-head"><div class="today-section-title"><h3>Elternkommunikation</h3><span class="today-count">'+eltern.length+'</span></div><button class="btn small" style="white-space:nowrap;flex-shrink:0" data-act="eltern-generator">Neue Nachricht</button></div>';
@@ -8516,7 +8536,10 @@ VIEWS.stunde = {
         return '<div class="straf-offen-row">' +
           '<div class="straf-offen-main"><div class="straf-offen-name">' + A.esc(A.susName(x.sus)) + '</div>' +
           '<div class="straf-offen-sub">seit dem ' + x.aufgabe.schwelle + '. Vergessen fällig' +
-          (grund ? ' · ' + grund : '') + '</div></div>' +
+          (grund ? ' · ' + grund : '') +
+          (x.aufgabe.frist ? ' · abgeben bis ' + A.fmtDateShort(x.aufgabe.frist) : '') +
+          (x.aufgabe.nachsitzen ? ' · Nachsitzen ' + A.fmtDateShort(x.aufgabe.nachsitzen.datum) : '') + '</div></div>' +
+          '<button class="btn small" data-act="straf-frist" data-straf-id="' + A.esc(x.aufgabe.id) + '">' + (x.aufgabe.frist ? 'Frist' : 'Frist setzen') + '</button>' +
           '<button class="btn small" data-act="straf-erledigt" data-straf-id="' + A.esc(x.aufgabe.id) + '">Abgegeben ✓</button>' +
           '</div>';
       }).join(''), 'straf-offen');
@@ -8745,7 +8768,7 @@ VIEWS.klassen = {
 
 /* ------------------------------------------------------- V49 Klassenampel */
 function klassenAmpelDaten_(klasseId){var sus=A.susDerKlasse(klasseId),ls=listenKlassenStat(klasseId),komm=kommunikationsHinweiseKlasse(klasseId),goals=[],over=0,linked=0;sus.forEach(function(x){var gg=foerderzieleFuer_(x.id,false);goals=goals.concat(gg);gg.forEach(function(z){if(z.bis&&z.bis<A.todayISO())over++;});if(craftKarteiFuer_(x.id))linked++;});function st(n,red){return red?'red':(n?'yellow':'green');}return {ruecklauf:{label:'Rückläufe',state:st(ls.offen,ls.ueber>0),text:ls.offen?(ls.offen+' offen'+(ls.ueber?' · '+ls.ueber+' überfällig':'')):'alles vollständig'},eltern:{label:'Eltern',state:st(komm.length,komm.length>=3),text:komm.length?(komm.length+' Hinweis'+(komm.length===1?'':'e')):'nichts offen'},ziele:{label:'Förderziele',state:st(goals.length,over>0),text:goals.length?(goals.length+' aktiv'+(over?' · '+over+' fällig':'')):'keine offenen Ziele'},craft:{label:'Craft',state:sus.length&&linked===sus.length?'green':(linked?'yellow':'red'),text:sus.length?(linked+'/'+sus.length+' Karten'):'keine SuS'}};}
-function klassenAmpelHTML_(klasseId){var d=klassenAmpelDaten_(klasseId);return '<div class="ampel-grid">'+['ruecklauf','eltern','ziele','craft'].map(function(key){var x=d[key];return '<button class="ampel-item" data-act="klasse-ampel-detail" data-klasse="'+klasseId+'" data-kind="'+key+'"><div class="ampel-top"><i class="ampel-dot '+x.state+'"></i><b>'+x.label+'</b></div><span>'+A.esc(x.text)+'</span></button>';}).join('')+'</div>';}
+function klassenAmpelHTML_(klasseId){var d=klassenAmpelDaten_(klasseId);return '<div class="ampel-grid">'+['ruecklauf','eltern','ziele'].concat(craftAn_()?['craft']:[]).map(function(key){var x=d[key];return '<button class="ampel-item" data-act="klasse-ampel-detail" data-klasse="'+klasseId+'" data-kind="'+key+'"><div class="ampel-top"><i class="ampel-dot '+x.state+'"></i><b>'+x.label+'</b></div><span>'+A.esc(x.text)+'</span></button>';}).join('')+'</div>';}
 
 VIEWS.klasse = {
   title: function (p) { var k = A.byId('Klassen', p.id); return k ? k.name : 'Klasse'; },
@@ -9359,7 +9382,7 @@ VIEWS.mehr = {
       '<button class="row" data-act="eltern-einstellungen"><div class="row-main"><div class="row-title">Automatische Elternhinweise</div><div class="row-sub">bei ' + elternNachrichtSchwelle() + '×, ' + (elternNachrichtSchwelle()*2) + '×, ' + (elternNachrichtSchwelle()*3) + '× …</div></div><div class="chev">›</div></button>');
 
     var craftCfg=craftApiConfig_(), karteiN=craftKarteiVerknuepftAnzahl_(), karteiGes=A.list('SuS',function(x){return String(x.aktiv||'1')!=='0';}).length;
-    h += !craftAn_()?card('Craft','<button class="row" data-act="craft-toggle"><div class="row-main"><div class="row-title">Craft einschalten</div><div class="row-sub">ist ausgeschaltet – nichts wird angezeigt oder übertragen</div></div><div class="chev">›</div></button>'):card('Craft',
+    h += !craftAn_()?'':card('Craft',
       '<button class="row" data-act="craft-api"><div class="row-main"><div class="row-title">Craft API Connection</div><div class="row-sub">'+(craftApiUrlGueltig_(craftCfg.url)?'verbunden · '+(craftCfg.auto?'Inbox automatisch → heutige Notiz':'manuell synchronisieren'):'noch nicht verbunden')+' · nur Aufgaben ohne Namen</div></div><div class="chev">›</div></button>'+
       '<button class="row" data-act="craft-sync-inbox"><div class="row-main"><div class="row-title">Heutige Inbox nach Craft</div><div class="row-sub">offene Schulapp-Hinweise als Aufgaben in die heutige Craft-Notiz schreiben</div></div><div class="chev">›</div></button>'+
       '<button class="row" data-act="craft-info"><div class="row-main"><div class="row-title">Craft + Schulapp</div><div class="row-sub">Was nach Craft geht – und was bewusst nicht</div></div><div class="chev">›</div></button>'+
@@ -9740,6 +9763,7 @@ function zeigeStrafHinweis(sus, kurs, st) {
       '<div class="card-body">' + st.teile.map(function (t) {
         return '<div class="kv"><span class="k">' + A.esc(t.name) + '</span><span class="v">' + t.anzahl + '×</span></div>';
       }).join('') + '</div>' +
+      '<div class="field" style="margin-top:10px"><label>Strafarbeit abgeben bis</label><input type="date" id="strafFrist" value="' + A.addDays(A.todayISO(), 7) + '"><div class="field-hint">An diesem Tag fragt die App unter „Heute“, ob abgegeben wurde.</div></div>' +
       '<div class="hint-box">Eingestellt ist eine Strafarbeit ab ' + st.grenze +
       ' Vergessen. Der nächste Hinweis kommt beim ' + (st.gesamt + st.grenze) + '. Mal.' +
       (st.entschuldigt ? ' Entschuldigtes Fehlen (' + st.entschuldigt + '×) zählt nicht mit.' : '') + '</div>',
@@ -9747,6 +9771,10 @@ function zeigeStrafHinweis(sus, kurs, st) {
           '<button class="btn" id="strafEltern">Elternnachricht</button>' +
           '<button class="btn primary" data-close>Verstanden</button>',
     after: function (bg, close) {
+      var strafId = kurs.id + '|' + sus.id + '|' + st.erreicht;
+      var fristFeld = bg.querySelector('#strafFrist');
+      A.strafFristSetzen(strafId, fristFeld.value);
+      fristFeld.addEventListener('change', function () { A.strafFristSetzen(strafId, fristFeld.value); });
       bg.querySelector('#strafNotiz').addEventListener('click', function () {
         sus.notiz = (sus.notiz ? String(sus.notiz) + '\n' : '') + notizText;
         A.put('SuS', sus);
@@ -9894,6 +9922,34 @@ ACT['straf-erledigt'] = function (el) {
   A.strafAufgabeErledigen(id, true);
   window.toast('Strafarbeit als abgegeben markiert');
   render();
+};
+
+function strafAusId_(id) { var t = String(id || '').split('|'); return { kurs: A.byId('Kurse', t[0]), sus: A.byId('SuS', t[1]) }; }
+ACT['straf-frist'] = function (el) {
+  var id = el.getAttribute('data-straf-id'), x = strafAusId_(id); if (!x.sus) return;
+  var akt = (A.strafAufgaben(x.kurs.id, x.sus.id).filter(function (a) { return a.id === id; })[0] || {}).frist || A.addDays(A.todayISO(), 7);
+  Modal.form({ title: 'Strafarbeit · ' + A.susName(x.sus), fields: [{ key: 'frist', label: 'Abgeben bis', type: 'date', value: akt, hint: 'An diesem Tag fragt die App unter „Heute“, ob abgegeben wurde.' }],
+    onSave: function (v) { A.strafFristSetzen(id, v.frist); window.toast('Frist gespeichert'); }, focus: false });
+};
+ACT['straf-nachsitzen'] = function (el) {
+  var id = el.getAttribute('data-straf-id'), x = strafAusId_(id); if (!x.sus) return;
+  var a = A.strafAufgaben(x.kurs.id, x.sus.id).filter(function (y) { return y.id === id; })[0] || {};
+  Modal.form({
+    title: 'Nachsitzen · ' + A.susName(x.sus),
+    hinweis: 'Die Strafarbeit wurde nicht abgegeben. Lege einen Termin zum Nachsitzen fest; danach öffnet sich die vorformulierte Nachricht an die Eltern.',
+    fields: [
+      { key: 'datum', label: 'Nachsitzen am', type: 'date', value: (function () { var d = A.addDays(A.todayISO(), 1); while ([0, 6].indexOf(new Date(d + 'T12:00:00').getDay()) >= 0) d = A.addDays(d, 1); return d; })() },
+      { key: 'zeit', label: 'Uhrzeit', placeholder: 'z. B. 13:15–14:00 Uhr' }
+    ],
+    saveLabel: 'Weiter zur Elternnachricht',
+    validate: function (v) { return v.datum ? null : 'Bitte ein Datum wählen.'; },
+    onSave: function (v) {
+      A.strafNachsitzenSetzen(id, v.datum, v.zeit);
+      var preset = { typ: 'preset', key: 'nachsitzen', susId: x.sus.id, kursId: x.kurs.id, frist: a.frist || '', datum: v.datum, zeit: String(v.zeit || '').trim() };
+      setTimeout(function () { elternNachrichtOeffnen(x.sus.id, preset); }, 0);
+    },
+    focus: false
+  });
 };
 
 ACT['strafarbeit'] = function () {
@@ -11597,18 +11653,62 @@ ACT['pin-setzen'] = function () {
   });
 };
 
-ACT['export'] = function () {
-  var blob = new Blob([A.exportJSON()], { type: 'application/json' });
+/* V72: Die Sicherungsdatei ist mit AES-256 verschlüsselt. Das Sicherungspasswort wird nirgends gespeichert. */
+var SICHERUNG_ITER_ = 600000;
+function sicherungSchluessel_(pw, salz, iter) {
+  return crypto.subtle.importKey('raw', new TextEncoder().encode(String(pw)), 'PBKDF2', false, ['deriveKey']).then(function (k) {
+    return crypto.subtle.deriveKey({ name: 'PBKDF2', salt: salz, iterations: iter, hash: 'SHA-256' }, k, { name: 'AES-GCM', length: 256 }, false, ['encrypt', 'decrypt']);
+  });
+}
+function sicherungVerschluesseln_(text, pw) {
+  var salz = bytesZufall(16), iv = bytesZufall(12);
+  return sicherungSchluessel_(pw, salz, SICHERUNG_ITER_).then(function (key) {
+    return crypto.subtle.encrypt({ name: 'AES-GCM', iv: iv }, key, new TextEncoder().encode(text));
+  }).then(function (c) {
+    return JSON.stringify({ app: 'schulapp', format: 'sicherung-verschluesselt', v: 1, erstellt: new Date().toISOString(), kdf: 'PBKDF2-SHA256', iter: SICHERUNG_ITER_, s: b64urlVonBytes(salz), iv: b64urlVonBytes(iv), c: b64urlVonBytes(c) });
+  });
+}
+function sicherungEntschluesseln_(obj, pw) {
+  return sicherungSchluessel_(pw, bytesVonB64url(obj.s), obj.iter || SICHERUNG_ITER_).then(function (key) {
+    return crypto.subtle.decrypt({ name: 'AES-GCM', iv: bytesVonB64url(obj.iv) }, key, bytesVonB64url(obj.c));
+  }).then(function (klar) { return new TextDecoder().decode(klar); });
+}
+function sicherungHerunterladen_(inhalt) {
+  var blob = new Blob([inhalt], { type: 'application/json' });
   var url = URL.createObjectURL(blob);
   var a = document.createElement('a');
   a.href = url;
-  a.download = 'schulapp-sicherung-' + A.todayISO() + '.json';
+  a.download = 'schulapp-sicherung-' + A.todayISO() + '-verschluesselt.json';
   document.body.appendChild(a);
   a.click();
   A.LS.set('letzteDateiSicherung', new Date().toISOString());
-  window.toast('Sicherung gespeichert');
   setTimeout(render, 200);
   setTimeout(function () { URL.revokeObjectURL(url); a.remove(); }, 1500);
+}
+ACT['export'] = function () {
+  if (!(window.crypto && crypto.subtle)) { window.toast('Dieser Browser kann nicht verschlüsseln. Bitte Safari oder Chrome in aktueller Version nutzen.', true); return; }
+  Modal.form({
+    title: 'Sicherung verschlüsselt speichern',
+    hinweis: 'Die Datei wird mit AES-256 verschlüsselt. Ohne dieses Sicherungspasswort lässt sie sich nicht öffnen – auch nicht von dir. Speichere es in der Passwörter-App. Es wird von der App nirgends gespeichert.',
+    fields: [
+      { key: 'pw', label: 'Sicherungspasswort (mind. 12 Zeichen)', type: 'password' },
+      { key: 'pw2', label: 'Sicherungspasswort wiederholen', type: 'password' }
+    ],
+    saveLabel: 'Verschlüsseln & speichern',
+    validate: function (v) {
+      if (String(v.pw || '').length < 12) return 'Das Sicherungspasswort braucht mindestens 12 Zeichen.';
+      if (v.pw !== v.pw2) return 'Die beiden Passwörter stimmen nicht überein.';
+      return null;
+    },
+    onSave: function (v) {
+      window.toast('Sicherung wird verschlüsselt …');
+      sicherungVerschluesseln_(A.exportJSON(), v.pw).then(function (inhalt) {
+        sicherungHerunterladen_(inhalt);
+        window.toast('Verschlüsselte Sicherung gespeichert');
+      }).catch(function (e) { window.toast('Verschlüsseln fehlgeschlagen: ' + (e && e.message || e), true); });
+    },
+    focus: true
+  });
 };
 
 ACT['import'] = function () {
@@ -11620,7 +11720,24 @@ ACT['import'] = function () {
     if (!f) return;
     var r = new FileReader();
     r.onload = function () {
-      try { A.importJSON(r.result, false); window.toast('Import abgeschlossen'); render(); }
+      var obj = null;
+      try { obj = JSON.parse(r.result); } catch (e0) { window.toast('Datei konnte nicht gelesen werden.', true); return; }
+      if (obj && obj.format === 'sicherung-verschluesselt') {
+        Modal.form({
+          title: 'Verschlüsselte Sicherung öffnen',
+          fields: [{ key: 'pw', label: 'Sicherungspasswort', type: 'password' }],
+          saveLabel: 'Entschlüsseln & importieren',
+          onSave: function (v) {
+            window.toast('Sicherung wird entschlüsselt …');
+            sicherungEntschluesseln_(obj, v.pw).then(function (text) {
+              A.importJSON(text, false); window.toast('Import abgeschlossen'); render();
+            }).catch(function () { window.toast('Das Sicherungspasswort stimmt nicht oder die Datei ist beschädigt.', true); });
+          },
+          focus: true
+        });
+        return;
+      }
+      try { A.importJSON(r.result, false); window.toast('Import abgeschlossen (unverschlüsselte Datei)'); render(); }
       catch (e) { window.toast('Datei konnte nicht gelesen werden.', true); }
     };
     r.readAsText(f);
@@ -11834,6 +11951,9 @@ ACT['fehlerprotokoll'] = function () {
 };
 
 var AENDERUNGEN_ = [
+  ['V72', ['Sicherung (Export) ist jetzt mit AES-256 verschlüsselt; beim Import wird nach dem Sicherungspasswort gefragt.', 'Strafarbeiten: Abgabefrist beim Vergeben; am Fälligkeitstag fragt „Heute“ nach. Bei „Nicht abgegeben“ legst du einen Nachsitztermin fest und bekommst eine vorformulierte Elternnachricht.']],
+  ['V71', ['Craft ist aus der App herausgenommen: keine Craft-Leiste, keine Craft-Knöpfe, keine Übertragung mehr. Beobachtungen, Förderziele und Elternkommunikation bleiben wie bisher in der App gespeichert.']],
+  ['V70', ['Listen: Unten steht jetzt „Fertig“, oben „Liste abschließen“. Nach „Fertig“ zeigt die App, wie viele noch fehlen, mit dem Knopf „Eltern erinnern“.', 'Die Zahl (z. B. 3/6) in der Übersicht aktualisiert sich jetzt sofort nach dem Abhaken.']],
   ['V69', ['Elternnachricht: Der Name des Kindes wird jetzt auch eingesetzt, wenn bei einem Kind nur ein Namensfeld ausgefüllt ist (vorher stand dann „Ihrem Kind“).']],
   ['V68', ['Elternnachricht: neuer Anlass „Verstoß gegen Klassenregeln (Entschuldigung)“ mit vorformuliertem Text (Entschuldigungsbrief und kleine Aufmerksamkeit).']],
   ['V67', ['Neue Leistung: Der Anteil innerhalb der Art wird jetzt in Prozent angegeben; die anderen Leistungen der Art teilen sich den Rest im bisherigen Verhältnis.', 'Noten eintragen: deutlicher „Speichern“-Knopf unter der Liste (Eingaben werden weiterhin auch sofort gespeichert).', 'Kurs: Leistungen stehen oben, die Unterrichtsreihe ganz unten.', 'Heute: „Neue Nachricht“ bei der Elternkommunikation ist jetzt ein richtiger Knopf.']],
@@ -11950,11 +12070,16 @@ ACT['aufgabe-open'] = function (el) {
       '<button class="btn small" data-list-none>Alle zurücksetzen</button></div>';
   }
 
+  /* V70: Unten „Fertig“ (schließt, Haken sind schon gespeichert), oben „Liste abschließen“. Beim Schließen wird die Ansicht neu gezeichnet. */
   Modal.open({
     title: a.titel,
+    closeLabel: 'Liste abschließen',
     body: listenBody(),
-    foot: '<button class="btn" data-remind>Eltern erinnern</button><button class="btn" data-edit>Bearbeiten</button><button class="btn primary" data-done>Liste abschließen</button>',
+    foot: '<button class="btn" data-remind>Eltern erinnern</button><button class="btn" data-edit>Bearbeiten</button><button class="btn primary" data-fertig>Fertig</button>',
+    onClose: function () { render(); },
     after: function (bg, close) {
+      var kopfKnopf = bg.querySelector('.modal-head [data-close]');
+      if (kopfKnopf) { kopfKnopf.removeAttribute('data-close'); kopfKnopf.setAttribute('data-done', ''); }
       function refresh() {
         var st = listenStand(a, kurs);
         var count = bg.querySelector('[data-list-count]');
@@ -12001,6 +12126,13 @@ ACT['aufgabe-open'] = function (el) {
       });
       bg.querySelector('[data-remind]').addEventListener('click', function () { close(); setTimeout(function(){ elternErinnerungOeffnen(a.id); }, 0); });
       bg.querySelector('[data-edit]').addEventListener('click', function () { close(); aufgabeBearbeiten(a.id); });
+      bg.querySelector('[data-fertig]').addEventListener('click', function () {
+        var st = listenStand(a, kurs);
+        close();
+        var offen = Math.max(0, st.gesamt - st.erledigt);
+        if (offen > 0) window.toast(offen + ' von ' + st.gesamt + ' fehlen noch', false, { label: 'Eltern erinnern', fn: function () { elternErinnerungOeffnen(a.id); } });
+        else window.toast('Gespeichert');
+      });
       bg.querySelector('[data-done]').addEventListener('click', function () {
         var st = listenStand(a, kurs);
         var text = st.erledigt < st.gesamt

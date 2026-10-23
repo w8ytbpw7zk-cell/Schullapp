@@ -1,73 +1,55 @@
-const CACHE_NAME = "schulapp-v70";
+/* Schulapp – Offline-Zwischenspeicher (neu, V72)
+ * - Nur Dateien der App selbst (gleiche Adresse) werden zwischengespeichert.
+ *   Anfragen an den eigenen Server (Tailscale), an andere Seiten oder von
+ *   Browser-Erweiterungen (chrome-extension://) werden nie angefasst.
+ * - Erst Netz, dann Zwischenspeicher: Ist man online, kommt immer die neueste
+ *   Version; offline öffnet sich die zuletzt geladene.
+ * - Es wird immer eine gültige Antwort geliefert (behebt „Failed to convert value to 'Response'“).
+ */
+const CACHE = 'schulapp-v72';
+const START = ['./', './index.html'];
 
-const APP_SHELL = [
-  "./",
-  "./index.html",
-  "./manifest.webmanifest",
-  "./icon-192.png",
-  "./icon-512.png"
-];
-
-self.addEventListener("install", event => {
-  event.waitUntil(
-    caches.open(CACHE_NAME).then(cache => cache.addAll(APP_SHELL))
-  );
-
+self.addEventListener('install', (event) => {
   self.skipWaiting();
-});
-
-self.addEventListener("activate", event => {
   event.waitUntil(
-    caches.keys().then(cacheNames =>
-      Promise.all(
-        cacheNames
-          .filter(name => name !== CACHE_NAME)
-          .map(name => caches.delete(name))
-      )
-    )
+    caches.open(CACHE).then((c) => c.addAll(START)).catch(() => {})
   );
-
-  self.clients.claim();
 });
 
-self.addEventListener("fetch", event => {
-  if (event.request.mode === "navigate") {
-    event.respondWith(
-      fetch(event.request)
-        .then(response => {
-          const copy = response.clone();
-
-          caches.open(CACHE_NAME).then(cache => {
-            cache.put("./index.html", copy);
-          });
-
-          return response;
-        })
-        .catch(() =>
-          caches.match("./index.html")
-        )
-    );
-
-    return;
-  }
-
-  event.respondWith(
-    fetch(event.request)
-      .then(response => {
-        if (
-          event.request.method === "GET" &&
-          response &&
-          response.status === 200
-        ) {
-          const copy = response.clone();
-
-          caches.open(CACHE_NAME).then(cache => {
-            cache.put(event.request, copy);
-          });
-        }
-
-        return response;
-      })
-      .catch(() => caches.match(event.request))
+self.addEventListener('activate', (event) => {
+  event.waitUntil(
+    caches.keys()
+      .then((keys) => Promise.all(keys.filter((k) => k !== CACHE).map((k) => caches.delete(k))))
+      .then(() => self.clients.claim())
   );
+});
+
+self.addEventListener('fetch', (event) => {
+  const req = event.request;
+  if (req.method !== 'GET') return;
+  let url;
+  try { url = new URL(req.url); } catch (e) { return; }
+  if (url.origin !== self.location.origin) return;
+
+  event.respondWith((async () => {
+    try {
+      const res = await fetch(req);
+      if (res && res.ok && res.type === 'basic') {
+        const kopie = res.clone();
+        caches.open(CACHE).then((c) => c.put(req, kopie)).catch(() => {});
+      }
+      return res;
+    } catch (err) {
+      const treffer = await caches.match(req, { ignoreSearch: req.mode === 'navigate' });
+      if (treffer) return treffer;
+      if (req.mode === 'navigate') {
+        const start = (await caches.match('./index.html')) || (await caches.match('./'));
+        if (start) return start;
+      }
+      return new Response('Offline – diese Datei ist nicht zwischengespeichert.', {
+        status: 503,
+        headers: { 'Content-Type': 'text/plain; charset=utf-8' }
+      });
+    }
+  })());
 });
