@@ -2733,23 +2733,23 @@ input::placeholder,textarea::placeholder{color:var(--ink-3)}
 /* V74: Kacheln wie Karten in Craft */
 .kachel-sektion{margin:0 0 26px}
 .kachel-sektion-titel{font-size:12px;font-weight:600;color:var(--ink-2);margin:0 2px 8px}
-.kachel-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
-@media(min-width:700px){.kachel-grid{grid-template-columns:repeat(3,minmax(0,1fr))}}
-@media(min-width:1100px){.kachel-grid{grid-template-columns:repeat(4,minmax(0,1fr))}}
-.kachel{--kc:var(--accent);position:relative;display:flex;flex-direction:column;justify-content:space-between;gap:14px;min-height:108px;padding:13px 13px 12px;border:1px solid color-mix(in srgb,var(--kc) 22%,var(--line));border-radius:14px;background:color-mix(in srgb,var(--kc) 7%,var(--surface));color:var(--ink);font:inherit;text-align:left;cursor:pointer;transition:transform .12s,box-shadow .12s}
-.kachel:hover{box-shadow:0 3px 12px rgba(0,0,0,.08);transform:translateY(-1px)}
-.kachel:active{transform:scale(.98)}
-.kachel.gross{grid-column:1/-1;min-height:118px;background:color-mix(in srgb,var(--kc) 14%,var(--surface))}
-.kachel.gross .kachel-text b{font-size:17px}
-.kachel.leer{background:transparent;border-style:dashed;border-color:var(--line);color:var(--ink-2)}
-.kachel.leer .kachel-ico{background:var(--surface-2);color:var(--ink-2)}
-.kachel-ico{display:flex;align-items:center;justify-content:center;width:34px;height:34px;border-radius:10px;background:color-mix(in srgb,var(--kc) 16%,var(--surface));color:var(--kc)}
-.kachel-text{display:flex;flex-direction:column;gap:3px;min-width:0}
-.kachel-text b{font-size:15px;font-weight:650;line-height:1.2;overflow:hidden;text-overflow:ellipsis}
-.kachel-text small{font-size:12px;color:var(--ink-2);line-height:1.3}
-.kachel-badge{position:absolute;top:11px;right:11px;padding:2px 8px;border-radius:20px;background:var(--surface);border:1px solid var(--line);font-size:11px;font-weight:600;color:var(--ink-2)}
-.kachel-badge.warn{background:#fdebec;border-color:#f5c9cb;color:#c4443a}
-@media(prefers-color-scheme:dark){.kachel{background:color-mix(in srgb,var(--kc) 12%,var(--surface))}.kachel-ico{background:color-mix(in srgb,var(--kc) 24%,var(--surface))}.kachel-badge.warn{background:#3c2223;border-color:#5a2f31;color:#f08b83}}
+.nkachel-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+@media(min-width:700px){.nkachel-grid{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media(min-width:1100px){.nkachel-grid{grid-template-columns:repeat(4,minmax(0,1fr))}}
+.nkachel{--kc:var(--accent);position:relative;display:flex;flex-direction:column;justify-content:space-between;gap:14px;min-height:108px;padding:13px 13px 12px;border:1px solid color-mix(in srgb,var(--kc) 22%,var(--line));border-radius:14px;background:color-mix(in srgb,var(--kc) 7%,var(--surface));color:var(--ink);font:inherit;text-align:left;cursor:pointer;transition:transform .12s,box-shadow .12s}
+.nkachel:hover{box-shadow:0 3px 12px rgba(0,0,0,.08);transform:translateY(-1px)}
+.nkachel:active{transform:scale(.98)}
+.nkachel.gross{grid-column:1/-1;min-height:118px;background:color-mix(in srgb,var(--kc) 14%,var(--surface))}
+.nkachel.gross .nkachel-text b{font-size:17px}
+.nkachel.leer{background:transparent;border-style:dashed;border-color:var(--line);color:var(--ink-2)}
+.nkachel.leer .nkachel-ico{background:var(--surface-2);color:var(--ink-2)}
+.nkachel-ico{display:flex;align-items:center;justify-content:center;width:34px;height:34px;border-radius:10px;background:color-mix(in srgb,var(--kc) 16%,var(--surface));color:var(--kc)}
+.nkachel-text{display:flex;flex-direction:column;gap:3px;min-width:0}
+.nkachel-text b{font-size:15px;font-weight:650;line-height:1.2;overflow:hidden;text-overflow:ellipsis}
+.nkachel-text small{font-size:12px;color:var(--ink-2);line-height:1.3}
+.nkachel-badge{position:absolute;top:11px;right:11px;padding:2px 8px;border-radius:20px;background:var(--surface);border:1px solid var(--line);font-size:11px;font-weight:600;color:var(--ink-2)}
+.nkachel-badge.warn{background:#fdebec;border-color:#f5c9cb;color:#c4443a}
+@media(prefers-color-scheme:dark){.nkachel{background:color-mix(in srgb,var(--kc) 12%,var(--surface))}.nkachel-ico{background:color-mix(in srgb,var(--kc) 24%,var(--surface))}.nkachel-badge.warn{background:#3c2223;border-color:#5a2f31;color:#f08b83}}
 .noten-hinweis{margin:0 2px 12px}
 .noten-neu-oben{margin-bottom:22px}
 .stunde-schnell{margin:12px 0 22px}
@@ -2871,6 +2871,250 @@ input::placeholder,textarea::placeholder{color:var(--ink-3)}
 .main .card.plan-kurswahl + .hint-box{margin-top:-14px}
 .plan-fuss{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;margin:10px 0 var(--gap-sektion)}
 .plan-fuss-rechts{display:flex;gap:4px}
+
+/* =====================================================================
+   V79: Flächen-Design (wie Craft) – keine Linien, Kacheln und Flächen
+   ===================================================================== */
+:root{--r-gross:16px;--r:13px;--r-klein:10px;--schatten:0 1px 2px rgba(0,0,0,.05),0 1px 1px rgba(0,0,0,.03)}
+@media(prefers-color-scheme:light){
+  :root:not([data-flaeche]){--bg:#ffffff;--surface:#ffffff;--surface-2:#f1f1ef}
+}
+@media(prefers-color-scheme:dark){
+  :root{--bg:#141414;--surface:#1f1f1f;--surface-2:#2a2a2a;--schatten:none}
+}
+body,.main{background:var(--bg)!important}
+.topbar{background:color-mix(in srgb,var(--bg) 92%,transparent)!important;border-bottom:0!important;backdrop-filter:blur(12px)}
+.tabbar{border-top:0!important;background:color-mix(in srgb,var(--bg) 92%,transparent)!important;backdrop-filter:blur(12px)}
+@media(min-width:820px){.tabbar{background:color-mix(in srgb,var(--bg) 70%,var(--surface-2))!important;border-right:0!important}.tab.active{background:var(--surface)!important;box-shadow:var(--schatten)}}
+
+/* 1. Trennlinien entfernen */
+.main .aufgabe-row,
+.main .card-head,
+.main .chk-fuss,
+.main .comm-alert-intro,
+.main .comm-history-row,
+.main .comm-history-title,
+.main .craft-kartei-summary,
+.main .craft-ready,
+.main .craft-ready-row,
+.main .craft-strip,
+.main .goal-head,
+.main .goal-list,
+.main .goal-row,
+.main .inbox-empty,
+.main .inbox-item,
+.main .inbox-list,
+.main .kartei-doc-list,
+.main .kartei-doc-row,
+.main .kartei-setup-box,
+.main .kartei-strip,
+.main .klassen-listen-row,
+.main .konf-zeile,
+.main .kv + .kv,
+.main .mit-row,
+.main .mitarbeit-actions,
+.main .parent-group,
+.main .parent-group .parent-item+.parent-item,
+.main .parent-item,
+.main .parent-list,
+.main .parent-rest>summary,
+.main .pk-row,
+.main .plan-kursgruppe + .plan-kursgruppe,
+.main .prop-list,
+.main .prop-row,
+.main .regel-neu,
+.main .row,
+.main .straf-offen-row,
+.main .sus-grid .row,
+.main .sus-picker-list,
+.main .sus-picker-row,
+.main .task-list,
+.main .timeline,
+.main .timeline-row,
+.main .today-inbox-head,
+.main .today-task,
+.main .zu-card.offen>.zu-titel{border-top-color:transparent!important;border-bottom-color:transparent!important}
+.main hr{display:none}
+
+/* 2. Karten = Gruppen ohne Rahmen; Inhalt liegt auf Flächen */
+.main .card{background:transparent!important;border:0!important;box-shadow:none!important;padding:0!important;border-radius:0!important;overflow:visible!important}
+.main .card-head{padding:0 4px!important;margin:0 0 var(--gap-kopf)!important;font-size:12px!important;font-weight:600!important;color:var(--ink-2)!important;background:none!important}
+.main .card-body,.main .prop-list,.main .tbl-wrap,.main .chk-fuss,.main .timeline,.main .goal-list,.main .comm-profile,.main .offene-abgaben-list{background:var(--surface)!important;border:0!important;border-radius:var(--r)!important;box-shadow:var(--schatten)}
+.main .card-body{padding:12px 14px!important}
+.main .prop-list{padding:4px 14px!important;margin:0 0 var(--gap-sektion)!important}
+
+/* 3. Listenzeilen = gestapelte Flächen */
+.main .row,.main .aufgabe-row,.main .klassen-listen-row,.main .timeline-row,.main .goal-row,.main .comm-history-row,.main .inbox-item,.main .sus-picker-row{background:var(--surface);border:0!important;border-radius:var(--r-klein)!important;margin:0 0 5px!important;box-shadow:var(--schatten)}
+.main .row{padding:10px 12px!important;min-height:50px}
+.main .row:hover{background:color-mix(in srgb,var(--surface) 92%,var(--ink))!important}
+.main .card-body .row,.main .card-body .kv{box-shadow:none}
+.main .row.sub{background:color-mix(in srgb,var(--accent) 7%,var(--surface))}
+.main .kv{padding:7px 0}
+.main .timeline,.main .goal-list{padding:6px 10px!important}
+.main .timeline .timeline-row,.main .goal-list .goal-row{box-shadow:none;margin:0!important}
+
+/* 4. Kacheln ohne Rahmen */
+.nkachel,.lesson-kachel,.task-list.kacheln .today-task,.ampel-item,.straf-offen-row,.stunden-tools .btn{border:0!important;box-shadow:var(--schatten)}
+.nkachel{background:color-mix(in srgb,var(--kc) 10%,var(--surface))}
+.nkachel.gross{background:color-mix(in srgb,var(--kc) 18%,var(--surface))}
+.nkachel.leer{background:color-mix(in srgb,var(--ink) 4%,transparent)!important;box-shadow:none;border:0!important}
+.lesson-kachel{background:color-mix(in srgb,var(--kc) 11%,var(--surface))}
+.task-list.kacheln .today-task{background:color-mix(in srgb,var(--kc) 8%,var(--surface))}
+.ampel-item{background:var(--surface)!important;border-radius:var(--r)!important}
+
+/* 5. Knöpfe als weiche Flächen */
+.main .btn,.modal .btn{border:0!important;background:var(--surface);box-shadow:var(--schatten);border-radius:var(--r-klein)!important}
+.main .btn:hover{background:color-mix(in srgb,var(--surface) 90%,var(--ink))}
+.main .btn.primary,.modal .btn.primary{background:var(--ink)!important;color:var(--surface)!important;box-shadow:none}
+.design-kraeftig .main .btn.primary{background:var(--accent)!important;color:#fff!important}
+.main .btn.ghost{background:transparent!important;box-shadow:none}
+.today-task-actions .btn.ghost{background:color-mix(in srgb,var(--ink) 6%,transparent)!important}
+.icon-btn{border:0!important}
+.segmented,.sort-bar{border:0!important;background:color-mix(in srgb,var(--ink) 6%,transparent)!important;box-shadow:none}
+.segmented button,.sort-chip{border:0!important}
+.segmented button.on,.sort-chip.on{background:var(--surface)!important;box-shadow:var(--schatten)}
+.tag-pfeil,.tag-heute-btn{border:0!important;background:var(--surface)!important;box-shadow:var(--schatten)}
+
+/* 6. Hinweise */
+.main .hint-box,.main .warn-box{border:0!important;border-left:0!important;background:color-mix(in srgb,var(--accent) 7%,var(--surface))!important;border-radius:var(--r)!important;color:var(--ink-2)}
+.main .warn-box{background:color-mix(in srgb,#e0a244 14%,var(--surface))!important;color:var(--ink)}
+
+/* 7. Formulare und Fenster */
+.modal{border-radius:22px 22px 0 0!important;border:0!important}
+@media(min-width:700px){.modal{border-radius:20px!important}}
+.modal-head{border-bottom:0!important}
+.modal-foot{border-top:0!important}
+input:not([type=checkbox]):not([type=radio]):not([type=color]):not([type=range]),select,textarea{border:1px solid transparent!important;background:var(--surface-2)!important;border-radius:var(--r-klein)!important;box-shadow:none!important}
+input:focus,select:focus,textarea:focus{border-color:var(--accent)!important;background:var(--surface)!important;outline:none}
+
+/* 8. Stundenplan */
+.cell{border:0!important;border-radius:var(--r-klein)!important}
+.cell.empty-cell{background:color-mix(in srgb,var(--ink) 4%,transparent)!important;color:var(--ink-3)}
+.cell.filled{box-shadow:var(--schatten)}
+.plan-kurs-chip{border:0!important;box-shadow:var(--schatten)}
+.plan-kursgruppe + .plan-kursgruppe{border-top:0!important;padding-top:0}
+.main .card.plan-kurswahl .card-body{padding:12px!important}
+
+/* 9. Tabellen (Notenübersicht) */
+.main .tbl-wrap{padding:4px!important;overflow:auto}
+.main table.grades{border-collapse:separate;border-spacing:0}
+.main table.grades th,.main table.grades td{border:0!important}
+.main table.grades tbody tr:nth-child(odd) td{background:color-mix(in srgb,var(--ink) 3%,transparent)}
+.main table.grades tbody tr td:first-child{border-radius:8px 0 0 8px}
+.main table.grades tbody tr td:last-child{border-radius:0 8px 8px 0}
+
+/* 10. Stunde: fürs iPhone dicht nebeneinander */
+.main .card.straf-offen{display:grid!important;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.main .card.straf-offen>.card-head{grid-column:1/-1;margin-bottom:2px!important}
+.straf-offen-row{display:flex!important;flex-direction:column;align-items:stretch!important;gap:6px!important;padding:10px!important;border-radius:var(--r)!important;background:color-mix(in srgb,#c98a12 9%,var(--surface))!important}
+.straf-offen-main{min-width:0}
+.straf-offen-name{font-size:13.5px!important;font-weight:650}
+.straf-offen-sub{font-size:11.5px!important;line-height:1.3;display:-webkit-box;-webkit-line-clamp:3;-webkit-box-orient:vertical;overflow:hidden}
+.straf-offen-row .btn{min-height:30px!important;font-size:12px!important;padding:0 8px!important;width:100%}
+.stunde-schnell{display:grid!important;grid-template-columns:1fr 1fr;gap:8px}
+.stunden-tools{display:grid!important;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px;margin:0 0 var(--gap-sektion)}
+.stunden-tools .btn{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;min-height:64px!important;padding:6px 4px!important;font-size:11.5px!important;line-height:1.2;text-align:center;white-space:normal!important;border-radius:var(--r)!important;width:auto!important;margin:0!important}
+.main .chk-fuss{padding:8px 12px!important;margin-top:8px;font-size:12px}
+.mitarbeit-actions{display:flex;gap:8px;margin-top:8px}
+.mitarbeit-actions .btn{flex:1}
+
+/* Abhaken + Mitarbeit: Kacheln nebeneinander */
+.main .kachel-grid{display:grid!important;gap:6px!important;padding:0!important;background:transparent!important}
+.main .kachel-grid:not(.mit-grid){grid-template-columns:repeat(2,minmax(0,1fr))!important}
+.main .kachel-grid.chk-p1:not(.mit-grid),.main .kachel-grid.chk-p2:not(.mit-grid){grid-template-columns:repeat(3,minmax(0,1fr))!important}
+.main .mit-grid{grid-template-columns:repeat(2,minmax(0,1fr))!important}
+@media(min-width:700px){.main .kachel-grid:not(.mit-grid){grid-template-columns:repeat(4,minmax(0,1fr))!important}.main .kachel-grid.chk-p1:not(.mit-grid),.main .kachel-grid.chk-p2:not(.mit-grid){grid-template-columns:repeat(5,minmax(0,1fr))!important}.main .mit-grid{grid-template-columns:repeat(3,minmax(0,1fr))!important}}
+@media(min-width:1100px){.main .mit-grid{grid-template-columns:repeat(4,minmax(0,1fr))!important}}
+.main .chk-kachel,.main .mit-kachel{display:block!important;min-width:0!important;min-height:0!important;padding:7px!important;border:0!important;border-radius:var(--r)!important;background:var(--surface)!important;box-shadow:var(--schatten)}
+.main .chk-kachel .kachel-name,.main .mit-kachel .kachel-name{display:flex!important;align-items:center!important;gap:4px!important;min-height:0!important;margin:0 0 6px!important;padding:0 2px}
+.main .chk-kachel .nn,.main .mit-kachel .nn{flex:1;min-width:0;font-size:12.5px!important;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.main .mit-kachel .avg{flex:none;font-size:10.5px!important;color:var(--ink-3)}
+.main .mit-kachel .smileys{display:grid!important;grid-template-columns:repeat(5,minmax(0,1fr))!important;gap:3px!important;width:100%!important}
+.main .mit-kachel .sm{width:100%!important;min-width:0!important;max-width:none!important;height:36px!important;min-height:36px!important;padding:0!important;font-size:17px!important;border:0!important;border-radius:9px!important;background:color-mix(in srgb,var(--ink) 4%,transparent)!important;filter:grayscale(.85);opacity:.6}
+.main .mit-kachel .sm.on{filter:none;opacity:1;background:color-mix(in srgb,var(--accent) 18%,var(--surface))!important;box-shadow:0 0 0 2px var(--accent)}
+.main .kachel-felder{display:grid!important;grid-auto-flow:column;grid-auto-columns:minmax(0,1fr);gap:4px!important}
+.main .chk{min-width:0!important;min-height:38px!important;border:0!important;border-radius:9px!important;background:color-mix(in srgb,var(--ink) 4%,transparent)}
+
+/* 11. Klasse/Schüler: Listen als Flächen */
+.main .sus-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px}
+.main .sus-grid .row{margin:0!important;min-height:56px}
+@media(min-width:700px){.main .sus-grid{grid-template-columns:repeat(3,minmax(0,1fr))}}
+.main .sus-grid .row .chev{display:none}
+.main .profile-head{margin-bottom:var(--gap-sektion)}
+.main .profile-head-actions{display:flex;flex-wrap:wrap;gap:6px}
+.main .zu-card>.zu-titel{border:0!important}
+.main .today-section>.zu-head{border:0!important}
+.main .inbox-icon{border:0!important}
+
+.straf-offen-row{display:grid!important;grid-template-columns:1fr 1fr}
+.straf-offen-row .straf-offen-main{grid-column:1/-1}
+.straf-offen-row .btn{font-size:11.5px!important;padding:0 4px!important;min-height:30px!important;white-space:nowrap}
+.main .reihe-leer,.main .reihe-box,.main [class*="reihe"]{border-color:transparent!important}
+.task-list.kacheln .today-task>.today-task-actions{flex-wrap:nowrap!important}
+.task-list.kacheln .today-task-actions .btn.primary{flex:1 1 auto;min-width:0}
+.task-list.kacheln .today-task-actions .btn.ghost{padding:0 7px!important;flex:none}
+@media(max-width:420px){.tag-kopf h1{font-size:23px}.task-list.kacheln .today-task-actions .btn{font-size:11.5px}}
+
+/* =====================================================================
+   V80: Weiß als Standard, Flächen statt Schatten, Feinschliff
+   ===================================================================== */
+:root{--flaeche:#f5f5f3;--flaeche-hover:#efefec;--schatten:none;--ink-weich:#6b6a66}
+@media(prefers-color-scheme:light){
+  :root:not([data-flaeche]){--bg:#ffffff;--surface:#ffffff;--surface-2:#f1f1ef}
+  :root[data-flaeche="grau"]{--bg:#f3f3f0;--surface:#ffffff;--surface-2:#ececE8;--flaeche:#ffffff;--flaeche-hover:#fafaf8;--schatten:0 1px 2px rgba(0,0,0,.05)}
+  :root[data-flaeche="warm"],:root[data-flaeche="kuehl"],:root[data-flaeche="getoent"]{--flaeche:#ffffff;--flaeche-hover:#fbfbfa;--schatten:0 1px 2px rgba(0,0,0,.04)}
+}
+@media(prefers-color-scheme:dark){:root{--bg:#121212;--surface:#121212;--surface-2:#262626;--flaeche:#1e1e1e;--flaeche-hover:#252525;--schatten:none}}
+
+/* Schrift ruhiger und hochwertiger */
+body{-webkit-font-smoothing:antialiased;font-feature-settings:"cv11","ss01";letter-spacing:-.005em}
+.tag-kopf h1,.profile-head h1,.today-inbox-head h2{letter-spacing:-.025em}
+
+/* Flächen: auf Weiß zart grau, auf Grau weiß */
+.main .card-body,.main .prop-list,.main .tbl-wrap,.main .chk-fuss,.main .timeline,.main .goal-list,.main .comm-profile,.main .offene-abgaben-list{background:var(--flaeche)!important;box-shadow:var(--schatten)!important}
+.main .row,.main .aufgabe-row,.main .klassen-listen-row,.main .timeline-row,.main .goal-row,.main .comm-history-row,.main .inbox-item,.main .sus-picker-row{background:var(--flaeche);box-shadow:var(--schatten)}
+.main .row:hover{background:var(--flaeche-hover)!important}
+.main .card-body .row{background:transparent}
+.main .row.sub{background:color-mix(in srgb,var(--accent) 7%,var(--flaeche))}
+.main .chk-kachel,.main .mit-kachel{background:var(--flaeche)!important;box-shadow:var(--schatten)}
+.main .btn,.modal .btn{background:var(--flaeche);box-shadow:var(--schatten)}
+.main .btn:hover{background:var(--flaeche-hover)}
+.tag-pfeil,.tag-heute-btn{background:var(--flaeche)!important;box-shadow:var(--schatten)}
+.segmented button.on,.sort-chip.on{background:var(--surface)!important;box-shadow:0 1px 2px rgba(0,0,0,.08)}
+.segmented,.sort-bar{background:var(--flaeche)!important}
+.ampel-item{background:var(--flaeche)!important}
+.nkachel,.lesson-kachel,.task-list.kacheln .today-task,.straf-offen-row,.stunden-tools .btn{box-shadow:var(--schatten)}
+.nkachel{background:color-mix(in srgb,var(--kc) 9%,var(--flaeche))}
+.nkachel.gross{background:color-mix(in srgb,var(--kc) 16%,var(--flaeche))}
+.lesson-kachel{background:color-mix(in srgb,var(--kc) 10%,var(--flaeche))}
+.task-list.kacheln .today-task{background:color-mix(in srgb,var(--kc) 7%,var(--flaeche))}
+.main .hint-box{background:var(--flaeche)!important}
+.cell.empty-cell{background:var(--flaeche)!important}
+.plan-kurs-chip{box-shadow:none}
+.main table.grades tbody tr:nth-child(odd) td{background:color-mix(in srgb,var(--ink) 3%,transparent)}
+input:not([type=checkbox]):not([type=radio]):not([type=color]):not([type=range]),select,textarea{background:var(--flaeche)!important}
+input:focus,select:focus,textarea:focus{background:var(--surface)!important}
+@media(min-width:820px){.tabbar{background:var(--flaeche)!important}.tab.active{background:var(--surface)!important;box-shadow:0 1px 2px rgba(0,0,0,.06)}}
+@media(min-width:820px) and (prefers-color-scheme:dark){.tabbar{background:#181818!important}.tab.active{background:#262626!important}}
+
+/* Mitarbeit-Icons */
+.main .mit-kachel .sm.ico{filter:none!important;opacity:1!important;color:var(--ink-3);background:var(--surface)!important;display:flex;align-items:center;justify-content:center;transition:background .12s,color .12s,transform .08s}
+.main .mit-kachel .sm.ico:active{transform:scale(.92)}
+.main .mit-kachel .sm.ico.on{color:#fff!important;background:var(--mc)!important;box-shadow:none!important}
+@media(prefers-color-scheme:dark){.main .mit-kachel .sm.ico{background:#2a2a2a!important}}
+:root[data-flaeche="grau"] .main .mit-kachel .sm.ico,:root[data-flaeche="warm"] .main .mit-kachel .sm.ico,:root[data-flaeche="kuehl"] .main .mit-kachel .sm.ico,:root[data-flaeche="getoent"] .main .mit-kachel .sm.ico{background:var(--surface-2)!important}
+.mit-legende span{display:inline-flex;vertical-align:-2px;margin-right:2px}
+/* Abhaken passend */
+.main .chk{background:var(--surface)!important}
+:root[data-flaeche] .main .chk{background:var(--surface-2)!important}
+@media(prefers-color-scheme:dark){.main .chk{background:#2a2a2a!important}}
+
+/* V80: Farbkacheln auf Weiß klarer */
+@media(prefers-color-scheme:light){:root:not([data-flaeche]) .nkachel{background:color-mix(in srgb,var(--kc) 8%,#fff)}:root:not([data-flaeche]) .nkachel.gross{background:color-mix(in srgb,var(--kc) 14%,#fff)}:root:not([data-flaeche]) .lesson-kachel{background:color-mix(in srgb,var(--kc) 9%,#fff)}:root:not([data-flaeche]) .task-list.kacheln .today-task{background:color-mix(in srgb,var(--kc) 6%,#fff)}:root:not([data-flaeche]) .nkachel.leer{background:var(--flaeche)!important}}
+.stunden-tools .btn svg{width:20px;height:20px;color:var(--accent);margin-bottom:3px}
+.aufgabe-ico svg{width:16px;height:16px}
+
+.main .mitarbeit-actions{background:transparent!important;padding:0!important;border:0!important}
 </style>
 </head>
 <body>
@@ -3010,7 +3254,7 @@ var TABLES = ['Klassen', 'Kurse', 'SuS', 'Stundenplan', 'Stunden', 'Mitarbeit',
               'Leistungen', 'Noten', 'Checks', 'Settings'];
 
 /* Eine einzige Stelle für die Versionsangabe (Anzeige unter „Mehr“). */
-var APP_VERSION = 'V78';
+var APP_VERSION = 'V80';
 
 /* V15: Diese Adresse ist die verbindliche Login-Adresse. */
 /* V58: Keine feste Server-Adresse mehr in der App. Sie wird über den Einladungslink/-code oder Mehr → Server gesetzt. */
@@ -3104,6 +3348,8 @@ var DEFAULT_CFG = {
   /* V73: Hintergrundton (standard | warm | kuehl | getoent) und kräftigere Akzente */
   designFlaeche: 'standard',
   designKraeftig: false,
+  /* V80: Mitarbeit als Icons (false) oder Smileys (true) */
+  mitarbeitSmileys: false,
   /* Auf diesem Gerät nur einmal pro Kalendertag Anmeldung bestätigen. */
   dailyLogin: true,
   /* Sitzpläne je Klasse: { klasseId: { cols: 4, seats: [susId, ...] } } */
@@ -6175,6 +6421,10 @@ var ICON_PFADE_ = {
   regler: '<path d="M4 21v-7"/><path d="M4 10V3"/><path d="M12 21v-9"/><path d="M12 8V3"/><path d="M20 21v-5"/><path d="M20 12V3"/><path d="M2 14h4"/><path d="M10 8h4"/><path d="M18 16h4"/>',
   reihe: '<path d="M8 6h13"/><path d="M8 12h13"/><path d="M8 18h13"/><path d="M3 6h.01"/><path d="M3 12h.01"/><path d="M3 18h.01"/>',
   plus: '<path d="M12 5v14"/><path d="M5 12h14"/>',
+  wuerfel: '<rect width="12" height="12" x="2" y="10" rx="2"/><path d="m17.92 14 3.5-3.5a2.24 2.24 0 0 0 0-3l-5-4.92a2.24 2.24 0 0 0-3 0L10 6"/><path d="M6 18h.01"/><path d="M10 14h.01"/><path d="M15 6h.01"/><path d="M18 9h.01"/>',
+  puzzle: '<path d="M15.39 4.39a1 1 0 0 0 1.68-.474 2.5 2.5 0 1 1 3.014 3.015 1 1 0 0 0-.474 1.68l1.683 1.682a2.414 2.414 0 0 1 0 3.414L19.61 15.39a1 1 0 0 1-1.68-.474 2.5 2.5 0 1 0-3.014 3.015 1 1 0 0 1 .474 1.68l-1.683 1.682a2.414 2.414 0 0 1-3.414 0L8.61 19.61a1 1 0 0 0-1.68.474 2.5 2.5 0 1 1-3.014-3.015 1 1 0 0 0 .474-1.68l-1.683-1.682a2.414 2.414 0 0 1 0-3.414L4.39 8.61a1 1 0 0 1 1.68.474 2.5 2.5 0 1 0 3.014-3.015 1 1 0 0 1-.474-1.68l1.683-1.682a2.414 2.414 0 0 1 3.414 0z"/>',
+  datei: '<path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><path d="M12 18v-6"/><path d="m9 15 3 3 3-3"/>',
+  haken: '<path d="M20 6 9 17l-5-5"/>',
   user: '<circle cx="12" cy="8" r="4"/><path d="M20 21a8 8 0 0 0-16 0"/>',
   sync: '<path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16"/><path d="M16 16h5v5"/>',
   speicher: '<ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M3 5v14a9 3 0 0 0 18 0V5"/><path d="M3 12a9 3 0 0 0 18 0"/>',
@@ -6193,14 +6443,14 @@ function kartenSammler_() {
 /* V74: Kacheln wie Karten in Craft */
 function kachel_(o) {
   var attrs = Object.keys(o.data || {}).map(function (k) { return ' data-' + k + '="' + A.esc(o.data[k]) + '"'; }).join('');
-  return '<button type="button" class="kachel' + (o.gross ? ' gross' : '') + (o.leer ? ' leer' : '') + '" data-act="' + o.act + '"' + attrs +
+  return '<button type="button" class="nkachel' + (o.gross ? ' gross' : '') + (o.leer ? ' leer' : '') + '" data-act="' + o.act + '"' + attrs +
     (o.farbe ? ' style="--kc:' + A.esc(o.farbe) + '"' : '') + '>' +
-    (o.badge ? '<span class="kachel-badge' + (o.badgeWarn ? ' warn' : '') + '">' + A.esc(o.badge) + '</span>' : '') +
-    '<span class="kachel-ico">' + ICON_(o.icon || 'buch') + '</span>' +
-    '<span class="kachel-text"><b>' + A.esc(o.titel) + '</b>' + (o.info ? '<small>' + o.info + '</small>' : '') + '</span></button>';
+    (o.badge ? '<span class="nkachel-badge' + (o.badgeWarn ? ' warn' : '') + '">' + A.esc(o.badge) + '</span>' : '') +
+    '<span class="nkachel-ico">' + ICON_(o.icon || 'buch') + '</span>' +
+    '<span class="nkachel-text"><b>' + A.esc(o.titel) + '</b>' + (o.info ? '<small>' + o.info + '</small>' : '') + '</span></button>';
 }
 function kachelGrid_(titel, inhalt) {
-  return '<section class="kachel-sektion">' + (titel ? '<div class="kachel-sektion-titel">' + A.esc(titel) + '</div>' : '') + '<div class="kachel-grid">' + inhalt + '</div></section>';
+  return '<section class="kachel-sektion">' + (titel ? '<div class="kachel-sektion-titel">' + A.esc(titel) + '</div>' : '') + '<div class="nkachel-grid">' + inhalt + '</div></section>';
 }
 function kursNotenStat_(kurs) {
   var sus = A.susDesKurses(kurs.id);
@@ -6211,7 +6461,24 @@ function kursNotenStat_(kurs) {
 }
 function ICON_(n) { return '<svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + (ICON_PFADE_[n] || ICON_PFADE_.hinweis) + '</svg>'; }
 
-var DESIGN_FLAECHEN = { standard: 'Weiß (Standard)', warm: 'Warm (Papier)', kuehl: 'Kühl (Grau-Blau)', getoent: 'In Akzentfarbe getönt' };
+/* V80: Mitarbeit als Icons statt Smileys */
+var MIT_ICONS_ = {
+  '2': { d: '<path d="m17 11-5-5-5 5"/><path d="m17 18-5-5-5 5"/>', c: '#1f9d6b' },
+  '1': { d: '<path d="m18 15-6-6-6 6"/>', c: '#4f9f62' },
+  '0': { d: '<path d="M6 12h12"/>', c: '#8c8b86' },
+  '-1': { d: '<path d="m6 9 6 6 6-6"/>', c: '#d98a2b' },
+  '-2': { d: '<path d="m7 6 5 5 5-5"/><path d="m7 13 5 5 5-5"/>', c: '#d65045' }
+};
+function mitSmileys_() { return !!A.cfg('mitarbeitSmileys'); }
+function mitSymbol_(sm, gr) {
+  if (!sm) return '';
+  if (mitSmileys_()) return A.esc(sm.emoji);
+  var ic = MIT_ICONS_[String(sm.wert)] || MIT_ICONS_['0'];
+  return '<svg viewBox="0 0 24 24" width="' + (gr || 18) + '" height="' + (gr || 18) + '" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + ic.d + '</svg>';
+}
+function mitFarbe_(sm) { var ic = sm && MIT_ICONS_[String(sm.wert)]; return ic ? ic.c : 'var(--accent)'; }
+
+var DESIGN_FLAECHEN = { standard: 'Weiß (Standard)', grau: 'Hellgrau mit weißen Flächen', warm: 'Warm (Papier)', kuehl: 'Kühl (Grau-Blau)', getoent: 'In Akzentfarbe getönt' };
 
 var FARBDESIGNS = {
   neutral: 'Neutral (Schwarz)',
@@ -7122,7 +7389,7 @@ function aufgabenRows(kurs, mitNeu, bezugsdatum) {
       : (a.notiz ? A.esc(a.notiz) : 'offenes To-do');
     var prozent = (istListe && stand.gesamt) ? Math.round(stand.erledigt / stand.gesamt * 100) : 0;
     return '<button class="aufgabe-row' + fr.cls + '" data-act="aufgabe-open" data-aufgabe="' + A.esc(a.id) + '">' +
-      '<span class="aufgabe-ico">' + (istListe ? '📋' : '✓') + '</span>' +
+      '<span class="aufgabe-ico">' + ICON_(istListe ? 'liste' : 'haken') + '</span>' +
       '<span class="aufgabe-main"><span class="aufgabe-title">' + A.esc(a.titel) + '</span> ' +
         '<span class="aufgabe-sub">' + sub + '</span>' +
         (istListe ? '<span class="aufgabe-progress"><i style="width:' + prozent + '%"></i></span>' : '') +
@@ -7770,7 +8037,7 @@ function susTimeline_(susId){
   beobachtungenAlle_().filter(function(x){return x&&x.susId===susId;}).forEach(function(x){items.push({datum:String(x.zeit||'').slice(0,10),sort:x.zeit||'',typ:'observation',gruppe:'beobachtung',titel:x.typ||'Beobachtung',sub:x.text||''});});
   elternVerlaufFuerSus_(susId).forEach(function(x){items.push({datum:String(x.zeit||'').slice(0,10),sort:x.zeit||'',typ:'kommunikation',gruppe:'eltern',titel:x.status==='besprochen'?'Mit Eltern besprochen':'Elternnachricht verschickt',sub:x.anlass||''});});
   A.list('Noten',function(n){return n.susId===susId;}).forEach(function(n){var l=A.byId('Leistungen',n.leistungId);if(!l)return;var k=A.byId('Kurse',l.kursId);var note=A.noteFuer(l,susId,k);if(note===null)return;items.push({datum:l.datum||'',sort:(l.datum||'')+'T12:00:00',typ:'note',gruppe:'leistung',titel:(l.titel||l.kategorie)+' · '+A.fmtNote(note,1),sub:k?k.fach:''});});
-  A.list('Mitarbeit',function(x){return x.susId===susId&&x.wert!=='';}).forEach(function(x){var k=A.byId('Kurse',x.kursId),sm=(A.cfg('smileys')||[]).filter(function(z){return String(z.wert)===String(x.wert);})[0];items.push({datum:x.datum||'',sort:(x.datum||'')+'T10:00:00',typ:'mitarbeit',gruppe:'leistung',titel:'Mitarbeit'+(sm&&sm.emoji?' · '+sm.emoji:''),sub:(k?k.fach:'')+(x.bemerkung?' · '+x.bemerkung:'')});});
+  A.list('Mitarbeit',function(x){return x.susId===susId&&x.wert!=='';}).forEach(function(x){var k=A.byId('Kurse',x.kursId),sm=(A.cfg('smileys')||[]).filter(function(z){return String(z.wert)===String(x.wert);})[0];items.push({datum:x.datum||'',sort:(x.datum||'')+'T10:00:00',typ:'mitarbeit',gruppe:'leistung',titel:'Mitarbeit'+(sm?' · '+(mitSmileys_()?sm.emoji:sm.label):''),sub:(k?k.fach:'')+(x.bemerkung?' · '+x.bemerkung:'')});});
   A.list('Checks',function(c){return c.susId===susId&&c.wert==='f';}).forEach(function(c){var k=A.byId('Kurse',c.kursId);items.push({datum:c.datum||'',sort:(c.datum||'')+'T08:00:00',typ:'check',gruppe:'organisation',titel:(c.punkt||'Material')+' fehlt',sub:k?k.fach:''});});
   foerderzieleFuer_(susId,true).forEach(function(z){var d=z.status==='erreicht'?(z.erreicht||z.start):z.start;items.push({datum:d||'',sort:(d||'')+(z.status==='erreicht'?'T18:00:00':'T07:00:00'),typ:'goal',gruppe:'foerderziel',titel:'Förderziel '+(z.status==='erreicht'?'erreicht':'gestartet'),sub:(z.bereich?z.bereich+' · ':'')+z.text});});
   items.sort(function(a,b){return String(b.sort).localeCompare(String(a.sort));});return items.slice(0,120);
@@ -8517,7 +8784,7 @@ function lessonRowHTML(b, datum) {
   if (st && st.entfaellt === '1') flags += '<span class="badge bad">entfällt</span>';
   if (st && st.entfaellt === '2') flags += '<span class="badge warn">vertreten</span>';
   if (b.von !== b.bis) flags += '<span class="badge">Doppelstunde</span>';
-  if (sus.length) flags += '<span class="badge' + (erfasst ? ' accent' : '') + '">🙂 ' + erfasst + '/' + sus.length + '</span>';
+  if (sus.length) flags += '<span class="badge' + (erfasst ? ' accent' : '') + '">Mitarbeit ' + erfasst + '/' + sus.length + '</span>';
   if (kurs && sus.length) {
     var cb = A.checkBilanzStunde(datum, b.von, kurs.id);
     if (cb.gesamt) flags += '<span class="badge bad">📋 ' + cb.gesamt + '</span>';
@@ -8568,7 +8835,7 @@ function lessonKachelHTML_(b, datum) {
   }
   var zeile = [];
   if (b.raum) zeile.push('Raum ' + A.esc(b.raum));
-  if (sus.length) zeile.push('🙂 ' + erfasst + '/' + sus.length);
+  if (sus.length) zeile.push('Mitarbeit ' + erfasst + '/' + sus.length);
   return '<button class="lesson-kachel' + (kurs ? '' : ' frei') + (zustand ? ' ' + zustand : '') + (st && st.entfaellt === '1' ? ' entfaellt' : '') + '" data-act="open-stunde" ' +
     'data-datum="' + datum + '" data-von="' + b.von + '" data-bis="' + b.bis + '" data-kurs="' + A.esc(b.kursId) + '" style="--kc:' + A.kursFarbe(kurs) + '">' +
     '<span class="lk-top"><span class="lk-nr">' + A.blockLabel(b) + ' Std.</span><span class="lk-zeit">' + stundenZeit(b.von) + (stundenEnde_(b.bis) ? '–' + stundenEnde_(b.bis) : '') + '</span>' +
@@ -8832,7 +9099,7 @@ VIEWS.stunde = {
           (grund ? ' · ' + grund : '') +
           (x.aufgabe.frist ? ' · abgeben bis ' + A.fmtDateShort(x.aufgabe.frist) : '') +
           (x.aufgabe.nachsitzen ? ' · Nachsitzen ' + A.fmtDateShort(x.aufgabe.nachsitzen.datum) : '') + '</div></div>' +
-          '<button class="btn small" data-act="straf-frist" data-straf-id="' + A.esc(x.aufgabe.id) + '">' + (x.aufgabe.frist ? 'Frist' : 'Frist setzen') + '</button>' +
+          '<button class="btn small" data-act="straf-frist" data-straf-id="' + A.esc(x.aufgabe.id) + '">Frist</button>' +
           '<button class="btn small" data-act="straf-erledigt" data-straf-id="' + A.esc(x.aufgabe.id) + '">Abgegeben ✓</button>' +
           '</div>';
       }).join(''), 'straf-offen');
@@ -8869,7 +9136,7 @@ VIEWS.stunde = {
       }).join('');
 
       h += card('Abhaken',
-        '<div class="kachel-grid">' + kacheln + '</div>' +
+        '<div class="kachel-grid chk-p' + punkte.length + '">' + kacheln + '</div>' +
         '<div class="chk-fuss" id="chkFuss">' + checkFussText(p.datum, p.stunde, kurs.id, punkte) + '</div>');
       h += '<div class="btn-row">' +
         '<button class="btn small" data-act="check-reset">Alle auf „dabei“</button>' +
@@ -8884,10 +9151,10 @@ VIEWS.stunde = {
       var wert = m ? String(m.wert) : '';
       var schnitt = A.mitarbeitBewertung(kurs.id, s.id);
       var btns = smileys.map(function (sm) {
-        return '<button class="sm' + (wert === String(sm.wert) ? ' on' : '') + '" ' +
+        return '<button class="sm' + (mitSmileys_() ? '' : ' ico') + (wert === String(sm.wert) ? ' on' : '') + '" style="--mc:' + mitFarbe_(sm) + '" ' +
           'data-act="mitarbeit" data-sus="' + s.id + '" data-wert="' + sm.wert + '" ' +
           'title="' + A.esc(sm.label) + '" aria-label="' + A.esc(A.susName(s) + ' – ' + sm.label) + '">' +
-          sm.emoji + '</button>';
+          mitSymbol_(sm) + '</button>';
       }).join('');
       return '<div class="kachel mit-kachel">' +
         '<div class="kachel-name" data-act="mitarbeit-notiz" data-sus="' + s.id + '">' +
@@ -8900,15 +9167,15 @@ VIEWS.stunde = {
     h += card('Mitarbeit', '<div class="kachel-grid mit-grid">' + mkacheln + '</div>' +
       '<div class="mitarbeit-actions">' +
         '<button class="btn small" data-act="mitarbeit-rest">Rest auf ' +
-          (smileys[2] ? smileys[2].emoji : '😐') + '</button>' +
+          (smileys[2] ? (mitSmileys_() ? smileys[2].emoji : '„' + A.esc(smileys[2].label) + '“') : '😐') + '</button>' +
         '<button class="btn small" data-act="mitarbeit-leeren">Alle leeren</button>' +
       '</div>');
 
     h += '<div class="stunden-tools">' +
-      '<button class="btn" data-act="zufall-sus">🎲 Zufall</button>' +
-      '<button class="btn" data-act="gruppen">👥 Gruppen</button>' +
-      '<button class="btn" data-act="gruppenpuzzle">🧩 Gruppenpuzzle</button>' +
-      '<button class="btn" data-act="aufgabe-neu" data-kurs="' + kurs.id + '">📋 Liste / To-do</button>' +
+      '<button class="btn" data-act="zufall-sus">' + ICON_('wuerfel') + '<span>Zufall</span></button>' +
+      '<button class="btn" data-act="gruppen">' + ICON_('users') + '<span>Gruppen</span></button>' +
+      '<button class="btn" data-act="gruppenpuzzle">' + ICON_('puzzle') + '<span>Puzzle</span></button>' +
+      '<button class="btn" data-act="aufgabe-neu" data-kurs="' + kurs.id + '">' + ICON_('liste') + '<span>Liste</span></button>' +
       '</div>';
 
     h += '<button class="btn block" data-act="open-kurs" data-kurs="' + kurs.id + '">Noten von ' +
@@ -9324,7 +9591,7 @@ VIEWS.kurs = {
 
       h += card('Notenübersicht', '<div class="tbl-wrap"><table class="grades">' +
         '<thead>' + th + '</thead><tbody>' + tb + '</tbody></table></div>');
-      h += '<button class="btn primary block" data-act="noten-pdf" data-kurs="' + kurs.id + '">📄 Noten als PDF exportieren</button>';
+      h += '<button class="btn primary block" data-act="noten-pdf" data-kurs="' + kurs.id + '">Noten als PDF exportieren</button>';
     }
     return h;
     }
@@ -9668,7 +9935,7 @@ VIEWS.mehr = {
           ? 'Hinweis ab ' + A.strafGrenze() + '× vergessen (je Fach)'
           : 'kein Hinweis') + '</div></div><div class="chev">›</div></button>' +
       '<button class="row" data-act="smileys-bearbeiten"><div class="row-main"><div class="row-title">Mitarbeits-Smileys</div>' +
-        '<div class="row-sub">' + A.cfg('smileys').map(function (x) { return x.emoji; }).join(' ') + '</div></div><div class="chev">›</div></button>' +
+        '<div class="row-sub mit-legende">' + A.cfg('smileys').map(function (x) { return '<span style="color:' + mitFarbe_(x) + '">' + mitSymbol_(x, 14) + '</span>'; }).join(' ') + '</div></div><div class="chev">›</div></button>' +
       '<button class="row" data-act="mitarbeit-einstellungen"><div class="row-main"><div class="row-title">Mitarbeit in der Note</div>' +
         '<div class="row-sub">' + (A.cfg('mitarbeitAktiv') ? 'Smiley-Vorschlag in „' + A.esc(A.cfg('mitarbeitKategorie')) + '“ ×' + A.cfg('mitarbeitGewicht') + ' · pro Person änderbar' : 'zählt nicht mit') +
         '</div></div><div class="chev">›</div></button>');
@@ -11930,11 +12197,13 @@ ACT['farbdesign'] = function () {
       { key: 'flaeche', label: 'Hintergrund', type: 'select', value: A.cfg('designFlaeche') || 'standard',
         options: Object.keys(DESIGN_FLAECHEN).map(function (k) { return { value: k, label: DESIGN_FLAECHEN[k] }; }),
         hint: 'Gilt im hellen Modus; der Dunkelmodus bleibt dunkel.' },
-      { key: 'kraeftig', label: 'Kräftige Akzente (Überschriften, Hauptknöpfe und aktiver Reiter in der Akzentfarbe)', type: 'checkbox', value: !!A.cfg('designKraeftig') }
+      { key: 'kraeftig', label: 'Kräftige Akzente (Überschriften, Hauptknöpfe und aktiver Reiter in der Akzentfarbe)', type: 'checkbox', value: !!A.cfg('designKraeftig') },
+      { key: 'smileys', label: 'Mitarbeit mit Smileys statt Icons', type: 'checkbox', value: !!A.cfg('mitarbeitSmileys') }
     ],
     onSave: function (v) {
       A.setCfg('designFlaeche', DESIGN_FLAECHEN[v.flaeche] ? v.flaeche : 'standard');
       A.setCfg('designKraeftig', !!v.kraeftig);
+      A.setCfg('mitarbeitSmileys', !!v.smileys);
       var hex = String(v.farbe || '').toLowerCase();
       var preset = '';
       Object.keys(FARBDESIGN_HEX).some(function (key) {
@@ -12295,6 +12564,8 @@ ACT['fehlerprotokoll'] = function () {
 };
 
 var AENDERUNGEN_ = [
+  ['V80', ['Hintergrund wieder weiß; Kacheln und Felder als zarte Flächen. Unter Mehr → App → Farbdesign einstellbar: Weiß, Hellgrau mit weißen Flächen, Warm, Kühl, getönt.', 'Mitarbeit mit klaren Icons (Doppelpfeil hoch bis Doppelpfeil runter) in Ampelfarben statt Smileys; Smileys lassen sich im Farbdesign wieder einschalten.', 'Feinschliff: ruhigere Schrift, einheitliche Rundungen und Abstände.']],
+  ['V79', ['Neues Flächen-Design wie in Craft: keine Trennlinien mehr, alles liegt auf weichen Flächen und Kacheln, Knöpfe ohne Rahmen, Eingabefelder als Flächen.', 'Stunde fürs iPhone: Mitarbeit zwei Kinder nebeneinander, Abhaken drei nebeneinander (bei bis zu zwei Punkten), offene Strafarbeiten als Kacheln, Werkzeuge (Zufall, Gruppen …) als vier kleine Kacheln.', 'Schülerliste der Klasse zwei- bzw. dreispaltig.']],
   ['V78', ['Stundenplan aufgeräumt: Kurse je Klasse in einer Zeile, nur noch ein Hinweis, leere Stunden am Ende eingeklappt (lassen sich aufklappen), Stundenzeiten/Klasse anlegen als kleine Links unter dem Raster.']],
   ['V77', ['„Für heute“ als Kacheln (Elternkommunikation und Aufgaben & Rückläufe). Je mehr Einträge, desto kleiner und dichter die Kacheln. Bei Elternhinweisen: „Später“ = nächste Stunde erinnern, ✓ = besprochen.', 'Abstände im Stundenplan (Kursauswahl, Hinweise, Knöpfe unter dem Raster) korrigiert.']],
   ['V76', ['Heute neu: Kopf wie eine Tagesnotiz, Stunden als Kacheln oben (laufende Stunde markiert, vergangene verblasst), darunter „Für heute“.', 'Elternhinweise unter Heute als kompakte Zeilen statt großer Karten.', 'Abstände in allen Ansichten vereinheitlicht.']],
