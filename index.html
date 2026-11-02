@@ -3217,6 +3217,67 @@ input:focus,select:focus,textarea:focus{background:var(--surface)!important}
 .ns-fortschritt i{position:absolute;left:0;bottom:0;height:3px;border-radius:2px;background:var(--accent);transition:width .2s}
 .ns-toggle{display:flex;align-items:center;gap:6px;font-size:12.5px;white-space:nowrap}
 .ns-tipp{font-size:11.5px;color:var(--ink-3);margin:0 2px 12px}
+
+/* =====================================================================
+   V91: Animationen – weich, kurz, iOS-artig; aus bei „Bewegung reduzieren“
+   ===================================================================== */
+:root{--ease-out:cubic-bezier(.22,1,.36,1);--ease-feder:cubic-bezier(.34,1.56,.64,1)}
+/* Seitenwechsel */
+.main.nav-vor>*{animation:navVor .34s var(--ease-out) both}
+.main.nav-zurueck>*{animation:navZurueck .34s var(--ease-out) both}
+.main.nav-tab>*{animation:navTab .28s var(--ease-out) both}
+.main.nav-vor>.quick-fab,.main.nav-zurueck>.quick-fab,.main.nav-tab>.quick-fab{animation:none}
+@keyframes navVor{from{opacity:0;transform:translateX(28px)}to{opacity:1;transform:none}}
+@keyframes navZurueck{from{opacity:0;transform:translateX(-28px)}to{opacity:1;transform:none}}
+@keyframes navTab{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+/* Kacheln gestaffelt einblenden */
+.main.nav-vor .nkachel-grid>*,.main.nav-tab .nkachel-grid>*,.main.nav-zurueck .nkachel-grid>*,.main.nav-tab .lesson-grid>*,.main.nav-tab .task-list.kacheln>*{animation:kachelEin .42s var(--ease-out) both}
+.nkachel-grid>*:nth-child(2),.lesson-grid>*:nth-child(2),.task-list.kacheln>*:nth-child(2){animation-delay:.03s!important}
+.nkachel-grid>*:nth-child(3),.lesson-grid>*:nth-child(3),.task-list.kacheln>*:nth-child(3){animation-delay:.06s!important}
+.nkachel-grid>*:nth-child(4),.lesson-grid>*:nth-child(4),.task-list.kacheln>*:nth-child(4){animation-delay:.09s!important}
+.nkachel-grid>*:nth-child(5),.lesson-grid>*:nth-child(5),.task-list.kacheln>*:nth-child(5){animation-delay:.12s!important}
+.nkachel-grid>*:nth-child(6),.lesson-grid>*:nth-child(6),.task-list.kacheln>*:nth-child(6){animation-delay:.15s!important}
+.nkachel-grid>*:nth-child(n+7),.lesson-grid>*:nth-child(n+7),.task-list.kacheln>*:nth-child(n+7){animation-delay:.18s!important}
+@keyframes kachelEin{from{opacity:0;transform:translateY(10px) scale(.98)}to{opacity:1;transform:none}}
+/* Antippen: kurzes Eindrücken */
+.nkachel,.lesson-kachel,.task-list.kacheln .today-task,.main .row,.main .btn,.mit-kachel .sm,.chk,.listen-sus,.sort-chip,.segmented button,.quick-action{transition:transform .16s var(--ease-out),background-color .15s,box-shadow .15s}
+.nkachel:active,.lesson-kachel:active,.main .row:active,.quick-action:active{transform:scale(.975)!important}
+.main .btn:active,.modal .btn:active,.segmented button:active,.sort-chip:active{transform:scale(.96)}
+/* Auswahl „ploppt“ */
+.mit-kachel .sm.on,.listen-sus.on .check,.chk.on,.chk:not(.ok){animation:plopp .32s var(--ease-feder)}
+@keyframes plopp{0%{transform:scale(.8)}100%{transform:scale(1)}}
+/* Fenster von unten mit Federung, Schließen gleitet weg */
+.modal-bg{animation:bgEin .22s ease both}
+.modal{animation:sheetEin .42s var(--ease-out) both!important}
+@media(min-width:640px){.modal{animation:dialogEin .3s var(--ease-out) both!important}}
+@keyframes bgEin{from{background:rgba(10,12,18,0)}}
+@keyframes sheetEin{from{transform:translateY(100%)}to{transform:none}}
+@keyframes dialogEin{from{opacity:0;transform:translateY(14px) scale(.97)}to{opacity:1;transform:none}}
+.modal-bg-zu{position:fixed;inset:0;z-index:61;pointer-events:none;animation:bgAus .24s ease both!important}
+.modal-bg-zu .modal{animation:sheetAus .24s cubic-bezier(.4,0,1,1) both!important}
+@media(min-width:640px){.modal-bg-zu .modal{animation:dialogAus .2s ease both!important}}
+@keyframes bgAus{to{background:rgba(10,12,18,0)}}
+@keyframes sheetAus{to{transform:translateY(100%)}}
+@keyframes dialogAus{to{opacity:0;transform:translateY(10px) scale(.98)}}
+/* Schnellaktionen: Plus dreht sich zum ×, Kacheln gestaffelt */
+.quick-fab{transition:transform .3s var(--ease-feder),box-shadow .2s}
+.quick-fab:active{transform:scale(.9)}
+.quick-fab.offen{transform:rotate(45deg)}
+.quick-action-grid>*{animation:kachelEin .4s var(--ease-out) both}
+.quick-action-grid>*:nth-child(2){animation-delay:.04s}.quick-action-grid>*:nth-child(3){animation-delay:.08s}.quick-action-grid>*:nth-child(4){animation-delay:.12s}.quick-action-grid>*:nth-child(5){animation-delay:.16s}
+/* Wischen: zurückfedern */
+.task-list.kacheln .today-task[data-wisch]{transition:transform .38s var(--ease-feder),opacity .2s ease,background .15s}
+.task-list.kacheln .today-task.weg{transition:transform .22s cubic-bezier(.4,0,1,1),opacity .22s ease}
+.task-list.kacheln .today-task[data-wisch].wischt{transition:none!important}
+/* Meldungen */
+.toast{animation:toastEin .36s var(--ease-feder) both}
+@keyframes toastEin{from{opacity:0;transform:translateY(16px) scale(.96)}to{opacity:1;transform:none}}
+/* Aufklappen */
+.zu-wrap.offen>.zu-body{animation:aufklappen .26s var(--ease-out)}
+@keyframes aufklappen{from{opacity:0;transform:translateY(-4px)}}
+.zu-chev{transition:transform .22s var(--ease-out)}
+/* Bewegung reduzieren */
+@media(prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;animation-delay:0s!important;transition-duration:.01ms!important}}
 </style>
 </head>
 <body>
@@ -3358,7 +3419,7 @@ var TABLES = ['Klassen', 'Kurse', 'SuS', 'Stundenplan', 'Stunden', 'Mitarbeit',
               'Leistungen', 'Noten', 'Checks', 'Settings'];
 
 /* Eine einzige Stelle für die Versionsangabe (Anzeige unter „Mehr“). */
-var APP_VERSION = 'V90';
+var APP_VERSION = 'V91';
 
 /* V15: Diese Adresse ist die verbindliche Login-Adresse. */
 /* V58: Keine feste Server-Adresse mehr in der App. Sie wird über den Einladungslink/-code oder Mehr → Server gesetzt. */
@@ -8561,7 +8622,15 @@ var Modal = {
       '</div>';
     host.appendChild(bg);
 
-    var close = function () { bg.remove(); if (opts.onClose) opts.onClose(); };
+    var close = function () {
+      if (bg._zu) return; bg._zu = true;
+      if (!BEWEGUNG_REDUZIERT_ && bg.isConnected) {
+        var kopie = bg.cloneNode(true); kopie.classList.add('modal-bg-zu'); kopie.removeAttribute('id');
+        kopie.querySelectorAll('[id]').forEach(function (x) { x.removeAttribute('id'); });
+        document.body.appendChild(kopie); setTimeout(function () { kopie.remove(); }, 260);
+      }
+      bg.remove(); if (opts.onClose) opts.onClose();
+    };
     bg._schliessen = close; /* V50: der Klick-Verteiler für Fenster (modalHost) schließt damit das Fenster sauber */
     /* Tippen neben das Fenster schließt; „Fertig" ebenso. */
     bg.addEventListener('click', function (e) { if (e.target === bg) close(); });
@@ -8714,24 +8783,27 @@ function navMerken_() {
 function navAnwenden_(s) { route.tab = s.tab; route.stack = s.stack.map(function (e) { return { view: e.view, p: e.p }; }); window.scrollTo(0, 0); render(); }
 function navZurueck() {
   if (!NAVH.past.length) return false;
+  NAV_ANIM_ = 'zurueck';
   NAVH.future.push(navSnap_());
   navAnwenden_(NAVH.past.pop());
   return true;
 }
 function navVor() {
   if (!NAVH.future.length) return false;
+  NAV_ANIM_ = 'vor';
   NAVH.past.push(navSnap_());
   navAnwenden_(NAVH.future.pop());
   return true;
 }
 function navReset_() { NAVH.past = []; NAVH.future = []; }
-function go(tab) { navMerken_(); route.tab = tab; route.stack = []; window.scrollTo(0, 0); render(); }
-function push(view, p) { navMerken_(); route.stack.push({ view: view, p: p || {} }); window.scrollTo(0, 0); render(); }
+var NAV_ANIM_ = '';
+function go(tab) { NAV_ANIM_ = route.tab === tab ? '' : 'tab'; navMerken_(); route.tab = tab; route.stack = []; window.scrollTo(0, 0); render(); }
+function push(view, p) { NAV_ANIM_ = 'vor'; navMerken_(); route.stack.push({ view: view, p: p || {} }); window.scrollTo(0, 0); render(); }
 function back() {
   /* Der Zurück-Knopf geht eine Ebene hoch. Kam man genau von dort, ist das derselbe Schritt wie im Verlauf. */
   var ziel = navSnap_(); ziel.stack.pop();
   if (NAVH.past.length && navGleich_(NAVH.past[NAVH.past.length - 1], ziel)) { navZurueck(); return; }
-  navMerken_(); route.stack.pop(); window.scrollTo(0, 0); render();
+  NAV_ANIM_ = 'zurueck'; navMerken_(); route.stack.pop(); window.scrollTo(0, 0); render();
 }
 /* Wischen / Pfeiltasten: erst der Verlauf, sonst eine Ebene hoch. */
 function navWischZurueck_() { NAV_TOUCH_ZEIT_ = Date.now(); if (navZurueck()) return true; if (route.stack.length) { back(); return true; } return false; }
@@ -10557,6 +10629,7 @@ function renderScrollHerstellen_() {
     if (el && el.className === p.sel) { el.scrollLeft = p.l; el.scrollTop = p.t; }
   });
 }
+var BEWEGUNG_REDUZIERT_ = !!(window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches);
 function render() {
   if (window.__splashWeg) window.__splashWeg();
   applyFarbdesign();
@@ -10565,6 +10638,13 @@ function render() {
   renderScrollMerken_();
   main.innerHTML = cur.def.body(cur.p) + '<button class="quick-fab" data-act="quick-actions" title="Schnellaktionen" aria-label="Schnellaktionen">＋</button>';
   renderScrollHerstellen_();
+  /* V91: Seitenübergang nur bei echter Navigation, nicht bei Datenänderungen */
+  if (NAV_ANIM_ && !BEWEGUNG_REDUZIERT_) {
+    var kl = 'nav-' + NAV_ANIM_;
+    main.classList.remove('nav-vor', 'nav-zurueck', 'nav-tab'); void main.offsetWidth; main.classList.add(kl);
+    clearTimeout(main._navT); main._navT = setTimeout(function () { main.classList.remove(kl); }, 420);
+  }
+  NAV_ANIM_ = '';
   topTitle.textContent = cur.def.title(cur.p);
   topActions.innerHTML = cur.def.actions ? cur.def.actions(cur.p) : '';
   if (VORSCHAU_AKTIV) topActions.insertAdjacentHTML('beforeend', '<span class="preview-chip" title="Lokale Testdaten – keine Serververbindung">Vorschau</span>');
@@ -10650,7 +10730,7 @@ function quickTodoOpen_(){
       craftPostTasks_([{titel:titel}],datum).then(function(){window.toast('In Craft eingetragen ('+(datum===A.todayISO()?'heute':A.fmtDateShort(datum))+')');}).catch(function(e){window.toast('Craft-Fehler: '+e.message,true);});
     }});
 }
-ACT['quick-actions']=function(){Modal.open({title:'Schnellaktion',body:'<div class="quick-action-grid"><button class="quick-action" data-qact="obs"><b>Beobachtung</b><span>SuS suchen und festhalten</span></button><button class="quick-action" data-qact="list"><b>Liste</b><span>für '+A.esc((A.standardKlasse()||{}).name||'meine Klasse')+'</span></button><button class="quick-action" data-qact="parent"><b>Elternnachricht</b><span>Kind auswählen</span></button><button class="quick-action" data-qact="todo"><b>To-do</b><span>direkt in Craft</span></button><button class="quick-action" data-qact="goal"><b>Förderziel</b><span>für ein Kind anlegen</span></button></div>',after:function(bg,close){bg.addEventListener('click',function(e){var b=e.target.closest('[data-qact]');if(!b)return;var a=b.getAttribute('data-qact');close();setTimeout(function(){if(a==='obs')craftKarteiQuickNoteOpen_('');else if(a==='list'){var f=document.createElement('button');f.setAttribute('data-klasse',A.standardKlasseId());ACT['aufgabe-neu'](f);}else if(a==='parent')elternGeneratorGlobalOeffnen();else if(a==='todo')quickTodoOpen_();else if(a==='goal')quickSusPicker_('Förderziel · Schüler:in wählen',function(id){craftFoerderzielOpen_(id);});},0);});}});};
+ACT['quick-actions']=function(){var fab=document.querySelector('.quick-fab');if(fab)fab.classList.add('offen');Modal.open({onClose:function(){var f=document.querySelector('.quick-fab');if(f)f.classList.remove('offen');},title:'Schnellaktion',body:'<div class="quick-action-grid"><button class="quick-action" data-qact="obs"><b>Beobachtung</b><span>SuS suchen und festhalten</span></button><button class="quick-action" data-qact="list"><b>Liste</b><span>für '+A.esc((A.standardKlasse()||{}).name||'meine Klasse')+'</span></button><button class="quick-action" data-qact="parent"><b>Elternnachricht</b><span>Kind auswählen</span></button><button class="quick-action" data-qact="todo"><b>To-do</b><span>direkt in Craft</span></button><button class="quick-action" data-qact="goal"><b>Förderziel</b><span>für ein Kind anlegen</span></button></div>',after:function(bg,close){bg.addEventListener('click',function(e){var b=e.target.closest('[data-qact]');if(!b)return;var a=b.getAttribute('data-qact');close();setTimeout(function(){if(a==='obs')craftKarteiQuickNoteOpen_('');else if(a==='list'){var f=document.createElement('button');f.setAttribute('data-klasse',A.standardKlasseId());ACT['aufgabe-neu'](f);}else if(a==='parent')elternGeneratorGlobalOeffnen();else if(a==='todo')quickTodoOpen_();else if(a==='goal')quickSusPicker_('Förderziel · Schüler:in wählen',function(id){craftFoerderzielOpen_(id);});},0);});}});};
 ACT['inbox-cleanup']=function(){inboxAufraeumenOpen_();};
 ACT['timeline-filter']=function(el){ui.timelineFilterBySus=ui.timelineFilterBySus||{};ui.timelineFilterBySus[el.getAttribute('data-sus')]=el.getAttribute('data-filter')||'all';render();};
 ACT['sus-mark-seen']=function(el){var m=susLastSeenMap_();m[el.getAttribute('data-sus')]=new Date().toISOString();A.setCfg('susLastSeen',m);render();window.toast('Aktueller Stand als gesehen markiert');};
@@ -13106,6 +13186,7 @@ ACT['fehlerprotokoll'] = function () {
 };
 
 var AENDERUNGEN_ = [
+  ['V91', ['Neue Animationen: Seiten gleiten beim Öffnen von rechts und beim Zurückgehen von links herein, Kacheln erscheinen gestaffelt, Fenster fahren federnd hoch und gleiten beim Schließen weg, das Plus dreht sich zum ×, Auswahl und Haken „ploppen“, gewischte Kacheln federn zurück. Bei „Bewegung reduzieren“ (iOS-Einstellung) ist alles aus.']],
   ['V90', ['iPhone/iPad: Beim Wischen vom linken Rand erscheint nicht mehr kurz das Logo. Die Zurück-Anbindung an den Browser-Verlauf gilt jetzt nur noch am Computer.']],
   ['V89', ['Gesprächsmappe pro Kind (statt „Übersicht als PDF“): Noten je Fach mit Mitarbeit-Trend, Arbeitsverhalten, Beobachtungen, Förderziele, Elternkontakte und Leitfaden – auch als PDF.', 'Noten schneller eintragen: „Automatisch weiter“ nach einer fertigen Note, Fortschrittsanzeige, ↑/↓ und „Weiter“-Taste.', 'Zufallsauswahl merkt sich, wer dran war.', 'Am Mac funktioniert jetzt die Zurück-Geste (Trackpad, Magic Mouse, Maus-Zurücktaste).']],
   ['V88', ['Mehr → „Mitarbeit-Stufen“ zeigt jetzt die neuen Icons statt der alten Smileys; überall „Mitarbeits-Vorschlag“ statt „Smiley-Vorschlag“.']],
