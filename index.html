@@ -3115,6 +3115,34 @@ input:focus,select:focus,textarea:focus{background:var(--surface)!important}
 .aufgabe-ico svg{width:16px;height:16px}
 
 .main .mitarbeit-actions{background:transparent!important;padding:0!important;border:0!important}
+
+/* V81: Einsammellisten – mehrere Kinder nebeneinander */
+.modal .listen-grid{display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr))!important;gap:6px!important}
+@media(min-width:600px){.modal .listen-grid{grid-template-columns:repeat(4,minmax(0,1fr))!important}}
+.modal .listen-sus{display:flex!important;flex-direction:column!important;align-items:flex-start!important;justify-content:space-between;gap:6px!important;min-height:58px!important;width:auto!important;padding:8px 9px!important;margin:0!important;border:0!important;border-radius:12px!important;background:var(--flaeche,#f5f5f3)!important;color:var(--ink);font:inherit;font-size:12.5px!important;font-weight:550;text-align:left;box-shadow:none!important;transition:background .12s}
+.modal .listen-sus .ls-name{display:block;width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;line-height:1.25}
+.modal .listen-sus .check{display:flex!important;align-items:center;justify-content:center;width:20px!important;height:20px!important;border:0!important;border-radius:50%!important;background:var(--surface,#fff)!important;color:transparent!important;font-size:11px!important;font-weight:800;margin:0!important}
+.modal .listen-sus.on{background:color-mix(in srgb,#1f9d6b 15%,var(--surface,#fff))!important}
+.modal .listen-sus.on .check{background:#1f9d6b!important;color:#fff!important}
+.modal .listen-sus:active{transform:scale(.97)}
+.modal .listen-actions{display:flex;gap:6px;margin-top:10px}
+.modal .listen-actions .btn{flex:1}
+
+/* V83: Craft-Plan */
+.craftplan{display:flex;flex-direction:column;gap:6px;padding:12px 14px;border-radius:var(--r,13px);background:var(--flaeche)}
+.craftplan-kopf{display:flex;justify-content:space-between;gap:8px;font-size:11px;color:var(--ink-3);font-weight:600}
+.craftplan-einheit{font-size:15px;font-weight:650;line-height:1.25}
+.craftplan-ln{font-size:12px;color:var(--ink-2)}
+.craftplan-zeile{display:grid;grid-template-columns:78px minmax(0,1fr);gap:8px;padding:8px 10px;border-radius:10px;background:var(--surface);font-size:13px}
+.craftplan-zeile.jetzt{background:color-mix(in srgb,var(--accent) 10%,var(--surface))}
+.craftplan-zeile .cz-k{font-size:11.5px;font-weight:650;color:var(--ink-2);padding-top:1px}
+.craftplan-zeile .cz-v small{display:block;font-size:11.5px;color:var(--ink-3);margin-top:2px}
+.lk-craft{font-size:12px;font-weight:550;color:var(--ink);line-height:1.3;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.craft-tag{display:inline-block;margin-left:4px;padding:0 6px;border-radius:10px;background:var(--flaeche);font-size:10.5px;color:var(--ink-3);vertical-align:1px}
+.craftplan-pruefungen{display:flex;flex-direction:column;gap:5px}
+.cp-pr{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap;padding:9px 12px;border-radius:11px;background:color-mix(in srgb,#d65045 7%,var(--flaeche));font-size:13px}
+.cp-pr-dot{width:8px;height:8px;border-radius:50%;flex:none;align-self:center}
+.cp-pr span:last-child{color:var(--ink-2);font-size:12px}
 </style>
 </head>
 <body>
@@ -3254,7 +3282,7 @@ var TABLES = ['Klassen', 'Kurse', 'SuS', 'Stundenplan', 'Stunden', 'Mitarbeit',
               'Leistungen', 'Noten', 'Checks', 'Settings'];
 
 /* Eine einzige Stelle für die Versionsangabe (Anzeige unter „Mehr“). */
-var APP_VERSION = 'V80';
+var APP_VERSION = 'V83';
 
 /* V15: Diese Adresse ist die verbindliche Login-Adresse. */
 /* V58: Keine feste Server-Adresse mehr in der App. Sie wird über den Einladungslink/-code oder Mehr → Server gesetzt. */
@@ -7291,7 +7319,7 @@ function aufgabeErinnerFaecherText_(a) {
 
 function aufgabenOffen(kursId) {
   return aufgabenAlle().filter(function (a) {
-    return a && aufgabeGiltFuerKurs_(a, kursId) && !a.erledigt;
+    return a && a.typ !== 'todo' && aufgabeGiltFuerKurs_(a, kursId) && !a.erledigt;
   }).sort(function (a, b) {
     var af = a.frist || '9999-12-31';
     var bf = b.frist || '9999-12-31';
@@ -7396,11 +7424,11 @@ function aufgabenRows(kurs, mitNeu, bezugsdatum) {
       '</span>' +
       (fr.text ? '<span class="aufgabe-frist' + fr.cls + '">' + A.esc(fr.text) + '</span>' : '') +
       '<span class="chev">›</span></button>';
-  }).join('') : '<div class="card-body small muted">Keine offenen Listen oder To-dos.</div>';
+  }).join('') : '<div class="card-body small muted">Keine offenen Listen.</div>';
 
   if (mitNeu) {
     body += '<div class="aufgabe-neu-zeile"><button class="btn block" data-act="aufgabe-neu" data-kurs="' +
-      kurs.id + '">＋ Liste oder To-do anlegen</button></div>';
+      kurs.id + '">＋ Einsammel-Liste anlegen</button></div>';
   }
   return body;
 }
@@ -8126,7 +8154,7 @@ function inboxDaten_(datum){
     elternVerlauf_().forEach(function(x){if(!x||!x.wiedervorlage||x.wvErledigt||x.wiedervorlage>datum)return;var sus=A.byId('SuS',x.susId);if(!sus)return;items.push({key:'wv|'+x.id,typ:'wiedervorlage',sus:sus,wv:x,titel:'Wiedervorlage: '+A.susName(sus),sub:(x.anlass||'Elternkontakt')+' · fällig '+A.fmtDateShort(x.wiedervorlage)+(x.notiz?' · '+x.notiz:'')});});
     elternInbox_().forEach(function(h){var sus=A.byId('SuS',h.susId),k=A.byId('Kurse',h.kursId);if(k&&!inboxKursAmDatum_(k.id,datum))return;items.push({key:'eltern|'+elternVorgangKey_(h),typ:h.typ,h:h,sus:sus,kurs:k,titel:h.typ==='positiv'?'Positive Rückmeldung möglich':(sus?A.susName(sus):''),sub:h.typ==='positiv'?((h.signal==='mitarbeit_verbessert'?'Mitarbeit deutlich verbessert':'Mitarbeit zuletzt besonders stark')+(k&&k.fach?' · '+k.fach:'')):(h.punkt+' · '+h.anzahl+'×'+(k&&k.fach?' · '+k.fach:''))});});
   }
-  aufgabenAlle().filter(function(a){if(!a||a.erledigt)return false;if(a.typ==='liste')return aufgabeErinnerungAmDatum_(a,datum);return !!a.frist&&a.frist<=datum&&inboxKursAmDatum_(a.kursId,datum);}).slice(0,12).forEach(function(a){var k=a.typ==='liste'?aufgabeErinnerKursAmDatum_(a,datum):A.byId('Kurse',a.kursId),st=a.typ==='liste'?listenStand(a,k):null,off=st?Math.max(0,st.gesamt-st.erledigt):undefined,fristText='offen';if(a.frist){fristText=a.frist<datum?'seit '+A.fmtDateShort(a.frist)+' fällig':(a.frist===datum?'heute fällig':'bis '+A.fmtDateShort(a.frist));}items.push({key:'liste|'+a.id+'|'+(a.frist||''),typ:'liste',a:a,kurs:k,offen:off,titel:a.titel,sub:fristText+(k?' · '+A.kursLabel(k):'')});});
+  aufgabenAlle().filter(function(a){if(!a||a.erledigt||a.typ==='todo')return false;if(a.typ==='liste')return aufgabeErinnerungAmDatum_(a,datum);return !!a.frist&&a.frist<=datum&&inboxKursAmDatum_(a.kursId,datum);}).slice(0,12).forEach(function(a){var k=a.typ==='liste'?aufgabeErinnerKursAmDatum_(a,datum):A.byId('Kurse',a.kursId),st=a.typ==='liste'?listenStand(a,k):null,off=st?Math.max(0,st.gesamt-st.erledigt):undefined,fristText='offen';if(a.frist){fristText=a.frist<datum?'seit '+A.fmtDateShort(a.frist)+' fällig':(a.frist===datum?'heute fällig':'bis '+A.fmtDateShort(a.frist));}items.push({key:'liste|'+a.id+'|'+(a.frist||''),typ:'liste',a:a,kurs:k,offen:off,titel:a.titel,sub:fristText+(k?' · '+A.kursLabel(k):'')});});
   A.alleKurse().forEach(function(k){var heuteKurs=inboxKursAmDatum_(k.id,datum);A.offeneStrafarbeiten(k.id).filter(function(x){var f=x.aufgabe.frist;return heuteKurs||(f&&f<=datum);}).slice(0,4).forEach(function(x){var f=x.aufgabe.frist,ns=x.aufgabe.nachsitzen,faellig=!!(f&&f<=datum);var sub=ns?('Nachsitzen am '+A.fmtDateShort(ns.datum)+(ns.zeit?' · '+ns.zeit:'')):(faellig?(f===datum?'Strafarbeit heute fällig – abgegeben?':'Strafarbeit seit '+A.fmtDateShort(f)+' fällig – abgegeben?'):('offene Strafarbeit'+(f?' · abgeben bis '+A.fmtDateShort(f):'')));items.push({key:'straf|'+(x.aufgabe&&x.aufgabe.id||k.id+'|'+x.sus.id),typ:'straf',sus:x.sus,kurs:k,x:x,faellig:faellig,titel:A.susName(x.sus),sub:sub+' · '+(k.fach||'')});});});
   return items;
 }
@@ -8841,6 +8869,7 @@ function lessonKachelHTML_(b, datum) {
     '<span class="lk-top"><span class="lk-nr">' + A.blockLabel(b) + ' Std.</span><span class="lk-zeit">' + stundenZeit(b.von) + (stundenEnde_(b.bis) ? '–' + stundenEnde_(b.bis) : '') + '</span>' +
     (zustand === 'jetzt' ? '<span class="lk-jetzt">jetzt</span>' : '') + '</span>' +
     '<b class="lk-titel">' + A.esc(kurs ? A.kursLabel(kurs) : 'Kein Kurs hinterlegt') + '</b>' +
+    (kurs && craftTagInhalt_(datum, kurs, b.von, b.bis) ? '<span class="lk-craft">' + A.esc(craftTagInhalt_(datum, kurs, b.von, b.bis)) + '</span>' : '') +
     (st && st.notiz ? '<span class="lk-notiz">' + A.esc(st.notiz) + '</span>' : '') +
     (zeile.length ? '<span class="lk-sub">' + zeile.join(' · ') + '</span>' : '') +
     (flags.length ? '<span class="lk-flags">' + flags.join('') + '</span>' : '') +
@@ -8871,6 +8900,9 @@ function tagesAnsichtHTML(datum) {
     h += '<section class="kachel-sektion"><div class="kachel-sektion-titel">Stunden · ' + bloecke.length + '</div><div class="lesson-grid">' +
       bloecke.map(function (b) { return lessonKachelHTML_(b, datum); }).join('') + '</div></section>';
   }
+  var pruef = craftPruefungsHinweiseHTML_(datum);
+  if (pruef) h += '<section class="kachel-sektion"><div class="kachel-sektion-titel">Bald: Lernnachweise</div>' + pruef + '</section>';
+  setTimeout(function () { craftPlanAuffrischen_(datum); }, 0);
   h += cockpitHTML(datum);
   h += craftHeuteHTML(datum);
   h += sicherungsHinweisHTML_();
@@ -9076,6 +9108,7 @@ VIEWS.stunde = {
       '<div class="prop-row"><span class="prop-k">Stunde</span><span class="prop-v">' + spanne + (st.entfaellt === '1' ? ' · <b>entfällt</b>' : (st.entfaellt === '2' ? ' · <b>wird vertreten</b>' : '')) + '</span></div>' +
       (kN ? '<div class="prop-row"><span class="prop-k">Kurs</span><span class="prop-v">' + A.esc(kN) + '</span></div>' : '') +
       (st.notiz ? '<div class="prop-row"><span class="prop-k">Notiz</span><span class="prop-v">' + A.esc(st.notiz) + '</span></div>' : '') +
+      (kurs && craftTagInhalt_(p.datum, kurs, p.stunde, p.bis) ? '<div class="prop-row"><span class="prop-k">Inhalt</span><span class="prop-v">' + A.esc(craftTagInhalt_(p.datum, kurs, p.stunde, p.bis)) + ' <span class="craft-tag">Craft</span></span></div>' : '') +
       '</div>';
 
     if (!kurs) return h + card('', empty('👥', 'Zu dieser Stunde ist kein Kurs hinterlegt.'));
@@ -9087,7 +9120,8 @@ VIEWS.stunde = {
 
     h += '<div class="btn-row stunde-schnell"><button class="btn" data-act="kurs-bereich" data-kurs="' + kurs.id + '" data-b="noten">Noten eintragen</button>' +
       '<button class="btn" data-act="open-kurs" data-kurs="' + kurs.id + '">Kurs öffnen</button></div>';
-    h += card('Unterrichtsreihe', unterrichtsreiheHTML_(kurs.id,true));
+    setTimeout(function () { craftPlanAuffrischen_(p.datum); }, 0);
+    h += card('Unterrichtsreihe', unterrichtsreiheHTML_(kurs.id,true,p.datum));
 
     var offeneStrafen = A.offeneStrafarbeiten(kurs.id);
     if (offeneStrafen.length) {
@@ -9111,7 +9145,7 @@ VIEWS.stunde = {
       var aufgabenCardKlasse = aufgabenLageStunde.ueberfaellig
         ? ' ueberfaellig'
         : ((aufgabenLageStunde.heute || aufgabenLageStunde.bald) ? ' bald-faellig' : '');
-      h += card('Offene Listen & To-dos', aufgabenRows(kurs, false, p.datum),
+      h += card('Offene Listen', aufgabenRows(kurs, false, p.datum),
         'aufgaben-card' + aufgabenCardKlasse);
     }
 
@@ -9501,9 +9535,162 @@ VIEWS.sitzplan = {
 function unterrichtsreihen_(){var x=A.cfg('unterrichtsreihen');return x&&typeof x==='object'?A.clone(x):{};}
 function unterrichtsreiheFuer_(kursId){return unterrichtsreihen_()[kursId]||null;}
 function unterrichtsreiheSet_(kursId,rec){var x=unterrichtsreihen_();if(rec&&String(rec.titel||'').trim())x[kursId]=rec;else delete x[kursId];A.setCfg('unterrichtsreihen',x);}
-function unterrichtsreiheHTML_(kursId,compact){var r=unterrichtsreiheFuer_(kursId);if(!r)return '<div class="reihe-card"><div class="reihe-head"><div><b>Noch keine aktuelle Reihe</b><span>Arbeitsstand zur Unterrichtsplanung hinterlegen.</span></div><button class="btn small" data-act="reihe-bearbeiten" data-kurs="'+kursId+'">Einrichten</button></div></div>';var cur=Math.max(1,Number(r.aktuell||1)||1),ges=Math.max(cur,Number(r.gesamt||cur)||cur),pct=Math.max(0,Math.min(100,Math.round(cur/ges*100))),link=String(r.link||craftLinkFuer_(kursId)||'').trim();return '<div class="reihe-card"><div class="reihe-head"><div><b>'+A.esc(r.titel)+'</b><span>Stunde '+cur+' von '+ges+'</span></div></div><div class="reihe-progress"><i style="width:'+pct+'%"></i></div>'+(r.naechste?'<div class="reihe-next">Nächste Stunde: '+A.esc(r.naechste)+'</div>':'')+'<div class="reihe-actions">'+(link?'<button class="btn small" data-act="reihe-open" data-kurs="'+kursId+'">In Craft öffnen</button>':'')+(!compact?'<button class="btn small" data-act="reihe-bearbeiten" data-kurs="'+kursId+'">Bearbeiten</button>':'')+(cur<ges?'<button class="btn small primary" data-act="reihe-naechste" data-kurs="'+kursId+'">Weiter zu '+(cur+1)+'</button>':'')+'</div></div>';}
+function unterrichtsreiheHTML_(kursId,compact,datum){var cp=craftPlanHTML_(A.byId('Kurse',kursId),datum||A.todayISO());return cp||unterrichtsreiheManuell_(kursId,compact);}
+function unterrichtsreiheManuell_(kursId,compact){var r=unterrichtsreiheFuer_(kursId);if(!r)return '<div class="reihe-card"><div class="reihe-head"><div><b>Noch keine aktuelle Reihe</b><span>Arbeitsstand zur Unterrichtsplanung hinterlegen.</span></div><button class="btn small" data-act="reihe-bearbeiten" data-kurs="'+kursId+'">Einrichten</button></div></div>';var cur=Math.max(1,Number(r.aktuell||1)||1),ges=Math.max(cur,Number(r.gesamt||cur)||cur),pct=Math.max(0,Math.min(100,Math.round(cur/ges*100))),link=String(r.link||craftLinkFuer_(kursId)||'').trim();return '<div class="reihe-card"><div class="reihe-head"><div><b>'+A.esc(r.titel)+'</b><span>Stunde '+cur+' von '+ges+'</span></div></div><div class="reihe-progress"><i style="width:'+pct+'%"></i></div>'+(r.naechste?'<div class="reihe-next">Nächste Stunde: '+A.esc(r.naechste)+'</div>':'')+'<div class="reihe-actions">'+(link?'<button class="btn small" data-act="reihe-open" data-kurs="'+kursId+'">In Craft öffnen</button>':'')+(!compact?'<button class="btn small" data-act="reihe-bearbeiten" data-kurs="'+kursId+'">Bearbeiten</button>':'')+(cur<ges?'<button class="btn small primary" data-act="reihe-naechste" data-kurs="'+kursId+'">Weiter zu '+(cur+1)+'</button>':'')+'</div></div>';}
 
-var KURS_BEREICHE_ = { noten: 'Noten eintragen', uebersicht: 'Notenübersicht', listen: 'Listen & To-dos', bewertung: 'Bewertung', reihe: 'Unterrichtsreihe' };
+/* =====================================================================
+   V83: Craft lesen – Stoffverteilungsplan und Tagesnotiz (nur lesen)
+   ===================================================================== */
+var CRAFT_PLAN_DEMO_ = '<page id="SVP"><pageTitle>Stoffverteilungsplan</pageTitle><content>\n<callout>### Klasse 6f</callout>\n<page id="D6F"><pageTitle>Deutsch</pageTitle><content>\n<collection><title>Deutsch 6f</title><content>\n<collectionItem><property name="einheit">Wortarten und Satzglieder,Lektüre</property><property name="lernnachweis">Test und KA</property><property name="planungsstand">Erledigt</property><title>Sommer-Herbst</title></collectionItem>\n<collectionItem><property name="einheit">Nacherzählen und Sage</property><property name="lernnachweis">Klassenarbeit</property><property name="planungsstand">Erledigt</property><title>Herbst-Winter</title></collectionItem>\n</content></collection>\n<page id="E1"><pageTitle>Wortarten und Satzglieder</pageTitle><content>\nStand 16.10. · Grobplanung\n\n| Zeitraum | Std. | Checkliste / Inhalt | Hinweis |\n| --- | --- | --- | --- |\n| §HEUTE§ | 2 | Kap. 10 Das Subjekt, Kap. 11 Das Akkusativobjekt | 1 Std. pro Kapitel |\n| §P2§ | 1 | Kap. 12 Das Dativobjekt | AB 10 fehlt noch |\n| §P4§ | 2 | Kap. 13 Die adverbiale Bestimmung, Wiederholung | |\n| §P9§ | 2 | Klassenarbeit | Termin ist ein Vorschlag |\n</content></page>\n</content></page>\n<callout>### Klasse 4a</callout>\n<page id="D4A"><pageTitle>Deutsch</pageTitle><content>\n<collection><title>Deutsch 4a</title><content>\n<collectionItem><property name="einheit">Fabeln</property><property name="lernnachweis">Klassenarbeit</property><title>Herbst-Winter</title></collectionItem>\n</content></collection>\n<page id="E2"><pageTitle>Fabeln</pageTitle><content>\n| Zeitraum | Std. | Inhalt | Hinweis |\n| --- | --- | --- | --- |\n| §HEUTE§ | 2 | Fabeln in Gruppen erarbeiten | Gruppen vorher einteilen |\n| §P1§ | 1 | Fabel-Merkmale sichern | |\n| §P5§ | 2 | Klassenarbeit Fabeln | |\n</content></page>\n</content></page>\n</content></page>';
+var CRAFT_TAG_DEMO_ = '<page><pageTitle>Tagesnotiz</pageTitle><content>\n| Stunde | Sonstiges | Inhalt |\n| --- | --- | --- |\n| 4a D |  | [Gruppenarbeit: Fabeln](block://x1) |\n| 4a D |  | [Gruppenarbeit: Fabeln](block://x1) |\n| 4a M |  | Bruchrechnen wiederholen |\n</content></page>';
+
+function craftPlanCfg_(){var c=craftApiConfig_();return {planId:String(c.planId||'').trim(),tagesnotiz:c.tagesnotiz!==false};}
+function craftPlanCache_(){var x=A.LS.get(craftApiLocalKey_()+'.plan',{});return x&&typeof x==='object'?x:{};}
+function craftPlanCacheSet_(x){A.LS.set(craftApiLocalKey_()+'.plan',x);}
+function craftIdAusEingabe_(u){u=String(u||'').trim();if(!u)return '';var m=u.match(/blockId=([0-9A-Fa-f-]{20,})/);if(m)return m[1];m=u.match(/documentId=([0-9A-Fa-f-]{20,})/);if(m)return m[1];m=u.match(/([0-9A-Fa-f]{8}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{12})/);return m?m[1]:'';}
+
+function craftLesenMd_(query){
+  var c=craftApiConfig_();if(!craftApiUrlGueltig_(c.url))return Promise.reject(new Error('Craft-Verbindung fehlt'));
+  var url=String(c.url).replace(/\/$/,'')+'/blocks?'+query;
+  return fetch(url,{headers:{'Accept':'text/markdown'}}).then(function(r){return r.text().then(function(t){
+    if(!r.ok){var msg='';try{msg=(JSON.parse(t)||{}).message||'';}catch(e){}throw new Error(msg||('Craft HTTP '+r.status));}
+    var s=String(t||'').trim();
+    if(s.charAt(0)==='{'||s.charAt(0)==='['){try{return craftJsonZuMd_(JSON.parse(s));}catch(e){}}
+    return s;});});
+}
+/* Fallback, falls Craft JSON statt Markdown liefert */
+function craftJsonZuMd_(b){
+  if(Array.isArray(b))return b.map(craftJsonZuMd_).join('\n');
+  if(!b||typeof b!=='object')return '';
+  var kids=(b.content||b.blocks||[]);
+  if(b.type==='page'){var t=String(b.markdown||'').replace(/<\/?(card|page)>/g,'');return '<page><pageTitle>'+t+'</pageTitle><content>\n'+kids.map(craftJsonZuMd_).join('\n')+'\n</content></page>';}
+  if(b.type==='collection'&&Array.isArray(b.items)){return '<collection><content>'+b.items.map(function(it){var p=it.properties||{};return '<collectionItem>'+Object.keys(p).map(function(k){return '<property name="'+k+'">'+p[k]+'</property>';}).join('')+'<title>'+(it.title||'')+'</title></collectionItem>';}).join('')+'</content></collection>';}
+  return String(b.markdown||'')+(kids.length?'\n'+kids.map(craftJsonZuMd_).join('\n'):'');
+}
+
+/* --- Markdown in einen Seitenbaum zerlegen --- */
+function craftSeitenBaum_(md){
+  var root={titel:'',text:'',kinder:[],klasse:''},stack=[root],re=/<page\b[^>]*>|<\/page>|<pageTitle>([\s\S]*?)<\/pageTitle>/g,last=0,m;
+  function text(t){var cur=stack[stack.length-1];cur.text+=t;var km,rk=/###\s*Klasse\s+([0-9]{1,2}\s*[a-zA-Z]{0,2})/g;while((km=rk.exec(t)))cur.aktKlasse=km[1].replace(/\s+/g,'').toLowerCase();}
+  while((m=re.exec(md))){text(md.slice(last,m.index));last=re.lastIndex;
+    if(m[0].indexOf('<pageTitle>')===0){stack[stack.length-1].titel=craftMdText_(m[1]);}
+    else if(m[0]==='</page>'){if(stack.length>1)stack.pop();}
+    else{var p=stack[stack.length-1],neu={titel:'',text:'',kinder:[],klasse:p.aktKlasse||p.klasse||''};p.kinder.push(neu);stack.push(neu);}
+  }
+  text(md.slice(last));
+  return root;
+}
+function craftMdText_(s){return String(s||'').replace(/<[^>]+>/g,'').replace(/\[([^\]]*)\]\([^)]*\)/g,'$1').replace(/[*_`]/g,'').replace(/&amp;/g,'&').replace(/&lt;/g,'<').replace(/&gt;/g,'>').trim();}
+function craftTabellen_(text){
+  var out=[],rows=null;String(text||'').split('\n').forEach(function(z){z=z.trim();
+    if(/^\|.*\|$/.test(z)){var cells=z.slice(1,-1).split('|').map(function(c){return c.trim();});
+      if(cells.every(function(c){return /^:?-{2,}:?$/.test(c);}))return;
+      if(!rows){rows=[];out.push(rows);}rows.push(cells);}
+    else rows=null;});
+  return out.map(function(t){return {kopf:t[0].map(craftMdText_),zeilen:t.slice(1)};});
+}
+function craftSammlung_(text){var items=[],re=/<collectionItem>([\s\S]*?)<\/collectionItem>/g,m;while((m=re.exec(text))){var it={titel:'',p:{}},b=m[1],pm,rp=/<property name="([^"]+)">([\s\S]*?)<\/property>/g;while((pm=rp.exec(b)))it.p[pm[1].toLowerCase()]=craftMdText_(pm[2]);var tm=b.match(/<title>([\s\S]*?)<\/title>/);it.titel=tm?craftMdText_(tm[1]):'';items.push(it);}return items;}
+
+/* --- Datumsangaben wie „Mo 2.11.“, „15.9.–21.10.“, „26.–30.10.“, „ab Mo 16.11.“ --- */
+function craftSjJahr_(datum){var d=String(datum||A.todayISO()).split('-');var y=Number(d[0]),mo=Number(d[1]);return mo>=8?y:y-1;}
+function craftIso_(tag,mon,sj){var y=mon>=8?sj:sj+1;return y+'-'+('0'+mon).slice(-2)+'-'+('0'+tag).slice(-2);}
+function craftZeitraum_(s,sj){
+  s=craftMdText_(s);var ab=/^ab\b/i.test(s),m;
+  m=s.match(/(\d{1,2})\.(\d{1,2})?\.?\s*[–-]\s*(\d{1,2})\.(\d{1,2})\./);
+  if(m){var m1=m[2]?Number(m[2]):Number(m[4]);return {von:craftIso_(Number(m[1]),m1,sj),bis:craftIso_(Number(m[3]),Number(m[4]),sj)};}
+  m=s.match(/(\d{1,2})\.(\d{1,2})\./);
+  if(m){var d=craftIso_(Number(m[1]),Number(m[2]),sj);return {von:d,bis:ab?'9999-12-31':d,ab:ab};}
+  return null;
+}
+
+/* --- Plan für einen Kurs finden --- */
+var CRAFT_FACH_ALIAS_={gk:'gemeinschaftskunde',geo:'geographie',geografie:'geographie',erdkunde:'geographie',bio:'biologie',mathe:'mathematik',deu:'deutsch',d:'deutsch'};
+function craftFachNorm_(f){f=String(f||'').toLowerCase().replace(/[^a-zäöüß]/g,'');return CRAFT_FACH_ALIAS_[f]||f;}
+function craftPlanFuerKurs_(kurs,datum){
+  var cache=craftPlanCache_(),md=VORSCHAU_AKTIV?craftDemoPlan_():(cache.plan&&cache.plan.md);
+  if(!md||!kurs)return null;
+  var kl=A.klasseVonKurs(kurs),kn=kl?String(kl.name).replace(/\s+/g,'').toLowerCase():'',fn=craftFachNorm_(kurs.fach);
+  var baum=craftSeitenBaum_(md),fachSeite=null;
+  (function such(n){n.kinder.forEach(function(k){if(!fachSeite&&k.klasse===kn&&craftFachNorm_(k.titel)===fn)fachSeite=k;such(k);});})(baum);
+  if(!fachSeite)return {gefunden:false};
+  var sj=craftSjJahr_(datum),zeilen=[];
+  fachSeite.kinder.forEach(function(e){craftTabellen_(e.text).forEach(function(t){
+    var iz=t.kopf.findIndex(function(h){return /zeitraum|datum|wann/i.test(h);}),ii=t.kopf.findIndex(function(h){return /inhalt|checkliste|thema/i.test(h);}),ih=t.kopf.findIndex(function(h){return /hinweis|bemerk/i.test(h);});
+    if(iz<0||ii<0)return;
+    t.zeilen.forEach(function(z){var zr=craftZeitraum_(z[iz]||'',sj);if(!zr)return;var inh=craftMdText_(z[ii]||'');if(!inh||/ferien/i.test(inh))return;zeilen.push({einheit:e.titel,von:zr.von,bis:zr.bis,ab:!!zr.ab,label:craftMdText_(z[iz]),inhalt:inh,hinweis:ih>=0?craftMdText_(z[ih]||''):''});});
+  });});
+  zeilen.sort(function(a,b){return a.von.localeCompare(b.von);});
+  var heute=null,naechste=null;
+  zeilen.forEach(function(z){if(!heute&&z.von<=datum&&datum<=z.bis&&!z.ab)heute=z;});
+  zeilen.forEach(function(z){if(!naechste&&z.von>datum)naechste=z;});
+  var einheit=(heute||naechste||{}).einheit||'';
+  var samml=craftSammlung_(fachSeite.text),info=null;
+  samml.forEach(function(it){var e=String(it.p.einheit||'').toLowerCase();if(!info&&einheit&&e&&(e.indexOf(einheit.toLowerCase().slice(0,12))>=0||einheit.toLowerCase().indexOf(e.split(',')[0].trim().slice(0,12))>=0))info=it;});
+  /* Ohne Feinplanung: Einheit aus der Jahrestabelle nach Zeitabschnitt (Sommer-Herbst …) */
+  if(!einheit||!info){var md2=String(datum).slice(5),abschn=md2>='08-01'&&md2<'11-01'?'sommer-herbst':(md2>='11-01'?'herbst-winter':(md2<'02-15'?'winter-fasnacht':(md2<'04-11'?'fasnacht-ostern':(md2<'06-01'?'ostern-pfingsten':'pfingsten-sommer'))));
+    samml.forEach(function(it){var t=String(it.titel||'').toLowerCase().replace(/\s+/g,'').replace('fastnacht','fasnacht');if(!info&&t===abschn){info=it;}});
+    if(!einheit&&info)einheit=String(info.p.einheit||'').replace(/,/g,', ');}
+  var pruefungen=zeilen.filter(function(z){return z.von>=datum&&!z.ab&&/klassenarbeit|\bka\b|test|diktat|lernzielkontrolle/i.test(z.inhalt)&&!/zurück|besprech|vorbereitung|puffer|verbesser/i.test(z.inhalt);});
+  return {gefunden:true,einheit:einheit,lernnachweis:info?info.p.lernnachweis:'',zeitraum:info?info.titel:'',heute:heute,naechste:naechste,pruefungen:pruefungen,stand:cache.plan&&cache.plan.zeit};
+}
+function craftDemoPlan_(){var h=A.todayISO();function f(n){var d=A.addDays(h,n);var p=d.split('-');return A.tagName(A.tagVon(d)).slice(0,2)+' '+Number(p[2])+'.'+Number(p[1])+'.';}return CRAFT_PLAN_DEMO_.replace('§HEUTE§',f(0)).replace('§P2§',f(2)).replace('§P4§',f(4)).replace('§P9§',f(9)).replace('§HEUTE§',f(0)).replace('§P1§',f(1)).replace('§P5§',f(5));}
+
+/* --- Tagesnotiz: Inhalt je Stunde --- */
+function craftTagInhalt_(datum,kurs,von,bis){
+  var cache=craftPlanCache_(),md=VORSCHAU_AKTIV?(datum===A.todayISO()?CRAFT_TAG_DEMO_:''):(cache.tage&&cache.tage[datum]&&cache.tage[datum].md);
+  return craftTagParse_(md,kurs,von,bis);
+}
+function craftTagParse_(md,kurs,von,bis){
+  if(!md||!kurs)return '';
+  var t=craftTabellen_(md).filter(function(t){return t.kopf.some(function(h){return /stunde/i.test(h);})&&t.kopf.some(function(h){return /inhalt/i.test(h);});})[0];
+  if(!t)return '';
+  var is=t.kopf.findIndex(function(h){return /stunde/i.test(h);}),ii=t.kopf.findIndex(function(h){return /inhalt/i.test(h);});
+  var kl=A.klasseVonKurs(kurs),kn=kl?String(kl.name).replace(/\s+/g,'').toLowerCase():'',fb=craftFachNorm_(kurs.fach);
+  var out=[];
+  /* 1. Zeile = Stunde, falls die Zeile zur Klasse passt; sonst alle Zeilen mit Klasse + Fach-Kürzel */
+  for(var n=Number(von);n<=Number(bis||von);n++){var z=t.zeilen[n-1];if(z&&String(z[is]||'').replace(/\s+/g,'').toLowerCase().indexOf(kn)===0){var x=craftMdText_(z[ii]||'');if(x&&out.indexOf(x)<0)out.push(x);}}
+  if(!out.length)t.zeilen.forEach(function(z){var c=String(z[is]||'').trim(),cn=c.replace(/\s+/g,'').toLowerCase();if(cn.indexOf(kn)!==0)return;var rest=craftFachNorm_(c.replace(/^\s*\S+\s*/,''));if(rest&&fb.indexOf(rest)!==0&&rest.indexOf(fb)!==0)return;var x=craftMdText_(z[ii]||'');if(x&&out.indexOf(x)<0)out.push(x);});
+  return out.join(' · ');
+}
+
+/* --- Laden (gedrosselt) --- */
+var craftPlanLaedt_=false;
+function craftPlanAuffrischen_(datum,erzwingen){
+  if(VORSCHAU_AKTIV||craftPlanLaedt_||!navigator.onLine)return;
+  var c=craftApiConfig_();if(!craftApiUrlGueltig_(c.url))return;var pc=craftPlanCfg_();
+  var cache=craftPlanCache_(),jetzt=Date.now(),alt=function(e){return !e||!e.ts||jetzt-e.ts>10*60*1000;};
+  datum=datum||A.todayISO();
+  var jobs=[];
+  if(pc.planId&&(erzwingen||(alt(cache.plan)&&!(cache.planFehlerTs&&jetzt-cache.planFehlerTs<10*60*1000))))jobs.push(craftLesenMd_('id='+encodeURIComponent(pc.planId)+'&maxDepth=-1').then(function(md){cache.plan={md:md,ts:Date.now(),zeit:new Date().toISOString()};}));
+  cache.tage=cache.tage||{};
+  if(pc.tagesnotiz&&(erzwingen||alt(cache.tage[datum])))jobs.push(craftLesenMd_('date='+encodeURIComponent(datum)+'&maxDepth=-1').then(function(md){cache.tage[datum]={md:md,ts:Date.now()};}).catch(function(e){cache.tage[datum]={md:'',ts:Date.now(),fehler:e.message};}));
+  if(!jobs.length)return;
+  craftPlanLaedt_=true;
+  return Promise.all(jobs).then(function(){
+    var k=Object.keys(cache.tage).sort();while(k.length>14){delete cache.tage[k.shift()];}
+    cache.fehler='';craftPlanCacheSet_(cache);craftPlanLaedt_=false;render();return true;
+  }).catch(function(e){cache.fehler=e.message;cache.planFehlerTs=Date.now();craftPlanCacheSet_(cache);craftPlanLaedt_=false;if(erzwingen)throw e;});
+}
+
+/* --- Anzeige --- */
+function craftPlanHTML_(kurs,datum){
+  var p=craftPlanFuerKurs_(kurs,datum||A.todayISO());if(!p||!p.gefunden)return '';
+  var h='<div class="craftplan"><div class="craftplan-kopf"><span class="craftplan-quelle">Aus Craft · Stoffverteilungsplan</span>'+(p.zeitraum?'<span class="craftplan-zr">'+A.esc(p.zeitraum)+'</span>':'')+'</div>'+
+    '<b class="craftplan-einheit">'+A.esc(p.einheit||'Keine Einheit gefunden')+'</b>'+(p.lernnachweis?'<span class="craftplan-ln">Lernnachweis: '+A.esc(p.lernnachweis)+'</span>':'');
+  if(p.heute)h+='<div class="craftplan-zeile jetzt"><span class="cz-k">'+(p.heute.von===A.todayISO()?'Heute':A.esc(p.heute.label))+'</span><span class="cz-v">'+A.esc(p.heute.inhalt)+(p.heute.hinweis?'<small>'+A.esc(p.heute.hinweis)+'</small>':'')+'</span></div>';
+  if(p.naechste)h+='<div class="craftplan-zeile"><span class="cz-k">'+A.esc(p.naechste.label)+'</span><span class="cz-v">'+A.esc(p.naechste.inhalt)+(p.naechste.hinweis?'<small>'+A.esc(p.naechste.hinweis)+'</small>':'')+'</span></div>';
+  return h+'</div>';
+}
+function craftPruefungsHinweiseHTML_(datum){
+  if(!craftTodoVerbunden_()&&!VORSCHAU_AKTIV)return '';
+  var bis=A.addDays(datum,7),out=[];
+  A.alleKurse().forEach(function(k){var p=craftPlanFuerKurs_(k,datum);if(!p||!p.gefunden)return;p.pruefungen.forEach(function(z){if(z.von<=bis)out.push({k:k,z:z});});});
+  if(!out.length)return '';
+  out.sort(function(a,b){return a.z.von.localeCompare(b.z.von);});
+  return '<div class="craftplan-pruefungen">'+out.slice(0,4).map(function(x){var tage=Math.round((new Date(x.z.von)-new Date(datum))/86400000);return '<div class="cp-pr"><span class="cp-pr-dot" style="background:'+A.kursFarbe(x.k)+'"></span><b>'+A.esc(A.kursLabel(x.k))+'</b><span>'+A.esc(x.z.inhalt)+' · '+(tage===0?'heute':(tage===1?'morgen':'in '+tage+' Tagen ('+A.esc(x.z.label)+')'))+'</span></div>';}).join('')+'</div>';
+}
+
+var KURS_BEREICHE_ = { noten: 'Noten eintragen', uebersicht: 'Notenübersicht', listen: 'Einsammel-Listen', bewertung: 'Bewertung', reihe: 'Unterrichtsreihe' };
 VIEWS.kurs = {
   title: function (p) { var ku = A.byId('Kurse', p.id); var n = ku ? A.kursLabel(ku) : 'Kurs'; var bn = KURS_BEREICHE_[p.b || '']; return bn ? n + ' · ' + bn : n; },
   actions: function (p) { var c=craftAn_()?craftLinkFuer_(p.id):''; return (c?'<button class="icon-btn" data-act="craft-open" data-kurs="'+p.id+'" title="In Craft öffnen">C</button>':'') + '<button class="icon-btn" data-act="kurs-bearbeiten" data-kurs="' + p.id + '">···</button>'; },
@@ -9524,13 +9711,13 @@ VIEWS.kurs = {
           info: st.leistungen ? st.leistungen + ' Leistung' + (st.leistungen === 1 ? '' : 'en') + (st.offen ? ' · ' + st.offen + ' Noten fehlen noch' : ' · alles eingetragen') : 'Noch keine Leistung – hier anlegen',
           badge: st.offen ? String(st.offen) : '' }) +
         kachel_({ act: 'kurs-bereich', data: { kurs: kurs.id, b: 'uebersicht' }, icon: 'chart', titel: 'Notenübersicht', info: st.schnitt === null ? 'noch kein Schnitt' : 'Ø ' + A.fmtNote(st.schnitt) + ' · Notenspiegel · PDF' }) +
-        kachel_({ act: 'kurs-bereich', data: { kurs: kurs.id, b: 'listen' }, icon: 'liste', titel: 'Listen & To-dos', info: aufg ? aufg + ' offen' : 'nichts offen' }) +
+        kachel_({ act: 'kurs-bereich', data: { kurs: kurs.id, b: 'listen' }, icon: 'liste', titel: 'Einsammel-Listen', info: aufg ? aufg + ' offen' : 'nichts offen' }) +
         kachel_({ act: 'kurs-bereich', data: { kurs: kurs.id, b: 'bewertung' }, icon: 'regler', titel: 'Bewertung', info: 'Gewichtung · Notenschlüssel' }) +
         kachel_({ act: 'kurs-bereich', data: { kurs: kurs.id, b: 'reihe' }, icon: 'reihe', titel: 'Unterrichtsreihe', info: 'Themen und Stundenfolge' }) +
         kachel_({ act: 'open-klasse', data: { klasse: kurs.klasseId }, icon: 'users', titel: 'Klasse ' + ((A.klasseVonKurs(kurs) || {}).name || ''), info: sus.length + ' Schüler:innen · Sitzplan' }));
     }
     if (b === 'reihe') return card('Aktuelle Unterrichtsreihe', unterrichtsreiheHTML_(kurs.id, false));
-    if (b === 'listen') return card('Listen & To-dos', aufgabenRows(kurs, true), 'aufgaben-card');
+    if (b === 'listen') return card('Einsammel-Listen', aufgabenRows(kurs, true), 'aufgaben-card');
 
     var craftUrl=craftLinkFuer_(kurs.id);
     var h = !craftAn_()?'':'<section class="craft-strip"><div><span class="craft-mark">C</span><div><b>Unterrichtsplanung in Craft</b><small>' + (craftUrl?'Dokument verknüpft':'Noch kein Dokument verknüpft') + '</small></div></div><div class="craft-actions">' + (craftUrl?'<button class="btn" data-act="craft-open" data-kurs="'+kurs.id+'">In Craft öffnen</button>':'') + '<button class="btn" data-act="craft-link" data-kurs="'+kurs.id+'">' + (craftUrl?'Link ändern':'Craft verknüpfen') + '</button></div></section>';
@@ -9990,6 +10177,8 @@ VIEWS.mehr = {
         '</span></div></div><div class="chev">›</div></button>' +
       '<button class="row" data-act="pin-setzen"><div class="row-main"><div class="row-title">PIN-Sperre</div>' +
         '<div class="row-sub">' + (A.cfg('pin') ? 'aktiv' : 'aus') + '</div></div><div class="chev">›</div></button>' +
+      '<button class="row" data-act="craft-api"><div class="row-main"><div class="row-title">Craft-Verbindung</div>' +
+        '<div class="row-sub">' + (craftTodoVerbunden_() ? 'verbunden · To-dos gehen in die Tagesnotiz' : 'nötig für To-dos (landen in der Craft-Tagesnotiz)') + '</div></div><div class="chev">›</div></button>' +
       '<button class="row" data-act="export"><div class="row-main"><div class="row-title">Daten exportieren</div>' +
         '<div class="row-sub">Sicherungsdatei (JSON)</div></div><div class="chev">›</div></button>' +
       '<button class="row" data-act="import"><div class="row-main"><div class="row-title">Daten importieren</div>' +
@@ -10137,8 +10326,23 @@ ACT['zu-toggle'] = function (el) {
 /* --- Heute ------------------------------------------------------------ */
 
 function quickSusPicker_(titel,cb){var alle=A.list('SuS',function(x){return String(x.aktiv||'1')!=='0';}),kid=A.standardKlasseId();if(!alle.length){window.toast('Noch keine Schüler:innen angelegt.',true);return;}var kl=A.klassen(true),body='<div class="sus-picker-tools"><select id="qKl"><option value="">Alle Klassen</option>'+kl.map(function(k){return '<option value="'+k.id+'" '+(k.id===kid?'selected':'')+'>'+A.esc(k.name)+'</option>';}).join('')+'</select><input id="qSearch" type="search" placeholder="Schüler:in suchen …"></div><div id="qPeople" class="sus-picker-list"></div>';Modal.open({title:titel,body:body,after:function(bg,close){var ks=bg.querySelector('#qKl'),q=bg.querySelector('#qSearch'),out=bg.querySelector('#qPeople');function draw(){var term=String(q.value||'').trim().toLowerCase(),k=ks.value,arr=alle.filter(function(x){return(!k||x.klasseId===k)&&(!term||A.susName(x,'vorname').toLowerCase().includes(term)||A.susName(x,'nachname').toLowerCase().includes(term));});out.innerHTML=arr.map(function(x){var c=A.byId('Klassen',x.klasseId);return '<button class="sus-picker-row" data-q-sus="'+x.id+'"><span class="sus-picker-main"><b>'+A.esc(A.susName(x,'vorname'))+'</b><span>'+A.esc(c?c.name:'')+'</span></span><span>›</span></button>';}).join('')||'<div class="inbox-empty">Keine Treffer.</div>';}ks.addEventListener('change',draw);q.addEventListener('input',draw);out.addEventListener('click',function(e){var b=e.target.closest('[data-q-sus]');if(!b)return;var id=b.getAttribute('data-q-sus');close();setTimeout(function(){cb(id);},0);});draw();setTimeout(function(){q.focus();},40);}});}
-function quickTodoOpen_(){var kid=A.standardKlasseId(),kurse=A.kurseDerKlasse(kid);if(!kurse.length){window.toast('Für deine Standardklasse ist noch kein Fach angelegt.',true);return;}Modal.form({title:'Schnelles To-do',fields:[{key:'kursId',label:'Fach',type:'select',value:kurse[0].id,options:kurse.map(function(k){return{value:k.id,label:A.kursLabel(k)};})},{key:'titel',label:'To-do',placeholder:'z. B. Arbeitsblatt kopieren'},{key:'frist',label:'Frist (optional)',type:'date',value:''},{key:'notiz',label:'Notiz (optional)',type:'textarea',rows:2,value:''}],validate:function(v){return String(v.titel||'').trim()?'':'Bitte ein To-do eingeben.';},onSave:function(v){aufgabeSpeichern({id:A.uid('auf'),typ:'todo',kursId:v.kursId,titel:String(v.titel).trim(),frist:v.frist||'',notiz:String(v.notiz||'').trim(),elternhinweis:'',erstellt:new Date().toISOString(),erledigt:'',checks:{}});window.toast('To-do angelegt');}});}
-ACT['quick-actions']=function(){Modal.open({title:'Schnellaktion',body:'<div class="quick-action-grid"><button class="quick-action" data-qact="obs"><b>Beobachtung</b><span>SuS suchen und festhalten</span></button><button class="quick-action" data-qact="list"><b>Liste</b><span>für '+A.esc((A.standardKlasse()||{}).name||'meine Klasse')+'</span></button><button class="quick-action" data-qact="parent"><b>Elternnachricht</b><span>Kind auswählen</span></button><button class="quick-action" data-qact="todo"><b>To-do</b><span>schnell anlegen</span></button><button class="quick-action" data-qact="goal"><b>Förderziel</b><span>für ein Kind anlegen</span></button></div>',after:function(bg,close){bg.addEventListener('click',function(e){var b=e.target.closest('[data-qact]');if(!b)return;var a=b.getAttribute('data-qact');close();setTimeout(function(){if(a==='obs')craftKarteiQuickNoteOpen_('');else if(a==='list'){var f=document.createElement('button');f.setAttribute('data-klasse',A.standardKlasseId());ACT['aufgabe-neu'](f);}else if(a==='parent')elternGeneratorGlobalOeffnen();else if(a==='todo')quickTodoOpen_();else if(a==='goal')quickSusPicker_('Förderziel · Schüler:in wählen',function(id){craftFoerderzielOpen_(id);});},0);});}});};
+/* V81: Schnelles To-do – wahlweise auch als Aufgabe in die Craft-Tagesnotiz (ohne Namen von Kindern) */
+function craftTodoVerbunden_(){return craftApiUrlGueltig_(craftApiConfig_().url);}
+function quickTodoOpen_(){
+  /* V82: To-dos gibt es nur noch in Craft – die Schulapp speichert keine To-dos mehr. */
+  if(!craftTodoVerbunden_()){Modal.open({title:'To-do nach Craft',body:'<div class="hint-box">To-dos landen direkt als Aufgabe in deiner Craft-Tagesnotiz. Dafür einmalig die Craft-Verbindung einrichten.</div>',foot:'<button class="btn primary" data-setup>Craft-Verbindung einrichten</button>',after:function(bg,close){bg.querySelector('[data-setup]').addEventListener('click',function(){close();ACT['craft-api']();});}});return;}
+  Modal.form({title:'To-do nach Craft',
+    hinweis:'Landet als Aufgabe in der Craft-Tagesnotiz des gewählten Tages. Namen von Kindern werden vorher entfernt.',
+    fields:[{key:'titel',label:'To-do',placeholder:'z. B. Arbeitsblätter 6f kopieren'},
+      {key:'datum',label:'In die Tagesnotiz vom',type:'date',value:A.todayISO()}],
+    validate:function(v){return String(v.titel||'').trim()?'':'Bitte ein To-do eingeben.';},
+    onSave:function(v){
+      var titel=String(v.titel).trim(),datum=v.datum||A.todayISO();
+      if(VORSCHAU_AKTIV){window.toast('Vorschau: An Craft wird nichts gesendet.');return;}
+      craftPostTasks_([{titel:titel}],datum).then(function(){window.toast('In Craft eingetragen ('+(datum===A.todayISO()?'heute':A.fmtDateShort(datum))+')');}).catch(function(e){window.toast('Craft-Fehler: '+e.message,true);});
+    }});
+}
+ACT['quick-actions']=function(){Modal.open({title:'Schnellaktion',body:'<div class="quick-action-grid"><button class="quick-action" data-qact="obs"><b>Beobachtung</b><span>SuS suchen und festhalten</span></button><button class="quick-action" data-qact="list"><b>Liste</b><span>für '+A.esc((A.standardKlasse()||{}).name||'meine Klasse')+'</span></button><button class="quick-action" data-qact="parent"><b>Elternnachricht</b><span>Kind auswählen</span></button><button class="quick-action" data-qact="todo"><b>To-do</b><span>direkt in Craft</span></button><button class="quick-action" data-qact="goal"><b>Förderziel</b><span>für ein Kind anlegen</span></button></div>',after:function(bg,close){bg.addEventListener('click',function(e){var b=e.target.closest('[data-qact]');if(!b)return;var a=b.getAttribute('data-qact');close();setTimeout(function(){if(a==='obs')craftKarteiQuickNoteOpen_('');else if(a==='list'){var f=document.createElement('button');f.setAttribute('data-klasse',A.standardKlasseId());ACT['aufgabe-neu'](f);}else if(a==='parent')elternGeneratorGlobalOeffnen();else if(a==='todo')quickTodoOpen_();else if(a==='goal')quickSusPicker_('Förderziel · Schüler:in wählen',function(id){craftFoerderzielOpen_(id);});},0);});}});};
 ACT['inbox-cleanup']=function(){inboxAufraeumenOpen_();};
 ACT['timeline-filter']=function(el){ui.timelineFilterBySus=ui.timelineFilterBySus||{};ui.timelineFilterBySus[el.getAttribute('data-sus')]=el.getAttribute('data-filter')||'all';render();};
 ACT['sus-mark-seen']=function(el){var m=susLastSeenMap_();m[el.getAttribute('data-sus')]=new Date().toISOString();A.setCfg('susLastSeen',m);render();window.toast('Aktueller Stand als gesehen markiert');};
@@ -12564,6 +12768,9 @@ ACT['fehlerprotokoll'] = function () {
 };
 
 var AENDERUNGEN_ = [
+  ['V83', ['Craft wird gelesen: Die Unterrichtsreihe kommt aus deinem Stoffverteilungsplan (Einheit, Lernnachweis, heute und nächstes Mal). Die Stunden-Kacheln zeigen den Inhalt aus der Tabelle deiner Tagesnotiz. Anstehende Klassenarbeiten/Tests erscheinen unter Heute.', 'Einrichtung unter Mehr → App → Craft-Verbindung.']],
+  ['V82', ['To-dos gibt es nur noch in Craft: ＋ → To-do schreibt direkt in die Craft-Tagesnotiz. In der Schulapp werden keine To-dos mehr angelegt oder angezeigt (alte bleiben gespeichert, sind aber ausgeblendet).', '„Liste anlegen“ legt nur noch Einsammel-Listen an.']],
+  ['V81', ['Schnelles To-do (＋ unten rechts) kann zusätzlich als Aufgabe in die Craft-Tagesnotiz geschrieben werden – am Tag der Frist, sonst heute. Namen von Kindern werden vorher entfernt. Auch To-dos ohne Fach (nur Craft) möglich.', 'Craft-Verbindung unter Mehr → App.', 'Einsammellisten: drei Kinder nebeneinander (iPad/Mac vier), abgehakt grün – weniger Scrollen.']],
   ['V80', ['Hintergrund wieder weiß; Kacheln und Felder als zarte Flächen. Unter Mehr → App → Farbdesign einstellbar: Weiß, Hellgrau mit weißen Flächen, Warm, Kühl, getönt.', 'Mitarbeit mit klaren Icons (Doppelpfeil hoch bis Doppelpfeil runter) in Ampelfarben statt Smileys; Smileys lassen sich im Farbdesign wieder einschalten.', 'Feinschliff: ruhigere Schrift, einheitliche Rundungen und Abstände.']],
   ['V79', ['Neues Flächen-Design wie in Craft: keine Trennlinien mehr, alles liegt auf weichen Flächen und Kacheln, Knöpfe ohne Rahmen, Eingabefelder als Flächen.', 'Stunde fürs iPhone: Mitarbeit zwei Kinder nebeneinander, Abhaken drei nebeneinander (bei bis zu zwei Punkten), offene Strafarbeiten als Kacheln, Werkzeuge (Zufall, Gruppen …) als vier kleine Kacheln.', 'Schülerliste der Klasse zwei- bzw. dreispaltig.']],
   ['V78', ['Stundenplan aufgeräumt: Kurse je Klasse in einer Zeile, nur noch ein Hinweis, leere Stunden am Ende eingeklappt (lassen sich aufklappen), Stundenzeiten/Klasse anlegen als kleine Links unter dem Raster.']],
@@ -12635,16 +12842,14 @@ ACT['aufgabe-neu'] = function (el) {
   var kurse=A.kurseDerKlasse(klasseId);if(!kurse.length){window.toast('Für diese Klasse ist noch kein Fach/Kurs angelegt.',true);return;}
   var smart=listenSmartLetzte_(klasseId),smartIds=smart&&Array.isArray(smart.erinnerKursIds)?smart.erinnerKursIds:[];
   var fields=[
-    {key:'typ',label:'Art',type:'select',options:[{value:'liste',label:'📋 Einsammel-Liste'},{value:'todo',label:'✓ To-do'}],value:'liste'},
     {key:'titel',label:'Titel',placeholder:'z. B. Elternabend'},
-    {key:'todoKursId',label:'Fach für To-do',type:'select',value:kursId||kurse[0].id,options:kurse.map(function(k){return{value:k.id,label:A.kursLabel(k)};}),hint:'Nur für To-dos relevant. Listen gehören unabhängig vom Fach zur Klasse.'},
     {key:'abgabeArt',label:'Art der Rückgabe (bei Listen)',type:'select',value:(smart&&smart.abgabeArt)||'auto',options:LISTEN_ARTEN,hint:'Die App merkt sich deine letzte Listen-Konfiguration für diese Klasse.'},
     {key:'frist',label:'Frist (optional)',type:'date',value:''},
     {key:'notiz',label:'Notiz (optional)',type:'textarea',rows:2,placeholder:'z. B. unterschrieben mitbringen'},
     {key:'elternhinweis',label:'Hinweis für Eltern (optional)',type:'textarea',rows:2,placeholder:'z. B. Bitte unterschrieben zurückgeben'}
   ];
   kurse.forEach(function(k,i){var def=smartIds.length?smartIds.indexOf(k.id)>=0:(kursId?kursId===k.id:true);fields.push({key:'rem'+i,label:'Bei '+k.fach+' erinnern',type:'checkbox',value:def,hint:i===0?'Die Auswahl wird fürs nächste Mal gemerkt.':''});});
-  Modal.form({title:'Liste oder To-do anlegen · '+klasse.name,hinweis:(smart?'Wie beim letzten Mal vorausgefüllt. ':'')+'Listen gehören zur Klasse; du bestimmst die Erinnerungsfächer.',fields:fields,validate:function(v){if(!String(v.titel||'').trim())return 'Bitte einen Titel eingeben.';if(v.typ!=='todo'){var any=kurse.some(function(k,i){return !!v['rem'+i];});if(!any)return 'Bitte mindestens ein Fach auswählen, in dem du erinnert werden möchtest.';}return null;},onSave:function(v){if(v.typ==='todo'){aufgabeSpeichern({id:A.uid('auf'),typ:'todo',kursId:v.todoKursId,titel:v.titel.trim(),abgabeArt:'auto',frist:v.frist||'',notiz:v.notiz.trim(),elternhinweis:v.elternhinweis.trim(),erstellt:new Date().toISOString(),erledigt:'',checks:{}});window.toast('To-do angelegt');return;}var ids=kurse.filter(function(k,i){return !!v['rem'+i];}).map(function(k){return k.id;});var neu={id:A.uid('auf'),typ:'liste',klasseId:klasseId,kursId:ids[0]||'',erinnerKursIds:ids,titel:v.titel.trim(),abgabeArt:v.abgabeArt||'auto',frist:v.frist||'',notiz:v.notiz.trim(),elternhinweis:v.elternhinweis.trim(),erstellt:new Date().toISOString(),erledigt:'',checks:{}};aufgabeSpeichern(neu);listenSmartSave_(klasseId,neu);window.toast('Klassenliste angelegt · Einstellung gemerkt');}});
+  Modal.form({title:'Einsammel-Liste · '+klasse.name,hinweis:(smart?'Wie beim letzten Mal vorausgefüllt. ':'')+'Listen gehören zur Klasse; du bestimmst die Erinnerungsfächer.',fields:fields,validate:function(v){if(!String(v.titel||'').trim())return 'Bitte einen Titel eingeben.';if(v.typ!=='todo'){var any=kurse.some(function(k,i){return !!v['rem'+i];});if(!any)return 'Bitte mindestens ein Fach auswählen, in dem du erinnert werden möchtest.';}return null;},onSave:function(v){if(v.typ==='todo'){aufgabeSpeichern({id:A.uid('auf'),typ:'todo',kursId:v.todoKursId,titel:v.titel.trim(),abgabeArt:'auto',frist:v.frist||'',notiz:v.notiz.trim(),elternhinweis:v.elternhinweis.trim(),erstellt:new Date().toISOString(),erledigt:'',checks:{}});window.toast('To-do angelegt');return;}var ids=kurse.filter(function(k,i){return !!v['rem'+i];}).map(function(k){return k.id;});var neu={id:A.uid('auf'),typ:'liste',klasseId:klasseId,kursId:ids[0]||'',erinnerKursIds:ids,titel:v.titel.trim(),abgabeArt:v.abgabeArt||'auto',frist:v.frist||'',notiz:v.notiz.trim(),elternhinweis:v.elternhinweis.trim(),erstellt:new Date().toISOString(),erledigt:'',checks:{}};aufgabeSpeichern(neu);listenSmartSave_(klasseId,neu);window.toast('Klassenliste angelegt · Einstellung gemerkt');}});
 };
 
 ACT['aufgabe-open'] = function (el) {
@@ -12685,7 +12890,7 @@ ACT['aufgabe-open'] = function (el) {
       '<div class="listen-grid">' + s.sus.map(function (person) {
         var on = !!s.checks[person.id];
         return '<button class="listen-sus' + (on ? ' on' : '') + '" data-list-sus="' + person.id + '">' +
-          '<span class="check">✓</span><span>' + A.esc(A.susName(person)) + '</span></button>';
+          '<span class="check">✓</span><span class="ls-name" title="' + A.esc(A.susName(person)) + '">' + A.esc(A.susKurz(person)) + '</span></button>';
       }).join('') + '</div>' +
       '<div class="listen-actions"><button class="btn small" data-list-all>Alle abhaken</button>' +
       '<button class="btn small" data-list-none>Alle zurücksetzen</button></div>';
@@ -12874,7 +13079,7 @@ ACT['positiv-nachricht']=function(el){var h=positiveMitarbeitHinweis_(el.getAttr
 ACT['craft-toggle']=function(){var an=craftAn_();A.setCfg('craftAus',an);render();window.toast(an?'Craft ausgeschaltet':'Craft eingeschaltet');};
 ACT['craft-sync-inbox']=function(){craftSyncInbox_(A.todayISO()).catch(function(){});};
 ACT['craft-sync-one']=function(el){craftSyncInbox_(A.todayISO(),el.getAttribute('data-craft-key')).catch(function(){});};
-ACT['craft-api']=function(){var c=craftApiConfig_();Modal.form({title:'Craft-Verbindung',hinweis:'Craft bekommt nur Aufgaben ohne Namen von Kindern (z. B. „Elternnachricht zu einem Kind“) und deine Planungslinks. Füge hier die API-Server-Adresse deiner Craft API Connection ein. Sie bleibt nur lokal auf diesem Gerät und wird weder in GitHub noch in dein Schulapp-Backend synchronisiert.',fields:[{key:'url',label:'Craft API Connection',type:'password',value:c.url||'',placeholder:'https://connect.craft.do/links/…/api/v1',autocap:false,hint:'Die Connection-Adresse ist wie ein Zugangsschlüssel – nicht öffentlich teilen.'},{key:'auto',label:'Neue Inbox-Einträge automatisch in die heutige Craft-Notiz schreiben',type:'checkbox',value:!!c.auto}],validate:function(v){var u=String(v.url||'').trim();return u&&!craftApiUrlGueltig_(u)?'Bitte die vollständige Craft API Connection-Adresse einfügen.':null;},onSave:function(v){craftApiSet_({url:String(v.url||'').trim(),auto:!!v.auto,namen:false});render();window.toast(v.url?'Craft-Verbindung gespeichert':'Craft-Verbindung entfernt');},focus:false});};
+ACT['craft-api']=function(){var c=craftApiConfig_(),pc=craftPlanCfg_(),cache=craftPlanCache_();Modal.form({title:'Craft-Verbindung',hinweis:'Schreiben: nur To-dos, die du ausdrücklich nach Craft schickst (Namen von Kindern werden entfernt). Lesen: Stoffverteilungsplan und Tagesnotiz-Tabelle – es gehen dabei keine Schülerdaten nach Craft. Die Adresse bleibt nur auf diesem Gerät.'+(cache.fehler?' Letzter Fehler: '+cache.fehler:''),fields:[{key:'url',label:'Craft API Connection',type:'password',value:c.url||'',placeholder:'https://connect.craft.do/links/…/api/v1',autocap:false,hint:'Die Adresse ist wie ein Zugangsschlüssel – nicht teilen. Gib der Verbindung nur die nötigen Dokumente frei (Tagesnotizen + Stoffverteilungsplan), keine mit Passwörtern.'},{key:'planId',label:'Stoffverteilungsplan (Link oder ID)',value:pc.planId||'96E2A2F9-0CCD-4480-A120-6C1001136DFE',autocap:false,hint:'In Craft: Rechtsklick auf die Seite → Link kopieren, hier einfügen. Leer lassen = nicht lesen.'},{key:'tagesnotiz',label:'Inhalte aus der Tagesnotiz-Tabelle (Stunde | Inhalt) anzeigen',type:'checkbox',value:pc.tagesnotiz}],validate:function(v){var u=String(v.url||'').trim();return u&&!craftApiUrlGueltig_(u)?'Bitte die vollständige Craft API Connection-Adresse einfügen.':null;},onSave:function(v){craftApiSet_({url:String(v.url||'').trim(),auto:false,namen:false,planId:craftIdAusEingabe_(v.planId),tagesnotiz:!!v.tagesnotiz});craftPlanCacheSet_({});render();if(!v.url){window.toast('Craft-Verbindung entfernt');return;}window.toast('Craft-Verbindung gespeichert – lese Plan …');var pr=craftPlanAuffrischen_(A.todayISO(),true);if(pr)pr.then(function(){window.toast('Craft gelesen ✓');}).catch(function(e){window.toast('Craft lesen fehlgeschlagen: '+e.message,true);});},focus:false});};
 ACT['craft-kartei-note']=function(el){var susId=el.getAttribute('data-sus');craftKarteiQuickNoteOpen_(susId);};
 ACT['craft-quick-note']=function(){craftKarteiQuickNoteOpen_('');};
 ACT['craft-goal-add']=function(el){craftFoerderzielOpen_(el.getAttribute('data-sus'));};
