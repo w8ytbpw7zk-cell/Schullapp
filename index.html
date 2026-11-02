@@ -3293,7 +3293,7 @@ var TABLES = ['Klassen', 'Kurse', 'SuS', 'Stundenplan', 'Stunden', 'Mitarbeit',
               'Leistungen', 'Noten', 'Checks', 'Settings'];
 
 /* Eine einzige Stelle für die Versionsangabe (Anzeige unter „Mehr“). */
-var APP_VERSION = 'V85';
+var APP_VERSION = 'V86';
 
 /* V15: Diese Adresse ist die verbindliche Login-Adresse. */
 /* V58: Keine feste Server-Adresse mehr in der App. Sie wird über den Einladungslink/-code oder Mehr → Server gesetzt. */
@@ -9570,7 +9570,7 @@ function unterrichtsreiheManuell_(kursId,compact){var r=unterrichtsreiheFuer_(ku
    V83: Craft lesen – Stoffverteilungsplan und Tagesnotiz (nur lesen)
    ===================================================================== */
 var CRAFT_PLAN_DEMO_ = '<page id="SVP"><pageTitle>Stoffverteilungsplan</pageTitle><content>\n<callout>### Klasse 6f</callout>\n<page id="D6F"><pageTitle>Deutsch</pageTitle><content>\n<collection><title>Deutsch 6f</title><content>\n<collectionItem><property name="einheit">Wortarten und Satzglieder,Lektüre</property><property name="lernnachweis">Test und KA</property><property name="planungsstand">Erledigt</property><title>Sommer-Herbst</title></collectionItem>\n<collectionItem><property name="einheit">Nacherzählen und Sage</property><property name="lernnachweis">Klassenarbeit</property><property name="planungsstand">Erledigt</property><title>Herbst-Winter</title></collectionItem>\n</content></collection>\n<page id="E1"><pageTitle>Wortarten und Satzglieder</pageTitle><content>\nStand 16.10. · Grobplanung\n\n| Zeitraum | Std. | Checkliste / Inhalt | Hinweis |\n| --- | --- | --- | --- |\n| §HEUTE§ | 2 | Kap. 10 Das Subjekt, Kap. 11 Das Akkusativobjekt | 1 Std. pro Kapitel |\n| §P2§ | 1 | Kap. 12 Das Dativobjekt | AB 10 fehlt noch |\n| §P4§ | 2 | Kap. 13 Die adverbiale Bestimmung, Wiederholung | |\n| §P9§ | 2 | Klassenarbeit | Termin ist ein Vorschlag |\n</content></page>\n</content></page>\n<callout>### Klasse 4a</callout>\n<page id="D4A"><pageTitle>Deutsch</pageTitle><content>\n<collection><title>Deutsch 4a</title><content>\n<collectionItem><property name="einheit">Fabeln</property><property name="lernnachweis">Klassenarbeit</property><title>Herbst-Winter</title></collectionItem>\n</content></collection>\n<page id="E2"><pageTitle>Fabeln</pageTitle><content>\n| Zeitraum | Std. | Inhalt | Hinweis |\n| --- | --- | --- | --- |\n| §HEUTE§ | 2 | Fabeln in Gruppen erarbeiten | Gruppen vorher einteilen |\n| §P1§ | 1 | Fabel-Merkmale sichern | |\n| §P5§ | 2 | Klassenarbeit Fabeln | |\n</content></page>\n</content></page>\n</content></page>';
-var CRAFT_TAG_DEMO_ = '<page><pageTitle>Tagesnotiz</pageTitle><content>\n| Stunde | Sonstiges | Inhalt |\n| --- | --- | --- |\n| 4a D |  | [Gruppenarbeit: Fabeln](block://x1) |\n| 4a D |  | [Gruppenarbeit: Fabeln](block://x1) |\n| 4a M |  | Bruchrechnen wiederholen |\n</content></page>';
+var CRAFT_TAG_DEMO_ = '<page><pageTitle>Tagesnotiz</pageTitle><content>\n| Stunde | Sonstiges | Inhalt |\n| --- | --- | --- |\n|  |  |  |\n| KoMa |  |  |\n| 4a D |  | [Gruppenarbeit: Fabeln](block://x1) |\n| 4a M |  | Bruchrechnen wiederholen |\n</content></page>';
 
 function craftPlanCfg_(){var c=craftApiConfig_();return {planId:String(c.planId||'').trim(),tagesnotiz:c.tagesnotiz!==false};}
 function craftPlanCache_(){var x=A.LS.get(craftApiLocalKey_()+'.plan',{});return x&&typeof x==='object'?x:{};}
@@ -9652,6 +9652,9 @@ function craftPlanFuerKurs_(kurs,datum){
   zeilen.forEach(function(z){if(!heute&&z.von<=datum&&datum<=z.bis&&!z.ab)heute=z;});
   zeilen.forEach(function(z){if(!naechste&&z.von>datum)naechste=z;});
   var einheit=(heute||naechste||{}).einheit||'';
+  /* V86: Beginnt die nächste geplante Einheit erst in über 7 Tagen, läuft laut Jahresplan noch eine andere */
+  var spaeterStart=null;
+  if(!heute&&naechste&&naechste.von>A.addDays(datum,7)){spaeterStart=naechste;einheit='';}
   var samml=craftSammlung_(fachSeite.text),info=null;
   samml.forEach(function(it){var e=String(it.p.einheit||'').toLowerCase();if(!info&&einheit&&e&&(e.indexOf(einheit.toLowerCase().slice(0,12))>=0||einheit.toLowerCase().indexOf(e.split(',')[0].trim().slice(0,12))>=0))info=it;});
   /* Ohne Feinplanung: Einheit aus der Jahrestabelle nach Zeitabschnitt (Sommer-Herbst …) */
@@ -9659,7 +9662,8 @@ function craftPlanFuerKurs_(kurs,datum){
     samml.forEach(function(it){var t=String(it.titel||'').toLowerCase().replace(/\s+/g,'').replace('fastnacht','fasnacht');if(!info&&t===abschn){info=it;}});
     if(!einheit&&info)einheit=String(info.p.einheit||'').replace(/,/g,', ');}
   var pruefungen=zeilen.filter(function(z){return z.von>=datum&&!z.ab&&/klassenarbeit|\bka\b|test|diktat|lernzielkontrolle/i.test(z.inhalt)&&!/zurück|besprech|vorbereitung|puffer|verbesser/i.test(z.inhalt);});
-  return {gefunden:true,einheit:einheit,lernnachweis:info?info.p.lernnachweis:'',zeitraum:info?info.titel:'',heute:heute,naechste:naechste,pruefungen:pruefungen,stand:cache.plan&&cache.plan.zeit};
+  if(spaeterStart){naechste=null;}
+  return {gefunden:true,spaeterStart:spaeterStart,einheit:einheit,lernnachweis:info?info.p.lernnachweis:'',zeitraum:info?info.titel:'',heute:heute,naechste:naechste,pruefungen:pruefungen,stand:cache.plan&&cache.plan.zeit};
 }
 function craftDemoPlan_(){var h=A.todayISO();function f(n){var d=A.addDays(h,n);var p=d.split('-');return A.tagName(A.tagVon(d)).slice(0,2)+' '+Number(p[2])+'.'+Number(p[1])+'.';}return CRAFT_PLAN_DEMO_.replace('§HEUTE§',f(0)).replace('§P2§',f(2)).replace('§P4§',f(4)).replace('§P9§',f(9)).replace('§HEUTE§',f(0)).replace('§P1§',f(1)).replace('§P5§',f(5));}
 
@@ -9675,18 +9679,26 @@ function craftTagLinks_(datum,kurs,von,bis){
   var roh=craftTagParse_(md,kurs,von,bis,true);return roh||[];
 }
 function craftTagParse_(md,kurs,von,bis,mitLinks){
-  if(!md||!kurs)return '';
+  /* V86: Zuordnung NUR über Klasse + Fach in der Spalte „Stunde“ (z. B. „6f D“, „6f Sp“).
+     Die Zeilennummer wird nicht mehr benutzt – deine Tabelle hat auch Zeilen für KoMa, PS, Pausen. */
+  if(!md||!kurs)return mitLinks?[]:'';
   var t=craftTabellen_(md).filter(function(t){return t.kopf.some(function(h){return /stunde/i.test(h);})&&t.kopf.some(function(h){return /inhalt/i.test(h);});})[0];
   if(!t)return mitLinks?[]:'';
   var is=t.kopf.findIndex(function(h){return /stunde/i.test(h);}),ii=t.kopf.findIndex(function(h){return /inhalt/i.test(h);});
   var kl=A.klasseVonKurs(kurs),kn=kl?String(kl.name).replace(/\s+/g,'').toLowerCase():'',fb=craftFachNorm_(kurs.fach);
-  var out=[];
-  /* 1. Zeile = Stunde, falls die Zeile zur Klasse passt; sonst alle Zeilen mit Klasse + Fach-Kürzel */
-  var roh=[];
-  function nimm(z){var x=craftMdText_(z[ii]||'');if(!x||out.indexOf(x)>=0)return;out.push(x);var lm=String(z[ii]||'').match(/\]\(block:\/\/([0-9A-Za-z-]+)\)/);roh.push({text:x,block:lm?lm[1]:''});}
-  for(var n=Number(von);n<=Number(bis||von);n++){var z=t.zeilen[n-1];if(z&&String(z[is]||'').replace(/\s+/g,'').toLowerCase().indexOf(kn)===0)nimm(z);}
-  if(!out.length)t.zeilen.forEach(function(z){var c=String(z[is]||'').trim(),cn=c.replace(/\s+/g,'').toLowerCase();if(cn.indexOf(kn)!==0)return;var rest=craftFachNorm_(c.replace(/^\s*\S+\s*/,''));if(rest&&fb.indexOf(rest)!==0&&rest.indexOf(fb)!==0)return;nimm(z);});
-  return mitLinks?roh:out.join(' · ');
+  var texte=[],links=[];
+  t.zeilen.forEach(function(z){
+    var c=String(z[is]||'').trim(),m=c.match(/^(\S+)\s*(.*)$/);if(!m)return;
+    if(m[1].replace(/\s+/g,'').toLowerCase()!==kn)return;
+    var rest=craftFachNorm_(m[2]);
+    if(!rest||!(fb.indexOf(rest)===0||rest.indexOf(fb)===0))return;
+    var roh=String(z[ii]||''),x=craftMdText_(roh);if(!x)return;
+    if(texte.indexOf(x)<0)texte.push(x);
+    var lm,rl=/\[([^\]]+)\]\(block:\/\/([0-9A-Za-z-]+)\)/g,gef=false;
+    while((lm=rl.exec(roh))){gef=true;var lt=craftMdText_(lm[1]);if(!links.some(function(l){return l.block===lm[2];}))links.push({text:lt,block:lm[2]});}
+    if(!gef&&!links.some(function(l){return l.text===x;}))links.push({text:x,block:''});
+  });
+  return mitLinks?links:texte.join(' · ');
 }
 
 /* --- Laden (gedrosselt) --- */
@@ -9714,6 +9726,7 @@ function craftPlanHTML_(kurs,datum){
   var h='<div class="craftplan"><div class="craftplan-kopf"><span class="craftplan-quelle">Aus Craft · Stoffverteilungsplan</span>'+(p.zeitraum?'<span class="craftplan-zr">'+A.esc(p.zeitraum)+'</span>':'')+'</div>'+
     '<b class="craftplan-einheit">'+A.esc(p.einheit||'Keine Einheit gefunden')+'</b>'+(p.lernnachweis?'<span class="craftplan-ln">Lernnachweis: '+A.esc(p.lernnachweis)+'</span>':'');
   if(p.heute)h+='<div class="craftplan-zeile jetzt"><span class="cz-k">'+(p.heute.von===A.todayISO()?'Heute':A.esc(p.heute.label))+'</span><span class="cz-v">'+A.esc(p.heute.inhalt)+(p.heute.hinweis?'<small>'+A.esc(p.heute.hinweis)+'</small>':'')+'</span></div>';
+  if(p.spaeterStart)h+='<div class="craftplan-zeile"><span class="cz-k">ab '+A.esc(p.spaeterStart.label)+'</span><span class="cz-v">'+A.esc(p.spaeterStart.einheit)+'<small>'+A.esc(p.spaeterStart.inhalt)+'</small></span></div>';
   if(p.naechste)h+='<div class="craftplan-zeile"><span class="cz-k">'+A.esc(p.naechste.label)+'</span><span class="cz-v">'+A.esc(p.naechste.inhalt)+(p.naechste.hinweis?'<small>'+A.esc(p.naechste.hinweis)+'</small>':'')+'</span></div>';
   return h+'</div>';
 }
@@ -12815,6 +12828,7 @@ ACT['fehlerprotokoll'] = function () {
 };
 
 var AENDERUNGEN_ = [
+  ['V86', ['Craft-Tagesnotiz: Inhalte werden nur noch über Klasse + Fach zugeordnet („6f D“, „6f Sp“), nicht mehr über die Zeilennummer – vorher konnte z. B. bei Sport der Deutsch-Inhalt erscheinen. Mehrere Links in einer Zelle werden einzeln angeboten.', 'Unterrichtsreihe: Liegt die nächste Feinplanung noch in der Zukunft, zeigt die App die laufende Einheit aus dem Jahresplan und „ab …“ die kommende.']],
   ['V85', ['Sitzplan: Pultsicht zeigt jetzt genau dieselbe Sitzordnung wie die Tafelansicht, nur um 180° gedreht (vorderste Reihe unten, links und rechts getauscht – so wie du vom Pult aus in die Klasse schaust). Gilt auch fürs PDF.']],
   ['V84', ['To-dos landen in Craft als lila Aufgaben-Block, direkt unter deinen anderen Aufgaben der Tagesnotiz.', 'In der Stunde öffnet ein Tipp auf den Inhalt die Stundenseite direkt in Craft.', 'Noten: erst Klasse, dann Fach.', 'Klassen-Kacheln zeigen „2 Listen offen“ statt der Zahl fehlender Abgaben.']],
   ['V83', ['Craft wird gelesen: Die Unterrichtsreihe kommt aus deinem Stoffverteilungsplan (Einheit, Lernnachweis, heute und nächstes Mal). Die Stunden-Kacheln zeigen den Inhalt aus der Tabelle deiner Tagesnotiz. Anstehende Klassenarbeiten/Tests erscheinen unter Heute.', 'Einrichtung unter Mehr → App → Craft-Verbindung.']],
