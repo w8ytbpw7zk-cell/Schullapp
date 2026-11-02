@@ -3186,6 +3186,37 @@ input:focus,select:focus,textarea:focus{background:var(--surface)!important}
 .task-list.kacheln .today-task[data-wisch-label]::after{content:attr(data-wisch-label);position:absolute;top:10px;right:12px;font-size:11px;font-weight:700;padding:2px 8px;border-radius:20px;background:var(--surface);color:var(--ink)}
 .task-list.kacheln .today-task.weg{opacity:0}
 .wisch-tipp{font-size:11.5px;color:var(--ink-3);margin:-2px 2px 8px}
+
+.stufe-sym{display:inline-flex;align-items:center;justify-content:center;width:24px;height:24px;border-radius:7px;background:var(--mc);color:#fff;vertical-align:-6px;margin-right:4px;font-size:15px}
+
+/* V89: Gesprächsmappe */
+.mappe-kopf{margin:0 0 var(--gap-sektion)}
+.mappe-kopf h1{margin:2px 0 10px;font-size:26px;letter-spacing:-.03em}
+.mappe-aktionen{display:flex;gap:8px;flex-wrap:wrap}
+.mappe-fach{--kc:var(--accent);display:flex;flex-direction:column;gap:6px;padding:12px 13px;border-radius:14px;background:color-mix(in srgb,var(--kc) 8%,var(--flaeche))}
+.mf-kopf{display:flex;justify-content:space-between;align-items:baseline}
+.mf-kopf b{font-size:15px}
+.mf-ges{font-size:20px;font-weight:700}
+.mf-zeile{font-size:12px;color:var(--ink-2)}
+.mf-trend{display:inline-block;margin-left:4px;padding:0 6px;border-radius:10px;font-size:11px;font-weight:600;background:var(--surface)}
+.mf-trend.steigend{color:#1f9d6b}.mf-trend.fallend{color:#d65045}
+.mf-noten{display:flex;flex-wrap:wrap;gap:4px}
+.mp-note{font-size:11px;padding:2px 7px;border-radius:8px;background:var(--surface)}
+.mappe-box{display:flex;flex-direction:column;gap:2px;padding:6px 12px;border-radius:13px;background:var(--flaeche)}
+.mp-zeile{display:grid;grid-template-columns:96px minmax(0,1fr);gap:10px;padding:6px 0;font-size:13px}
+.mp-zeile b{font-weight:600;color:var(--ink-2);font-size:12px}
+.mp-zeile.muted{display:block;color:var(--ink-3)}
+.mappe-leitfaden{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+@media(max-width:600px){.mappe-leitfaden{grid-template-columns:1fr}}
+.ml-feld{padding:10px 12px;border-radius:13px;background:var(--flaeche)}
+.ml-feld b{font-size:12.5px}
+.ml-linien{height:62px;background:repeating-linear-gradient(transparent 0 19px,color-mix(in srgb,var(--ink) 12%,transparent) 19px 20px)}
+/* V89: Noten schneller */
+.noten-schnell{display:flex;align-items:center;justify-content:space-between;gap:10px;position:sticky;top:calc(var(--topbar-h) + var(--sat));z-index:5;padding:8px 10px;margin:0 0 6px;border-radius:12px;background:color-mix(in srgb,var(--bg) 94%,transparent);backdrop-filter:blur(10px)}
+.ns-fortschritt{position:relative;flex:1;font-size:12.5px;color:var(--ink-2);padding-bottom:6px}
+.ns-fortschritt i{position:absolute;left:0;bottom:0;height:3px;border-radius:2px;background:var(--accent);transition:width .2s}
+.ns-toggle{display:flex;align-items:center;gap:6px;font-size:12.5px;white-space:nowrap}
+.ns-tipp{font-size:11.5px;color:var(--ink-3);margin:0 2px 12px}
 </style>
 </head>
 <body>
@@ -3327,7 +3358,7 @@ var TABLES = ['Klassen', 'Kurse', 'SuS', 'Stundenplan', 'Stunden', 'Mitarbeit',
               'Leistungen', 'Noten', 'Checks', 'Settings'];
 
 /* Eine einzige Stelle für die Versionsangabe (Anzeige unter „Mehr“). */
-var APP_VERSION = 'V87';
+var APP_VERSION = 'V89';
 
 /* V15: Diese Adresse ist die verbindliche Login-Adresse. */
 /* V58: Keine feste Server-Adresse mehr in der App. Sie wird über den Einladungslink/-code oder Mehr → Server gesetzt. */
@@ -6478,7 +6509,8 @@ document.addEventListener('click', function (e) {
   });
 })();
 
-/* V73: Linien-Icons (Stil wie Lucide, 24er Raster) */
+/* V73: Linien-Icons. Pfade aus Lucide (https://lucide.dev), Lizenz ISC –
+   Copyright (c) Lucide Contributors. Frei nutzbar, dieser Hinweis muss erhalten bleiben. */
 var ICON_PFADE_ = {
   liste: '<rect x="8" y="2" width="8" height="4" rx="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><path d="m9 14 2 2 4-4"/>',
   wv: '<path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M12 7v5l3 2"/>',
@@ -8658,7 +8690,7 @@ function fieldHTML(f) {
       (f.inputmode ? ' inputmode="' + f.inputmode + '"' : '') +
       (f.autocap === false ? ' autocapitalize="off" autocorrect="off" spellcheck="false"' : '') + '>';
   }
-  return '<div class="field"><label for="f_' + f.key + '">' + A.esc(f.label) + '</label>' + inner +
+  return '<div class="field"><label for="f_' + f.key + '">' + (f.labelHtml || A.esc(f.label)) + '</label>' + inner +
     (f.hint ? '<div class="hint">' + f.hint + '</div>' : '') + '</div>';
 }
 
@@ -8702,7 +8734,20 @@ function back() {
   navMerken_(); route.stack.pop(); window.scrollTo(0, 0); render();
 }
 /* Wischen / Pfeiltasten: erst der Verlauf, sonst eine Ebene hoch. */
-function navWischZurueck_() { if (navZurueck()) return true; if (route.stack.length) { back(); return true; } return false; }
+function navWischZurueck_() { NAV_TOUCH_ZEIT_ = Date.now(); if (navZurueck()) return true; if (route.stack.length) { back(); return true; } return false; }
+/* V89: Zurück-Geste am Mac (Trackpad-/Magic-Mouse-Wischen, Maus-Zurücktaste) – über den Browser-Verlauf */
+var NAV_TOUCH_ZEIT_ = 0, NAV_HIST_AN_ = false;
+function navHistoryInit_() {
+  if (NAV_HIST_AN_ || !window.history || !history.pushState) return;
+  NAV_HIST_AN_ = true;
+  try { history.replaceState({ sa: 'basis' }, ''); history.pushState({ sa: 'app' }, ''); } catch (e) { return; }
+  window.addEventListener('popstate', function () {
+    if (document.querySelector('#modalHost .modal')) { var x = document.querySelector('#modalHost [data-close]'); if (x) x.click(); try { history.pushState({ sa: 'app' }, ''); } catch (e) {} return; }
+    var kurzVorher = Date.now() - NAV_TOUCH_ZEIT_ < 700;
+    var ok = kurzVorher ? true : navWischZurueck_();
+    if (ok) { try { history.pushState({ sa: 'app' }, ''); } catch (e) {} }
+  });
+}
 
 btnBack.addEventListener('click', back);
 
@@ -9850,6 +9895,56 @@ function craftPruefungsHinweiseHTML_(datum){
   return '<div class="craftplan-pruefungen">'+out.slice(0,4).map(function(x){var tage=Math.round((new Date(x.z.von)-new Date(datum))/86400000);return '<div class="cp-pr"><span class="cp-pr-dot" style="background:'+A.kursFarbe(x.k)+'"></span><b>'+A.esc(A.kursLabel(x.k))+'</b><span>'+A.esc(x.z.inhalt)+' · '+(tage===0?'heute':(tage===1?'morgen':'in '+tage+' Tagen ('+A.esc(x.z.label)+')'))+'</span></div>';}).join('')+'</div>';
 }
 
+/* =====================================================================
+   V89: Elterngespräch-Mappe
+   ===================================================================== */
+function mitTrend_(kursId,susId){
+  var e=A.list('Mitarbeit',function(x){return x.kursId===kursId&&x.susId===susId&&x.wert!==''&&x.wert!==undefined;}).sort(function(a,b){return String(a.datum||'').localeCompare(String(b.datum||''));});
+  if(e.length<4)return null;
+  var n=Math.min(5,Math.floor(e.length/2)),alt=e.slice(-2*n,-n),neu=e.slice(-n);
+  function avg(a){return a.reduce(function(s,x){return s+Number(x.wert);},0)/a.length;}
+  var d=avg(neu)-avg(alt);
+  return {diff:d,text:d>0.4?'steigend':(d<-0.4?'fallend':'stabil'),anzahl:e.length};
+}
+VIEWS.mappe = {
+  title: function (p) { var s = A.byId('SuS', p.id); return s ? 'Gesprächsmappe · ' + A.susName(s) : 'Gesprächsmappe'; },
+  actions: function (p) { return '<button class="icon-btn" data-act="kind-pdf" data-sus="' + p.id + '" title="Als PDF">PDF</button>'; },
+  body: function (p) {
+    var s = A.byId('SuS', p.id);if (!s) return card('', empty('❓', 'Nicht gefunden.'));
+    var kl = A.byId('Klassen', s.klasseId) || {}, kurse = A.kurseDerKlasse(s.klasseId);
+    var h = '<div class="mappe-kopf"><div class="tag-eyebrow">' + A.esc(kl.name || '') + ' · Stand ' + A.fmtDate(A.todayISO()) + '</div><h1>' + A.esc(A.susName(s)) + '</h1>' +
+      '<div class="mappe-aktionen"><button class="btn small" data-act="kind-pdf" data-sus="' + s.id + '">Als PDF</button><button class="btn small primary" data-act="gespraech-neu" data-sus="' + s.id + '">Gespräch protokollieren</button></div></div>';
+    /* Leistungen */
+    h += kachelGrid_('Leistungen', kurse.map(function (k) {
+      var g = A.gesamtnote(k, s.id), ma = A.mitarbeitBewertung(k.id, s.id), tr = mitTrend_(k.id, s.id);
+      var ls = A.list('Leistungen', function (l) { return l.kursId === k.id; }).sort(function (a, b) { return String(b.datum || '').localeCompare(String(a.datum || '')); })
+        .map(function (l) { var n = A.noteFuer(l, s.id, k); return n === null || n === undefined ? '' : '<span class="mp-note ' + noteKlasse(n) + '">' + A.esc((l.titel || l.kategorie || '').slice(0, 22)) + ' <b>' + A.fmtNote(n, 1) + '</b></span>'; }).filter(Boolean).slice(0, 4).join('');
+      return '<div class="mappe-fach" style="--kc:' + A.kursFarbe(k) + '"><div class="mf-kopf"><b>' + A.esc(k.fach) + '</b><span class="mf-ges ' + noteKlasse(g.note) + '">' + A.fmtNote(g.note, 1) + '</span></div>' +
+        '<div class="mf-zeile">Zeugnis-Tendenz <b>' + (A.rundeNote(g.note) === null ? '–' : A.rundeNote(g.note)) + '</b> · Mitarbeit <b>' + (ma ? A.fmtNote(ma.note, 1) : '–') + '</b>' + (tr ? ' <span class="mf-trend ' + tr.text + '">' + (tr.text === 'steigend' ? '↗' : (tr.text === 'fallend' ? '↘' : '→')) + ' ' + tr.text + '</span>' : '') + '</div>' +
+        (ls ? '<div class="mf-noten">' + ls + '</div>' : '<div class="mf-zeile muted">noch keine Noten</div>') + '</div>';
+    }).join(''));
+    /* Arbeitsverhalten */
+    var av = [];
+    kurse.forEach(function (k) { var bil = A.checkBilanzSus(k.id, s.id), t = []; Object.keys(bil).forEach(function (n) { if (bil[n].f) t.push(n + ' ' + bil[n].f + '×'); }); if (t.length) av.push('<div class="mp-zeile"><b>' + A.esc(k.fach) + '</b><span>vergessen: ' + A.esc(t.join(', ')) + '</span></div>'); });
+    var straf = 0; kurse.forEach(function (k) { straf += A.strafAufgaben(k.id, s.id).filter(function (a) { return !a.erledigt; }).length; });
+    if (straf) av.push('<div class="mp-zeile"><b>Strafarbeiten</b><span>' + straf + ' offen</span></div>');
+    h += '<section class="kachel-sektion"><div class="kachel-sektion-titel">Arbeitsverhalten</div><div class="mappe-box">' + (av.join('') || '<div class="mp-zeile muted">Keine Auffälligkeiten erfasst.</div>') + '</div></section>';
+    /* Beobachtungen */
+    var beo = beobachtungenAlle_().filter(function (x) { return x && x.susId === s.id; }).sort(function (a, b) { return String(b.zeit || '').localeCompare(String(a.zeit || '')); }).slice(0, 8);
+    h += '<section class="kachel-sektion"><div class="kachel-sektion-titel">Beobachtungen</div><div class="mappe-box">' + (beo.map(function (x) { return '<div class="mp-zeile"><b>' + A.fmtDateShort(String(x.zeit || '').slice(0, 10)) + '</b><span>' + A.esc((x.typ ? x.typ + ': ' : '') + (x.text || '')) + '</span></div>'; }).join('') || '<div class="mp-zeile muted">Noch keine Beobachtungen.</div>') + '</div></section>';
+    /* Förderziele */
+    var ziele = foerderzieleFuer_(s.id, false);
+    h += '<section class="kachel-sektion"><div class="kachel-sektion-titel">Förderziele</div><div class="mappe-box">' + (ziele.map(function (z) { return '<div class="mp-zeile"><b>' + A.esc(z.bereich || 'Ziel') + '</b><span>' + A.esc(z.text || '') + (z.bis ? ' · bis ' + A.fmtDateShort(z.bis) : '') + '</span></div>'; }).join('') || '<div class="mp-zeile muted">Keine offenen Förderziele.</div>') + '</div></section>';
+    /* Elternkontakte */
+    var ko = elternVerlaufFuerSus_(s.id).slice(0, 6);
+    h += '<section class="kachel-sektion"><div class="kachel-sektion-titel">Bisherige Elternkontakte</div><div class="mappe-box">' + (ko.map(function (x) { return '<div class="mp-zeile"><b>' + A.fmtDateShort(String(x.zeit || '').slice(0, 10)) + '</b><span>' + A.esc((x.anlass || x.punkt || 'Kontakt') + (x.status ? ' · ' + x.status : '')) + '</span></div>'; }).join('') || '<div class="mp-zeile muted">Noch keine Kontakte erfasst.</div>') + '</div></section>';
+    /* Leitfaden */
+    h += '<section class="kachel-sektion"><div class="kachel-sektion-titel">Gesprächsleitfaden</div><div class="mappe-leitfaden">' +
+      ['Stärken – womit beginnen?', 'Entwicklungsfelder – was ist uns wichtig?', 'Sicht der Eltern / des Kindes', 'Vereinbarungen – wer macht was bis wann?'].map(function (t) { return '<div class="ml-feld"><b>' + t + '</b><div class="ml-linien"></div></div>'; }).join('') + '</div></section>';
+    return h;
+  }
+};
+
 var KURS_BEREICHE_ = { noten: 'Noten eintragen', uebersicht: 'Notenübersicht', listen: 'Einsammel-Listen', bewertung: 'Bewertung', reihe: 'Unterrichtsreihe' };
 VIEWS.kurs = {
   title: function (p) { var ku = A.byId('Kurse', p.id); var n = ku ? A.kursLabel(ku) : 'Kurs'; var bn = KURS_BEREICHE_[p.b || '']; return bn ? n + ' · ' + bn : n; },
@@ -9912,7 +10007,7 @@ VIEWS.kurs = {
       var th = '<tr><th class="name">Name</th>' + kats.map(function (c) {
         var istMa = A.cfg('mitarbeitAktiv') && A.cfg('mitarbeitKategorie') === c.name;
         return '<th>' + A.esc(c.name) + '<br><span style="font-weight:500">×' + c.gewicht + '</span>' +
-          (istMa ? '<span class="th-hint">Smiley-Vorschlag · änderbar</span>' : '') + '</th>';
+          (istMa ? '<span class="th-hint">Mitarbeits-Vorschlag · änderbar</span>' : '') + '</th>';
       }).join('') + '<th>Ges.</th></tr>';
 
       var tb = sus.map(function (s) {
@@ -9948,7 +10043,7 @@ VIEWS.kurs = {
       kats.map(function (c) {
         return '<div class="kv"><span class="k">' + A.esc(c.name) + '</span><span class="v">×' + c.gewicht + '</span></div>';
       }).join('') +
-      (A.cfg('mitarbeitAktiv') ? '<div class="kv"><span class="k small muted">Smiley-Vorschlag zählt in „' +
+      (A.cfg('mitarbeitAktiv') ? '<div class="kv"><span class="k small muted">Mitarbeits-Vorschlag zählt in „' +
         A.esc(A.cfg('mitarbeitKategorie')) + '“ und kann pro Schüler:in geändert werden</span><span class="v small">×' + A.cfg('mitarbeitGewicht') + '</span></div>' : '') +
       '<div class="kv"><span class="k">Notenschlüssel</span><span class="v">' +
         (sch === 'linear' ? 'stufenlos' : 'Stufentabelle') + '</span></div>' +
@@ -9978,7 +10073,7 @@ VIEWS.sus = {
     var kurse = A.kurseDerKlasse(klasse.id);
     var card = kartenSammler_();
 
-    var h = '<div class="profile-head"><div class="profile-eyebrow">'+A.esc(klasse.name)+'</div><h1>'+A.esc(A.susName(s))+'</h1><div class="profile-head-actions"><button class="btn" data-act="eltern-nachricht" data-sus="'+s.id+'">Elternnachricht</button><button class="btn" data-act="gespraech-neu" data-sus="'+s.id+'">Gespräch protokollieren</button><button class="btn" data-act="kind-pdf" data-sus="'+s.id+'">Übersicht als PDF</button></div></div>';
+    var h = '<div class="profile-head"><div class="profile-eyebrow">'+A.esc(klasse.name)+'</div><h1>'+A.esc(A.susName(s))+'</h1><div class="profile-head-actions"><button class="btn" data-act="eltern-nachricht" data-sus="'+s.id+'">Elternnachricht</button><button class="btn" data-act="gespraech-neu" data-sus="'+s.id+'">Gespräch protokollieren</button><button class="btn" data-act="mappe-open" data-sus="'+s.id+'">Gesprächsmappe</button></div></div>';
     var timelineFilter=(ui.timelineFilterBySus&&ui.timelineFilterBySus[s.id])||'all';
     h += card('Seit letztem Mal', susSeitLetztemHTML_(s.id));
     h += card('Verlauf', susTimelineHTML_(s.id,timelineFilter));
@@ -10144,7 +10239,7 @@ VIEWS.leistung = {
     var zeigtVorschlag = A.vorschlagPasst(l);
     var zaehltSchon = zeigtVorschlag && A.cfg('mitarbeitAktiv') && A.cfg('mitarbeitKategorie') === l.kategorie;
     if (zaehltSchon) {
-      h += '<div class="warn-box">Die Smileys fließen in der Art „' + A.esc(l.kategorie) +
+      h += '<div class="warn-box">Die Mitarbeits-Einträge fließen in der Art „' + A.esc(l.kategorie) +
         '“ bereits <b>automatisch</b> in die Gesamtnote ein. Wer sie hier zusätzlich als Note ' +
         'einträgt, zählt sie doppelt. Unter <i>Mehr → Mitarbeit in der Note</i> lässt sich das ' +
         'automatische Mitzählen abschalten.</div>';
@@ -10162,7 +10257,7 @@ VIEWS.leistung = {
         var vs = A.mitarbeitVorschlag(kurs.id, s.id);
         chip = vs
           ? '<button class="vorschlag" data-act="vorschlag" data-sus="' + s.id + '" ' +
-            'data-note="' + vs.note + '" title="Aus ' + vs.anzahl + ' Smileys – tippen zum Übernehmen">' +
+            'data-note="' + vs.note + '" title="Aus ' + vs.anzahl + ' Mitarbeits-Einträgen – tippen zum Übernehmen">' +
             '<span class="vs-k">Vorschlag</span><span class="vs-n">' + A.fmtNote(vs.note, 1) + '</span></button>'
           : '<span class="vorschlag leer"><span class="vs-k">Vorschlag</span><span class="vs-n">–</span></span>';
       }
@@ -10170,13 +10265,18 @@ VIEWS.leistung = {
       return '<div class="mit-row">' +
         '<div class="mit-name"><div class="nn">' + A.esc(A.susName(s)) + '</div></div>' +
         '<div class="eingabe">' + chip +
-          '<input class="pkt" data-note-input data-sus="' + s.id + '" data-idx="' + i + '" type="text" ' +
-          'inputmode="decimal" value="' + A.esc(wert) + '" placeholder="' + (mitPunkten ? 'P.' : 'Note') + '">' +
+          '<input class="pkt" data-note-input data-sus="' + s.id + '" data-idx="' + i + '" type="text" enterkeyhint="next" autocomplete="off" ' +
+          'inputmode="decimal" value=""' + A.esc(wert) + '" placeholder="' + (mitPunkten ? 'P.' : 'Note') + '">' +
           '<div class="nums ' + noteKlasse(n) + '">' + A.fmtNote(n, 1) + '</div>' +
         '</div></div>';
     }).join('');
 
+    var schnellAn = A.LS.get('notenSchnell', true) !== false;
+    h += '<div class="noten-schnell"><div class="ns-fortschritt" id="nsFortschritt"></div>' +
+      (!mitPunkten ? '<label class="ns-toggle"><input type="checkbox" data-noten-schnell' + (schnellAn ? ' checked' : '') + '> Automatisch weiter</label>' : '') + '</div>' +
+      '<div class="ns-tipp">' + (mitPunkten ? 'Enter oder „Weiter“ springt zum nächsten Kind. ↑ ↓ wechseln.' : 'Mit „Automatisch weiter“ springt die Eingabe nach einer fertigen Note (z. B. 2, 2,5, 2-, 2+) zum nächsten Kind. Für 1,5 o. Ä. einfach weitertippen – die App wartet kurz.') + '</div>';
     h += card(mitPunkten ? 'Punkte eintragen' : 'Noten eintragen', rows);
+    setTimeout(notenFortschritt_, 0);
     h += '<button class="btn primary block" data-act="noten-fertig">Speichern</button>' +
       '<p class="small muted" style="margin:-4px 2px 14px">Jede Eingabe wird zusätzlich sofort gespeichert.</p>';
 
@@ -10288,10 +10388,10 @@ VIEWS.mehr = {
         '<div class="row-sub">' + (A.strafGrenze()
           ? 'Hinweis ab ' + A.strafGrenze() + '× vergessen (je Fach)'
           : 'kein Hinweis') + '</div></div><div class="chev">›</div></button>' +
-      '<button class="row" data-act="smileys-bearbeiten"><div class="row-main"><div class="row-title">Mitarbeits-Smileys</div>' +
+      '<button class="row" data-act="smileys-bearbeiten"><div class="row-main"><div class="row-title">Mitarbeit-Stufen</div>' +
         '<div class="row-sub mit-legende">' + A.cfg('smileys').map(function (x) { return '<span style="color:' + mitFarbe_(x) + '">' + mitSymbol_(x, 14) + '</span>'; }).join(' ') + '</div></div><div class="chev">›</div></button>' +
       '<button class="row" data-act="mitarbeit-einstellungen"><div class="row-main"><div class="row-title">Mitarbeit in der Note</div>' +
-        '<div class="row-sub">' + (A.cfg('mitarbeitAktiv') ? 'Smiley-Vorschlag in „' + A.esc(A.cfg('mitarbeitKategorie')) + '“ ×' + A.cfg('mitarbeitGewicht') + ' · pro Person änderbar' : 'zählt nicht mit') +
+        '<div class="row-sub">' + (A.cfg('mitarbeitAktiv') ? 'Mitarbeits-Vorschlag in „' + A.esc(A.cfg('mitarbeitKategorie')) + '“ ×' + A.cfg('mitarbeitGewicht') + ' · pro Person änderbar' : 'zählt nicht mit') +
         '</div></div><div class="chev">›</div></button>');
 
     h += card('Bewertung',
@@ -10372,7 +10472,7 @@ VIEWS.mehr = {
       'Datensynchronisation': statusText + (s.pendingCount() ? ' · ' + s.pendingCount() + ' offen' : ''),
       'Speicher & Sicherung': 'Sicherung, Papierkorb, Fehlerprotokoll',
       'Arbeitskontext': stdKl ? 'Meine Klasse: ' + A.esc(stdKl.name) : 'keine Standardklasse',
-      'Unterricht': 'Ferien, Stundenzeiten, Strafarbeit, Smileys',
+      'Unterricht': 'Ferien, Stundenzeiten, Strafarbeit, Mitarbeit',
       'Bewertung': 'Fächer, Gewichtung, Notenschlüssel',
       'Kommunikation': 'Elternnachrichten und Hinweise',
       'Craft': 'Verbindung',
@@ -10619,30 +10719,45 @@ ACT['open-stunde'] = function (el) {
 
 /* --- Unterrichtstools ------------------------------------------------- */
 
+/* V89: Zufallsauswahl mit Gedächtnis – wer heute schon dran war, kommt erst wieder, wenn alle dran waren;
+   wer in den letzten Tagen dran war, kommt seltener. */
+function zufallVerlauf_(){var x=A.cfg('zufallVerlauf');return x&&typeof x==='object'?A.clone(x):{};}
+function zufallMerken_(kursId,susId){var v=zufallVerlauf_(),l=(v[kursId]||[]).concat([{id:susId,d:A.todayISO()}]);v[kursId]=l.slice(-80);A.setCfg('zufallVerlauf',v);}
+function zufallZiehen_(kursId,sus,ausser){
+  var heute=A.todayISO(),l=zufallVerlauf_()[kursId]||[],heuteDran={},zuletzt={};
+  l.forEach(function(e){if(e.d===heute)heuteDran[e.id]=true;zuletzt[e.id]=e.d;});
+  var pool=sus.filter(function(s){return !heuteDran[s.id]&&s.id!==ausser;});
+  if(!pool.length)pool=sus.filter(function(s){return s.id!==ausser;});if(!pool.length)pool=sus;
+  var gew=pool.map(function(s){var d=zuletzt[s.id];if(!d)return 3;var tage=Math.round((new Date(heute)-new Date(d))/86400000);return tage>=14?3:(tage>=7?2:(tage>=3?1.2:0.6));});
+  var sum=gew.reduce(function(a,b){return a+b;},0),r=Math.random()*sum;
+  for(var i=0;i<pool.length;i++){r-=gew[i];if(r<=0)return pool[i];}
+  return pool[pool.length-1];
+}
 ACT['zufall-sus'] = function () {
-  var p = currentView().p;
-  var sus = A.susDesKurses(p.kursId);
+  var p = currentView().p, kursId = p.kursId;
+  var sus = A.susDesKurses(kursId);
   if (!sus.length) { window.toast('Keine Schüler:innen in diesem Kurs.', true); return; }
-
-  var zuletzt = '';
-  function ziehe() {
-    var pool = sus.length > 1 ? sus.filter(function (s) { return s.id !== zuletzt; }) : sus;
-    var s = pool[Math.floor(Math.random() * pool.length)];
-    zuletzt = s.id;
-    return s;
-  }
-
-  var erster = ziehe();
+  var aktuell = null;
+  function heuteListe() { var h = A.todayISO(); var ids = []; (zufallVerlauf_()[kursId] || []).forEach(function (e) { if (e.d === h && ids.indexOf(e.id) < 0) ids.push(e.id); }); return ids.map(function (id) { var s = A.byId('SuS', id); return s ? A.susKurz(s) : ''; }).filter(Boolean); }
+  function ziehe() { aktuell = zufallZiehen_(kursId, sus, aktuell ? aktuell.id : ''); zufallMerken_(kursId, aktuell.id); return aktuell; }
+  function info() { var l = heuteListe(); return l.length ? 'Heute schon dran (' + l.length + '/' + sus.length + '): ' + l.join(', ') : 'Heute war noch niemand dran.'; }
+  ziehe();
   Modal.open({
     title: 'Zufällige Auswahl',
-    body: '<div class="tool-result"><div class="tool-result-name" id="zufName">' + A.esc(A.susName(erster)) + '</div>' +
-      '<div class="hint-box">Bei „Nochmal“ wird nach Möglichkeit nicht direkt dieselbe Person gezogen.</div></div>',
-    foot: '<button class="btn primary" id="zufNochmal">Nochmal</button>',
+    body: '<div class="tool-result"><div class="tool-result-name" id="zufName">' + A.esc(A.susName(aktuell)) + '</div>' +
+      '<div class="hint-box" id="zufInfo">' + A.esc(info()) + '</div>' +
+      '<div class="small muted" style="margin-top:8px">Wer heute schon dran war, kommt erst wieder, wenn alle dran waren. Wer in den letzten Tagen dran war, kommt seltener.</div></div>',
+    foot: '<button class="btn" id="zufReset">Heute zurücksetzen</button><button class="btn primary" id="zufNochmal">Nochmal</button>',
     after: function (bg) {
       bg.querySelector('#zufNochmal').addEventListener('click', function () {
         var s = ziehe();
         bg.querySelector('#zufName').textContent = A.susName(s);
+        bg.querySelector('#zufInfo').textContent = info();
         if (navigator.vibrate) navigator.vibrate(12);
+      });
+      bg.querySelector('#zufReset').addEventListener('click', function () {
+        var v = zufallVerlauf_(), h = A.todayISO(); v[kursId] = (v[kursId] || []).filter(function (e) { return e.d !== h; }); A.setCfg('zufallVerlauf', v);
+        bg.querySelector('#zufInfo').textContent = info(); window.toast('Für heute zurückgesetzt');
       });
     }
   });
@@ -10998,9 +11113,9 @@ ACT['mitarbeit-note'] = function (el) {
   var bew = A.mitarbeitBewertung(kursId, susId);
   var manuell = bew && bew.manuell ? A.fmtNote(bew.note, 1) : '';
   var hinweis = vs
-    ? 'Aus ' + vs.anzahl + ' Smiley-Einträgen ergibt sich aktuell der Vorschlag <b>' + A.fmtNote(vs.note, 1) +
+    ? 'Aus ' + vs.anzahl + ' Mitarbeits-Einträgen ergibt sich aktuell der Vorschlag <b>' + A.fmtNote(vs.note, 1) +
       '</b>. Leer lassen bedeutet: diesen Vorschlag automatisch verwenden. Eine eingetragene Note ersetzt nur den Mitarbeit-Vorschlag dieser Person.'
-    : 'Es gibt noch keinen Smiley-Vorschlag. Du kannst trotzdem schon eine Mitarbeitnote eintragen. Leer lassen = keine Mitarbeitnote.';
+    : 'Es gibt noch keinen Mitarbeits-Vorschlag. Du kannst trotzdem schon eine Mitarbeitnote eintragen. Leer lassen = keine Mitarbeitnote.';
 
   Modal.form({
     title: 'Mitarbeit · ' + A.susName(sus),
@@ -11320,6 +11435,7 @@ ACT['neue-klasse'] = function () {
 ACT['open-klasse'] = function (el) { push('klasse', { id: el.getAttribute('data-klasse') }); };
 ACT['open-kurs'] = function (el) { push('kurs', { id: el.getAttribute('data-kurs') }); };
 ACT['plan-alle'] = function () { ui.planAlle = !ui.planAlle; render(); };
+ACT['mappe-open'] = function (el) { push('mappe', { id: el.getAttribute('data-sus') }); };
 ACT['tag-heute'] = function () { ui.datum = A.todayISO(); render(); };
 ACT['noten-klasse'] = function (el) { push('noten', { klasse: el.getAttribute('data-klasse') }); };
 ACT['craft-stunde-oeffnen'] = function (el) { var u = craftBlockLink_(el.getAttribute('data-block')); if (u) window.location.href = u; };
@@ -11841,7 +11957,7 @@ function notenPdfOverviewCmd_(kurs) {
 function notenPdfMitarbeitCmd_(kurs) {
   var W = 841.89, H = 595.28, margin = 34;
   var sus = A.susDesKurses(kurs.id);
-  var cmd = { value: notenPdfKopf_('Mitarbeit · ' + A.kursLabel(kurs), 'Smiley-Vorschläge und manuelle Mitarbeitnoten', 'Stand ' + A.fmtDateShort(A.todayISO())) };
+  var cmd = { value: notenPdfKopf_('Mitarbeit · ' + A.kursLabel(kurs), 'Mitarbeits-Vorschläge und manuelle Mitarbeitnoten', 'Stand ' + A.fmtDateShort(A.todayISO())) };
   var top = H - 86, bottom = 34, headerH = 26;
   var rowsPerPage = 32;
   var list = sus.slice(0, rowsPerPage);
@@ -12008,6 +12124,8 @@ function kindPdfBlob_(susId) {
     });
   });
 
+  var beo = beobachtungenAlle_().filter(function (x) { return x && x.susId === susId; }).sort(function (a, b) { return String(b.zeit || '').localeCompare(String(a.zeit || '')); }).slice(0, 8);
+  if (beo.length) { ueberschrift('Beobachtungen'); beo.forEach(function (x) { zeile('• ' + A.fmtDateShort(String(x.zeit || '').slice(0, 10)) + ' · ' + (x.typ ? x.typ + ': ' : '') + (x.text || ''), 9.5, 4); }); }
   var ziele = foerderzieleFuer_(susId, false);
   if (ziele.length) {
     ueberschrift('Förderziele');
@@ -12018,6 +12136,10 @@ function kindPdfBlob_(susId) {
     ueberschrift('Letzte Elternkontakte');
     kontakte.forEach(function (x) { zeile('• ' + A.fmtDateShort(String(x.zeit || '').slice(0, 10)) + ' · ' + (x.anlass || x.punkt || 'Kontakt') + ' · ' + (x.status || ''), 9.5, 4); });
   }
+  ['Stärken', 'Entwicklungsfelder', 'Sicht der Eltern / des Kindes', 'Vereinbarungen (wer, was, bis wann)'].forEach(function (t) {
+    ueberschrift(t); for (var li = 0; li < 3; li++) { platz(18); y -= 14; cmd += '0.8 G 0.4 w ' + pdfNum_(M) + ' ' + pdfNum_(y) + ' m ' + pdfNum_(W - M) + ' ' + pdfNum_(y) + ' l S\n'; }
+    y -= 6;
+  });
   pages.push(cmd);
   for (var i = 0; i < pages.length; i++) pages[i] += pdfTextCmd_('Schulapp · Seite ' + (i + 1) + '/' + pages.length, W - M, 20, 6.8, 'right');
   var bytes = pdfBuildMultiPageFile_(pages.map(pdfWinAnsiBytes_), W, H);
@@ -12029,8 +12151,8 @@ ACT['kind-pdf'] = function (el) {
   var sus = A.byId('SuS', susId);
   if (!sus) { window.toast('Schüler:in nicht gefunden.', true); return; }
   try {
-    downloadPdfBlob_(kindPdfBlob_(susId), 'Uebersicht_' + safePdfFilename_(A.susName(sus)) + '.pdf');
-    window.toast('Übersicht erstellt.');
+    downloadPdfBlob_(kindPdfBlob_(susId), 'Gespraechsmappe_' + safePdfFilename_(A.susName(sus)) + '.pdf');
+    window.toast('Gesprächsmappe als PDF erstellt.');
   } catch (err) {
     console.error('Kind-PDF fehlgeschlagen', err);
     window.toast('Übersicht konnte nicht erstellt werden.', true);
@@ -12520,17 +12642,21 @@ ACT['faecher'] = function () {
 /* --- Einstellungen ---------------------------------------------------- */
 
 ACT['smileys-bearbeiten'] = function () {
-  var sm = A.cfg('smileys');
+  /* V88: zeigt die aktuell gewählten Symbole (Icons oder Smileys) */
+  var sm = A.cfg('smileys'), mitEmoji = mitSmileys_();
+  var felder = sm.map(function (s, i) {
+    return { key: 'n' + i, label: '„' + s.label + '“ entspricht der Note',
+      labelHtml: '<span class="stufe-sym" style="--mc:' + mitFarbe_(s) + '">' + mitSymbol_(s, 16) + '</span> „' + A.esc(s.label) + '“ entspricht der Note',
+      type: 'text', inputmode: 'decimal', value: s.note };
+  });
+  if (mitEmoji) felder = felder.concat(sm.map(function (s, i) { return { key: 'e' + i, label: 'Smiley für „' + s.label + '“', type: 'text', value: s.emoji }; }));
   Modal.form({
-    title: 'Mitarbeits-Smileys',
-    fields: sm.map(function (s, i) {
-      return { key: 'n' + i, label: s.emoji + '  „' + s.label + '“ entspricht der Note', type: 'text', inputmode: 'decimal', value: s.note };
-    }).concat(sm.map(function (s, i) {
-      return { key: 'e' + i, label: 'Symbol für „' + s.label + '“', type: 'text', value: s.emoji };
-    })),
+    title: 'Mitarbeit-Stufen',
+    hinweis: mitEmoji ? 'Du nutzt Smileys. Unter Mehr → App → Farbdesign kannst du auf Icons umstellen.' : 'Die Icons sind fest. Smileys kannst du unter Mehr → App → Farbdesign wieder einschalten.',
+    fields: felder,
     onSave: function (v) {
       A.setCfg('smileys', sm.map(function (s, i) {
-        return { wert: s.wert, emoji: (v['e' + i] || s.emoji).trim().slice(0, 4), label: s.label, note: A.num(v['n' + i], s.note) };
+        return { wert: s.wert, emoji: (mitEmoji ? (v['e' + i] || s.emoji) : s.emoji).trim().slice(0, 4), label: s.label, note: A.num(v['n' + i], s.note) };
       }));
     },
     focus: false
@@ -12542,10 +12668,10 @@ ACT['mitarbeit-einstellungen'] = function () {
   Modal.form({
     title: 'Mitarbeit in der Note',
     fields: [
-      { key: 'aktiv', label: 'Smiley-Vorschlag fließt in die Note ein', type: 'checkbox', value: A.cfg('mitarbeitAktiv') },
+      { key: 'aktiv', label: 'Mitarbeits-Vorschlag fließt in die Note ein', type: 'checkbox', value: A.cfg('mitarbeitAktiv') },
       { key: 'kat', label: 'Zählt als Teil dieser Art', type: 'select', value: A.cfg('mitarbeitKategorie'), options: kats },
       { key: 'gew', label: 'Gewicht innerhalb dieser Art', type: 'text', inputmode: 'decimal', value: A.cfg('mitarbeitGewicht'),
-        hint: 'Der Durchschnitt aller Smileys ist der automatische Vorschlag. In der Kursübersicht kann er pro Schüler:in manuell geändert werden.' }
+        hint: 'Der Durchschnitt aller Mitarbeits-Einträge ist der automatische Vorschlag. In der Kursübersicht kann er pro Schüler:in manuell geändert werden.' }
     ],
     onSave: function (v) {
       A.setCfg('mitarbeitAktiv', !!v.aktiv);
@@ -12976,6 +13102,8 @@ ACT['fehlerprotokoll'] = function () {
 };
 
 var AENDERUNGEN_ = [
+  ['V89', ['Gesprächsmappe pro Kind (statt „Übersicht als PDF“): Noten je Fach mit Mitarbeit-Trend, Arbeitsverhalten, Beobachtungen, Förderziele, Elternkontakte und Leitfaden – auch als PDF.', 'Noten schneller eintragen: „Automatisch weiter“ nach einer fertigen Note, Fortschrittsanzeige, ↑/↓ und „Weiter“-Taste.', 'Zufallsauswahl merkt sich, wer dran war.', 'Am Mac funktioniert jetzt die Zurück-Geste (Trackpad, Magic Mouse, Maus-Zurücktaste).']],
+  ['V88', ['Mehr → „Mitarbeit-Stufen“ zeigt jetzt die neuen Icons statt der alten Smileys; überall „Mitarbeits-Vorschlag“ statt „Smiley-Vorschlag“.']],
   ['V87', ['Hausaufgaben aus Craft: Was in der Tagesnotiz unter „Sonstiges“ als „HA: …“ steht, erscheint in der nächsten Stunde des Kurses als „Hausaufgabe kontrollieren“ (und als Hinweis auf der Stunden-Kachel).', 'Klassenarbeiten/Tests/Diktate aus dem Stoffverteilungsplan werden am Tag selbst automatisch als Leistung angelegt.', 'Nach „Als verschickt“ bei Elternnachrichten fragt die App, wann sie dich zum Nachhaken erinnern soll.', 'Wischgesten unter „Für heute“: rechts = besprochen/erledigt, links = später – mit Finger und Maus.', 'Eigenes App-Icon, Startbildschirm, Linien-Icons statt Emojis.']],
   ['V86', ['Craft-Tagesnotiz: Inhalte werden nur noch über Klasse + Fach zugeordnet („6f D“, „6f Sp“), nicht mehr über die Zeilennummer – vorher konnte z. B. bei Sport der Deutsch-Inhalt erscheinen. Mehrere Links in einer Zelle werden einzeln angeboten.', 'Unterrichtsreihe: Liegt die nächste Feinplanung noch in der Zukunft, zeigt die App die laufende Einheit aus dem Jahresplan und „ab …“ die kommende.']],
   ['V85', ['Sitzplan: Pultsicht zeigt jetzt genau dieselbe Sitzordnung wie die Tafelansicht, nur um 180° gedreht (vorderste Reihe unten, links und rechts getauscht – so wie du vom Pult aus in die Klasse schaust). Gilt auch fürs PDF.']],
@@ -13793,9 +13921,34 @@ function verzoegert(el, ms, fn) {
   el._saveTimer = setTimeout(fn, ms);
 }
 
+/* V89: schnellere Noteneingabe */
+function notenFortschritt_() {
+  var alle = main.querySelectorAll('[data-note-input]'), n = 0;
+  Array.prototype.forEach.call(alle, function (x) { if (String(x.value).trim()) n++; });
+  var el = document.getElementById('nsFortschritt'); if (el) el.innerHTML = '<b>' + n + '</b> von ' + alle.length + ' eingetragen<i style="width:' + (alle.length ? Math.round(n / alle.length * 100) : 0) + '%"></i>';
+}
+function notenNaechstes_(ni, richtung) {
+  var alle = Array.prototype.slice.call(main.querySelectorAll('[data-note-input]')), i = alle.indexOf(ni) + (richtung || 1);
+  if (alle[i]) { alle[i].focus(); try { alle[i].select(); } catch (x) {} alle[i].scrollIntoView({ block: 'center', behavior: 'smooth' }); return true; }
+  return false;
+}
 main.addEventListener('input', function (e) {
   var ni = e.target.closest('[data-note-input]');
-  if (ni) verzoegert(ni, 500, function () { speichereNote(ni); });
+  if (!ni) return;
+  notenFortschritt_();
+  var schnell = main.querySelector('[data-noten-schnell]');
+  if (schnell && schnell.checked) {
+    var v = String(ni.value).trim().replace('.', ',');
+    var fertig = /^[1-6][,][0-9]$/.test(v) || /^[1-6][+-]$/.test(v) || /^6$/.test(v) || /^[1-6],(25|75)$/.test(v);
+    var ganz = /^[1-5]$/.test(v);
+    clearTimeout(ni._weiter);
+    if (fertig) { clearTimeout(ni._saveTimer); speichereNote(ni); notenNaechstes_(ni, 1); return; }
+    if (ganz) { ni._weiter = setTimeout(function () { if (document.activeElement === ni && String(ni.value).trim() === v) { clearTimeout(ni._saveTimer); speichereNote(ni); notenNaechstes_(ni, 1); } }, 650); }
+  }
+  verzoegert(ni, 500, function () { speichereNote(ni); });
+});
+main.addEventListener('change', function (e) {
+  if (e.target.matches && e.target.matches('[data-noten-schnell]')) A.LS.set('notenSchnell', !!e.target.checked);
 });
 
 main.addEventListener('change', function (e) {
@@ -13805,6 +13958,7 @@ main.addEventListener('change', function (e) {
 
 main.addEventListener('keydown', function (e) {
   var ni = e.target.closest('[data-note-input]');
+  if (ni && (e.key === 'ArrowDown' || e.key === 'ArrowUp')) { e.preventDefault(); clearTimeout(ni._saveTimer); speichereNote(ni); notenNaechstes_(ni, e.key === 'ArrowDown' ? 1 : -1); return; }
   if (ni && e.key === 'Enter') {
     e.preventDefault();
     clearTimeout(ni._saveTimer);
@@ -14023,6 +14177,7 @@ var istHauptseite = /(^|\/)(index\.html)?$/.test(location.pathname);
 if ('serviceWorker' in navigator && istHauptseite) {
   window.addEventListener('load', function () {
     navigator.serviceWorker.register('sw.js').catch(function () {});
+    try { navHistoryInit_(); } catch (e) {}
   });
 }
 
