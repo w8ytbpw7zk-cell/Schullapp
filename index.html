@@ -67,6 +67,7 @@
 }
 
 /* Farbdesign: nur die Akzentwelt ändert sich; Lesbarkeit und Dark Mode bleiben erhalten. */
+:root[data-theme="blau"] { --accent:#3f5bd9; --accent-soft:#e8ecfb; }
 :root[data-theme="orange"] { --accent:#c86f2d; --accent-soft:#f7e9df; }
 :root[data-theme="salbei"] { --accent:#4f816d; --accent-soft:#e3eee9; }
 :root[data-theme="flieder"] { --accent:#7867b7; --accent-soft:#ece8f8; }
@@ -74,6 +75,7 @@
 :root[data-theme="petrol"] { --accent:#347c83; --accent-soft:#e0eff0; }
 
 @media (prefers-color-scheme: dark) {
+  :root[data-theme="blau"] { --accent:#8ea2ff; --accent-soft:#262d4a; }
   :root[data-theme="orange"] { --accent:#efa05f; --accent-soft:#443126; }
   :root[data-theme="salbei"] { --accent:#7fc1a5; --accent-soft:#263b34; }
   :root[data-theme="flieder"] { --accent:#aa9ae9; --accent-soft:#312d48; }
@@ -2694,6 +2696,181 @@ input::placeholder,textarea::placeholder{color:var(--ink-3)}
 .craft-ready,.craft-kartei-summary{border-top-color:var(--line)}
 .chk-k{color:#c0bfba}
 }
+
+/* V73: einheitliche Kartenköpfe, ruhige Sortierung, Abstände Klassenansicht */
+.zu-card>.zu-titel{min-height:34px;padding:0 2px 7px;font-size:12px;font-weight:600;color:var(--ink-2);gap:6px;border-radius:4px}
+.zu-card>.zu-titel .zu-chev{font-size:10px}
+.zu-card.offen>.zu-titel{margin-bottom:4px}
+.sort-bar{gap:2px;margin:6px 0 8px;padding:2px;background:var(--surface-2,#f1f1ef);border-radius:8px;overflow:visible}
+.sort-bar>span{padding:0 8px 0 6px;font-size:12px}
+.sort-chip{flex:1 1 0;min-height:30px;border:0;border-radius:6px;background:transparent;color:var(--ink-2);font-size:12.5px;padding:0 6px}
+.sort-chip.on{background:var(--surface,#fff);color:var(--ink);font-weight:600;box-shadow:0 1px 2px rgba(0,0,0,.12)}
+@media(prefers-color-scheme:dark){.sort-bar{background:#2a2a2a}.sort-chip.on{background:#3a3a38;color:#f1f1ef}}
+.klasse-btns{margin-top:4px}
+
+/* V73: Icons unter „Für heute“ */
+.inbox-icon svg{display:block}
+.inbox-icon.ic-liste,.inbox-icon.ic-wv{background:var(--accent-soft);color:var(--accent)}
+.inbox-icon.ic-straf{background:#fbf3db;color:#a86a00}
+.inbox-icon.ic-straf.faellig,.inbox-icon.ic-hinweis{background:#fdebec;color:#c4443a}
+@media(prefers-color-scheme:dark){.inbox-icon.ic-straf{background:#3a2f17;color:#e8b04d}.inbox-icon.ic-straf.faellig,.inbox-icon.ic-hinweis{background:#3c2223;color:#f08b83}}
+/* V73: Hintergrundtöne (nur hell) */
+@media(prefers-color-scheme:light){
+:root[data-flaeche="warm"]{--bg:#f8f4ec;--surface:#fffdf9;--surface-2:#f2ece1;--line-soft:#ece5d8}
+:root[data-flaeche="kuehl"]{--bg:#f1f4f8;--surface:#ffffff;--surface-2:#e8edf4;--line-soft:#e1e7ef}
+:root[data-flaeche="getoent"]{--bg:color-mix(in srgb,var(--accent) 6%,#fff);--surface:color-mix(in srgb,var(--accent) 2%,#fff);--surface-2:color-mix(in srgb,var(--accent) 10%,#fff);--line-soft:color-mix(in srgb,var(--accent) 14%,#fff)}
+:root[data-flaeche] body{background:var(--bg)}
+:root[data-flaeche] .topbar{background:color-mix(in srgb,var(--bg) 94%,transparent)}
+:root[data-flaeche] .tabbar{background:var(--surface-2)}
+:root[data-flaeche] .hint-box{background:var(--surface-2)}
+}
+/* V73: kräftige Akzente */
+.design-kraeftig .card-head,.design-kraeftig .zu-card>.zu-titel,.design-kraeftig .today-inbox-head h2,.design-kraeftig .workspace-heading h2{color:var(--accent)}
+.design-kraeftig .btn.primary{background:var(--accent)!important;border-color:var(--accent)!important;color:#fff!important}
+.design-kraeftig .tab.active{color:var(--accent)!important}
+.design-kraeftig .sort-chip.on{color:var(--accent)!important}
+
+/* V74: Kacheln wie Karten in Craft */
+.kachel-sektion{margin:0 0 26px}
+.kachel-sektion-titel{font-size:12px;font-weight:600;color:var(--ink-2);margin:0 2px 8px}
+.kachel-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+@media(min-width:700px){.kachel-grid{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media(min-width:1100px){.kachel-grid{grid-template-columns:repeat(4,minmax(0,1fr))}}
+.kachel{--kc:var(--accent);position:relative;display:flex;flex-direction:column;justify-content:space-between;gap:14px;min-height:108px;padding:13px 13px 12px;border:1px solid color-mix(in srgb,var(--kc) 22%,var(--line));border-radius:14px;background:color-mix(in srgb,var(--kc) 7%,var(--surface));color:var(--ink);font:inherit;text-align:left;cursor:pointer;transition:transform .12s,box-shadow .12s}
+.kachel:hover{box-shadow:0 3px 12px rgba(0,0,0,.08);transform:translateY(-1px)}
+.kachel:active{transform:scale(.98)}
+.kachel.gross{grid-column:1/-1;min-height:118px;background:color-mix(in srgb,var(--kc) 14%,var(--surface))}
+.kachel.gross .kachel-text b{font-size:17px}
+.kachel.leer{background:transparent;border-style:dashed;border-color:var(--line);color:var(--ink-2)}
+.kachel.leer .kachel-ico{background:var(--surface-2);color:var(--ink-2)}
+.kachel-ico{display:flex;align-items:center;justify-content:center;width:34px;height:34px;border-radius:10px;background:color-mix(in srgb,var(--kc) 16%,var(--surface));color:var(--kc)}
+.kachel-text{display:flex;flex-direction:column;gap:3px;min-width:0}
+.kachel-text b{font-size:15px;font-weight:650;line-height:1.2;overflow:hidden;text-overflow:ellipsis}
+.kachel-text small{font-size:12px;color:var(--ink-2);line-height:1.3}
+.kachel-badge{position:absolute;top:11px;right:11px;padding:2px 8px;border-radius:20px;background:var(--surface);border:1px solid var(--line);font-size:11px;font-weight:600;color:var(--ink-2)}
+.kachel-badge.warn{background:#fdebec;border-color:#f5c9cb;color:#c4443a}
+@media(prefers-color-scheme:dark){.kachel{background:color-mix(in srgb,var(--kc) 12%,var(--surface))}.kachel-ico{background:color-mix(in srgb,var(--kc) 24%,var(--surface))}.kachel-badge.warn{background:#3c2223;border-color:#5a2f31;color:#f08b83}}
+.noten-hinweis{margin:0 2px 12px}
+.noten-neu-oben{margin-bottom:22px}
+.stunde-schnell{margin:12px 0 22px}
+
+/* V76: Heute im Craft-Stil */
+.tag-kopf{display:flex;align-items:flex-end;justify-content:space-between;gap:12px;margin:4px 0 14px}
+.tag-kopf-text{cursor:pointer;min-width:0}
+.tag-eyebrow{font-size:12px;font-weight:600;color:var(--accent);margin-bottom:2px}
+.tag-kopf h1{margin:0;font-size:26px;line-height:1.15;font-weight:700;letter-spacing:-.03em}
+.tag-kopf-nav{display:flex;gap:6px;flex:none}
+.tag-pfeil,.tag-heute-btn{height:34px;min-width:34px;padding:0 10px;border:1px solid var(--line);border-radius:9px;background:var(--surface);color:var(--ink);font:inherit;font-size:16px;cursor:pointer}
+.tag-heute-btn{font-size:13px;font-weight:600;color:var(--accent)}
+.heute-modebar{margin:0 0 22px}
+.lesson-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+@media(min-width:700px){.lesson-grid{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@media(min-width:1100px){.lesson-grid{grid-template-columns:repeat(4,minmax(0,1fr))}}
+.lesson-kachel{--kc:var(--accent);position:relative;display:flex;flex-direction:column;align-items:flex-start;gap:4px;min-height:112px;padding:12px 13px 12px 16px;border:1px solid color-mix(in srgb,var(--kc) 22%,var(--line));border-radius:14px;background:color-mix(in srgb,var(--kc) 7%,var(--surface));color:var(--ink);font:inherit;text-align:left;cursor:pointer;overflow:hidden}
+.lesson-kachel::before{content:"";position:absolute;left:0;top:0;bottom:0;width:5px;background:var(--kc)}
+.lesson-kachel:active{transform:scale(.98)}
+.lesson-kachel.vorbei{opacity:.55}
+.lesson-kachel.jetzt{box-shadow:0 0 0 2px var(--kc)}
+.lesson-kachel.entfaellt .lk-titel{text-decoration:line-through}
+.lk-top{display:flex;align-items:center;gap:6px;width:100%;font-size:11.5px;color:var(--ink-2)}
+.lk-nr{font-weight:700;color:var(--kc)}
+.lk-jetzt{margin-left:auto;padding:1px 7px;border-radius:20px;background:var(--kc);color:#fff;font-size:10.5px;font-weight:700}
+.lk-titel{font-size:15px;font-weight:650;line-height:1.2;margin-top:6px}
+.lk-notiz{font-size:12px;color:var(--ink);line-height:1.3;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.lk-sub{font-size:12px;color:var(--ink-2)}
+.lk-flags{display:flex;flex-wrap:wrap;gap:4px;margin-top:auto;padding-top:4px}
+.lk-flag{padding:1px 7px;border-radius:20px;font-size:11px;font-weight:600;background:#fbf3db;color:#a86a00}
+.lk-flag.bad{background:#fdebec;color:#c4443a}
+@media(prefers-color-scheme:dark){.lesson-kachel{background:color-mix(in srgb,var(--kc) 12%,var(--surface))}.lk-flag{background:#3a2f17;color:#e8b04d}.lk-flag.bad{background:#3c2223;color:#f08b83}}
+.today-inbox{margin-top:6px}
+.inbox-icon.ic-eltern{background:var(--accent-soft);color:var(--accent)}
+.inbox-icon.ic-positiv{background:#e7f4ec;color:#2f8a57}
+@media(prefers-color-scheme:dark){.inbox-icon.ic-positiv{background:#1f3328;color:#6fcf97}}
+.today-task-actions{display:flex;flex-wrap:wrap;gap:6px}
+.btn.small.ghost{border-color:transparent;background:transparent;color:var(--ink-2);padding-left:6px;padding-right:6px}
+.btn.small.ghost:hover{color:var(--ink);background:var(--surface-2)}
+
+/* V76: einheitliches Abstandssystem (Abschnitt 28 px, Überschrift → Inhalt 10 px) */
+:root{--gap-sektion:28px;--gap-kopf:10px}
+.main .card,.main .kachel-sektion,.main .today-section,.main .today-section.zu-wrap,.main .workspace-section{margin:0 0 var(--gap-sektion)!important}
+.main .card-head,.kachel-sektion-titel{margin-bottom:var(--gap-kopf)}
+.main .hint-box{margin:0 0 20px}
+.main .btn-row{margin:0 0 var(--gap-sektion)}
+.main .card + .btn-row,.main .kachel-sektion + .btn-row{margin-top:-12px}
+.main .btn.block{margin:0 0 var(--gap-sektion)}
+.main .card + .btn.block,.main .kachel-sektion + .btn.block{margin-top:-14px}
+.heute-modebar{display:flex;justify-content:flex-start;margin:0 0 var(--gap-sektion)!important}
+.tag-kopf{margin:0 0 12px}
+/* „Für heute“ */
+.today-inbox-head{display:flex!important;align-items:center!important;justify-content:space-between;gap:12px;margin:0 0 6px!important;padding:0 0 10px!important;border-bottom:1px solid var(--line-soft)}
+.today-inbox-head h2{font-size:20px!important;letter-spacing:-.02em}
+.today-inbox-head p{margin:2px 0 0}
+.today-inbox-actions{display:flex!important;flex-wrap:nowrap!important;gap:6px!important;margin:0!important}
+.today-inbox-actions .btn{flex:none!important;min-height:32px!important;font-size:12.5px;padding:0 11px}
+.today-section{margin-bottom:18px!important}
+.today-section>.zu-head>.today-section-head{min-height:40px}
+.today-section-head .btn.small{min-height:30px}
+.today-task{display:grid!important;grid-template-columns:minmax(0,1fr) auto;align-items:center!important;gap:4px 10px;min-height:0!important;padding:10px 2px!important}
+.today-task .inbox-open{grid-column:1;flex:none!important}
+.today-task .chev{grid-column:2;grid-row:1}
+.today-task-actions{grid-column:1/-1;flex-direction:row!important;flex-wrap:wrap;gap:4px!important;margin:0 0 0 38px!important}
+.today-task-actions:empty{display:none}
+.today-task-actions .btn{min-height:30px!important;padding:0 10px!important}
+.today-task .inbox-icon{flex:none;width:28px;height:28px;display:flex;align-items:center;justify-content:center;border-radius:8px}
+.task-list .today-task:last-child{border-bottom:0}
+.sicherung-hint{margin:0 0 var(--gap-sektion)!important;padding:12px 14px!important}
+
+/* V77: „Für heute“ als Kacheln – je mehr Einträge, desto kleiner */
+.task-list.kacheln{display:grid;gap:10px;grid-template-columns:repeat(2,minmax(0,1fr));padding-top:4px}
+@media(min-width:700px){.task-list.kacheln.d1{grid-template-columns:repeat(3,minmax(0,1fr))}.task-list.kacheln.d2{grid-template-columns:repeat(4,minmax(0,1fr))}.task-list.kacheln.d3{grid-template-columns:repeat(5,minmax(0,1fr))}}
+.task-list.kacheln .today-task{--kc:var(--accent);display:flex!important;flex-direction:column;align-items:stretch!important;justify-content:space-between;gap:8px!important;padding:12px!important;border:1px solid color-mix(in srgb,var(--kc) 20%,var(--line))!important;border-radius:14px;background:color-mix(in srgb,var(--kc) 6%,var(--surface));min-height:120px!important}
+.task-list.kacheln .today-task.t-straf{--kc:#c98a12}
+.task-list.kacheln .today-task.t-hinweis,.task-list.kacheln .today-task.t-straf.faellig{--kc:#c4443a}
+.task-list.kacheln .today-task.ist-positiv{--kc:#2f8a57}
+.task-list.kacheln .inbox-open{flex-direction:column;align-items:flex-start!important;gap:8px!important}
+.task-list.kacheln .inbox-main{display:flex;flex-direction:column;min-width:0;width:100%}
+.task-list.kacheln .inbox-main b{display:flex;flex-wrap:wrap;align-items:center;gap:4px;font-size:14px;line-height:1.25}
+.task-list.kacheln .inbox-main span{display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.task-list.kacheln .chev{display:none}
+.task-list.kacheln .today-task-actions{margin:0!important;gap:4px!important}
+.task-list.kacheln .today-task-actions .btn{flex:1 1 auto;min-height:30px!important;padding:0 8px!important;font-size:12px}
+.task-list.kacheln .today-task-actions .btn.ghost{flex:0 1 auto;border:1px solid var(--line);background:var(--surface)}
+/* mittel */
+.task-list.kacheln.d2 .today-task{min-height:104px!important;padding:10px!important}
+.task-list.kacheln.d2 .inbox-icon{width:26px;height:26px}
+/* klein */
+.task-list.kacheln.d3{gap:8px}
+.task-list.kacheln.d3 .today-task{min-height:88px!important;padding:9px!important;gap:6px!important;border-radius:11px}
+.task-list.kacheln.d3 .inbox-open{gap:6px!important}
+.task-list.kacheln.d3 .inbox-icon{width:22px;height:22px;border-radius:6px}
+.task-list.kacheln.d3 .inbox-icon svg{width:13px;height:13px}
+.task-list.kacheln.d3 .inbox-main b{font-size:12.5px}
+.task-list.kacheln.d3 .inbox-main span{font-size:11px;-webkit-line-clamp:1}
+.task-list.kacheln.d3 .today-task-actions .btn{min-height:26px!important;font-size:11px;padding:0 6px!important}
+.task-list.kacheln .parent-rest{grid-column:1/-1}
+
+.task-list.kacheln .today-task>.inbox-open{flex:1 1 auto!important;width:100%}
+.task-list.kacheln .today-task>.today-task-actions{display:flex!important;flex-direction:row!important;flex-wrap:wrap!important;align-items:center!important;width:100%!important;max-width:100%;flex:0 0 auto!important;margin:0!important}
+.task-list.kacheln .today-task-actions .btn{height:auto;white-space:nowrap;min-width:0}
+.task-list.kacheln .today-task-actions .btn.primary{flex:1 1 60px}
+
+/* V77: Abstände Stundenplan */
+.plan-kurswahl .card-body{padding-top:12px}
+.main .card.plan-kurswahl{margin-bottom:16px!important}
+.plan-kursgruppe + .plan-kursgruppe{margin-top:14px}
+.plan-kurswahl .hint-box{margin:16px 0 0!important}
+.main .hint-box + .hint-box{margin-top:-8px}
+.main .tbl-wrap + .btn-row,.main .week-grid-wrap + .btn-row,.main .grid-wrap + .btn-row{margin-top:16px}
+
+/* V78: Stundenplan übersichtlicher */
+.plan-kursgruppe.zeile{display:flex;align-items:flex-start;gap:12px}
+.plan-kursgruppe.zeile .plan-kursgruppe-title{flex:none;width:30px;margin:7px 0 0;font-weight:700;color:var(--ink-2)}
+.plan-kursgruppe.zeile .plan-kurschips{flex:1;min-width:0}
+.plan-kursgruppe + .plan-kursgruppe{margin-top:8px!important;padding-top:8px;border-top:1px solid var(--line-soft)}
+.main .card.plan-kurswahl{margin-bottom:var(--gap-sektion)!important}
+.main .card.plan-kurswahl + .hint-box{margin-top:-14px}
+.plan-fuss{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;margin:10px 0 var(--gap-sektion)}
+.plan-fuss-rechts{display:flex;gap:4px}
 </style>
 </head>
 <body>
@@ -2833,7 +3010,7 @@ var TABLES = ['Klassen', 'Kurse', 'SuS', 'Stundenplan', 'Stunden', 'Mitarbeit',
               'Leistungen', 'Noten', 'Checks', 'Settings'];
 
 /* Eine einzige Stelle für die Versionsangabe (Anzeige unter „Mehr“). */
-var APP_VERSION = 'V72';
+var APP_VERSION = 'V78';
 
 /* V15: Diese Adresse ist die verbindliche Login-Adresse. */
 /* V58: Keine feste Server-Adresse mehr in der App. Sie wird über den Einladungslink/-code oder Mehr → Server gesetzt. */
@@ -2924,6 +3101,9 @@ var DEFAULT_CFG = {
   /* V59: Sortierung der Schüler:innen: nachname | vorname | eingabe */
   susSortierung: 'nachname',
   farbdesign: 'blau',
+  /* V73: Hintergrundton (standard | warm | kuehl | getoent) und kräftigere Akzente */
+  designFlaeche: 'standard',
+  designKraeftig: false,
   /* Auf diesem Gerät nur einmal pro Kalendertag Anmeldung bestätigen. */
   dailyLogin: true,
   /* Sitzpläne je Klasse: { klasseId: { cols: 4, seats: [susId, ...] } } */
@@ -5979,7 +6159,62 @@ document.addEventListener('click', function (e) {
   });
 })();
 
+/* V73: Linien-Icons (Stil wie Lucide, 24er Raster) */
+var ICON_PFADE_ = {
+  liste: '<rect x="8" y="2" width="8" height="4" rx="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><path d="m9 14 2 2 4-4"/>',
+  wv: '<path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M12 7v5l3 2"/>',
+  straf: '<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h4"/><path d="M14 2v6h6"/><path d="M13.4 12.6a2 2 0 1 1 2.9 2.9L11 21l-4 1 1-4Z"/>',
+  hinweis: '<circle cx="12" cy="12" r="9"/><path d="M12 8v4"/><path d="M12 16h.01"/>',
+  users: '<path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/>',
+  sitzplan: '<rect width="7" height="7" x="3" y="3" rx="1"/><rect width="7" height="7" x="14" y="3" rx="1"/><rect width="7" height="7" x="14" y="14" rx="1"/><rect width="7" height="7" x="3" y="14" rx="1"/>',
+  eltern: '<path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>',
+  ziel: '<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1"/>',
+  buch: '<path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/>',
+  noten: '<path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/>',
+  chart: '<path d="M3 3v18h18"/><path d="M18 17V9"/><path d="M13 17V5"/><path d="M8 17v-3"/>',
+  regler: '<path d="M4 21v-7"/><path d="M4 10V3"/><path d="M12 21v-9"/><path d="M12 8V3"/><path d="M20 21v-5"/><path d="M20 12V3"/><path d="M2 14h4"/><path d="M10 8h4"/><path d="M18 16h4"/>',
+  reihe: '<path d="M8 6h13"/><path d="M8 12h13"/><path d="M8 18h13"/><path d="M3 6h.01"/><path d="M3 12h.01"/><path d="M3 18h.01"/>',
+  plus: '<path d="M12 5v14"/><path d="M5 12h14"/>',
+  user: '<circle cx="12" cy="8" r="4"/><path d="M20 21a8 8 0 0 0-16 0"/>',
+  sync: '<path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16"/><path d="M16 16h5v5"/>',
+  speicher: '<ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M3 5v14a9 3 0 0 0 18 0V5"/><path d="M3 12a9 3 0 0 0 18 0"/>',
+  app: '<rect width="14" height="20" x="5" y="2" rx="2"/><path d="M12 18h.01"/>',
+  notiz: '<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M16 13H8"/><path d="M16 17H8"/>'
+};
+/* V75: Karten einer Ansicht einsammeln statt untereinander stapeln (für Kachel-Übersichten) */
+var cardOrig_ = function (title, inner, cls) { return card(title, inner, cls); };
+function kartenSammler_() {
+  var liste = [];
+  var f = function (title, inner, cls, key) { liste.push({ key: key || title, titel: title, html: cardOrig_(title, inner, cls) }); return ''; };
+  f.liste = liste;
+  f.finde = function (key) { for (var i = 0; i < liste.length; i++) if (liste[i].key === key) return liste[i]; return null; };
+  return f;
+}
+/* V74: Kacheln wie Karten in Craft */
+function kachel_(o) {
+  var attrs = Object.keys(o.data || {}).map(function (k) { return ' data-' + k + '="' + A.esc(o.data[k]) + '"'; }).join('');
+  return '<button type="button" class="kachel' + (o.gross ? ' gross' : '') + (o.leer ? ' leer' : '') + '" data-act="' + o.act + '"' + attrs +
+    (o.farbe ? ' style="--kc:' + A.esc(o.farbe) + '"' : '') + '>' +
+    (o.badge ? '<span class="kachel-badge' + (o.badgeWarn ? ' warn' : '') + '">' + A.esc(o.badge) + '</span>' : '') +
+    '<span class="kachel-ico">' + ICON_(o.icon || 'buch') + '</span>' +
+    '<span class="kachel-text"><b>' + A.esc(o.titel) + '</b>' + (o.info ? '<small>' + o.info + '</small>' : '') + '</span></button>';
+}
+function kachelGrid_(titel, inhalt) {
+  return '<section class="kachel-sektion">' + (titel ? '<div class="kachel-sektion-titel">' + A.esc(titel) + '</div>' : '') + '<div class="kachel-grid">' + inhalt + '</div></section>';
+}
+function kursNotenStat_(kurs) {
+  var sus = A.susDesKurses(kurs.id);
+  var ls = A.list('Leistungen', function (l) { return l.kursId === kurs.id; });
+  var offen = 0;
+  ls.forEach(function (l) { sus.forEach(function (s) { if (A.noteFuer(l, s.id, kurs) === null) offen++; }); });
+  return { leistungen: ls.length, offen: offen, schnitt: kursSchnitt(kurs) };
+}
+function ICON_(n) { return '<svg viewBox="0 0 24 24" width="17" height="17" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + (ICON_PFADE_[n] || ICON_PFADE_.hinweis) + '</svg>'; }
+
+var DESIGN_FLAECHEN = { standard: 'Weiß (Standard)', warm: 'Warm (Papier)', kuehl: 'Kühl (Grau-Blau)', getoent: 'In Akzentfarbe getönt' };
+
 var FARBDESIGNS = {
+  neutral: 'Neutral (Schwarz)',
   blau: 'Blau',
   orange: 'Orange',
   salbei: 'Salbeigrün',
@@ -5988,6 +6223,7 @@ var FARBDESIGNS = {
   petrol: 'Petrol'
 };
 var FARBDESIGN_HEX = {
+  neutral: '#37352f',
   blau: '#3f5bd9',
   orange: '#c86f2d',
   salbei: '#4f816d',
@@ -6013,6 +6249,9 @@ function aktuelleDesignFarbe() {
 
 function applyFarbdesign() {
   var root = document.documentElement;
+  var fl = A.cfg('designFlaeche') || 'standard';
+  if (fl === 'standard' || !DESIGN_FLAECHEN[fl]) root.removeAttribute('data-flaeche'); else root.setAttribute('data-flaeche', fl);
+  root.classList.toggle('design-kraeftig', !!A.cfg('designKraeftig'));
   var eigen = String(A.cfg('farbdesignHex') || '').trim();
   if (/^#[0-9a-f]{6}$/i.test(eigen)) {
     root.removeAttribute('data-theme');
@@ -6024,7 +6263,8 @@ function applyFarbdesign() {
   root.style.removeProperty('--accent-soft');
   var name = A.cfg('farbdesign') || 'blau';
   if (!FARBDESIGNS[name]) name = 'blau';
-  if (name === 'blau') root.removeAttribute('data-theme');
+  /* V73: „Blau“ war bisher faktisch schwarz (Grundstil überschrieb die Akzentfarbe). Jetzt: neutral = schwarz, blau = blau. */
+  if (name === 'neutral') root.removeAttribute('data-theme');
   else root.setAttribute('data-theme', name);
 }
 
@@ -7623,6 +7863,8 @@ function inboxDaten_(datum){
   A.alleKurse().forEach(function(k){var heuteKurs=inboxKursAmDatum_(k.id,datum);A.offeneStrafarbeiten(k.id).filter(function(x){var f=x.aufgabe.frist;return heuteKurs||(f&&f<=datum);}).slice(0,4).forEach(function(x){var f=x.aufgabe.frist,ns=x.aufgabe.nachsitzen,faellig=!!(f&&f<=datum);var sub=ns?('Nachsitzen am '+A.fmtDateShort(ns.datum)+(ns.zeit?' · '+ns.zeit:'')):(faellig?(f===datum?'Strafarbeit heute fällig – abgegeben?':'Strafarbeit seit '+A.fmtDateShort(f)+' fällig – abgegeben?'):('offene Strafarbeit'+(f?' · abgeben bis '+A.fmtDateShort(f):'')));items.push({key:'straf|'+(x.aufgabe&&x.aufgabe.id||k.id+'|'+x.sus.id),typ:'straf',sus:x.sus,kurs:k,x:x,faellig:faellig,titel:A.susName(x.sus),sub:sub+' · '+(k.fach||'')});});});
   return items;
 }
+/* V77: je mehr Kacheln, desto kleiner */
+function kachelDichte_(n){return n<=3?'d1':(n<=8?'d2':'d3');}
 function inboxHTML(datum){
   var items=inboxDaten_(datum),sync=craftSyncMap_();
   /* V51: Elternhinweise pro Kind gruppieren; die ersten 5 Kinder offen, der Rest eingeklappt */
@@ -7631,15 +7873,27 @@ function inboxHTML(datum){
     liste.forEach(function(x){var k=x.h&&x.h.susId||'';if(!map[k]){map[k]=[];order.push(k);}map[k].push(x);});
     function gruppe(k){
       var arr=map[k],sus=arr[0].sus,name=sus?A.susName(sus):'';
+      /* V76: kompakte Zeilen statt großer Karten */
+      return arr.map(function(it){return elternZeile(it,name,sus);}).join('');
       return '<div class="parent-group"><div class="parent-head"><button type="button" class="parent-name" data-act="open-sus" data-sus="'+A.esc(k)+'"><span class="parent-person">'+A.esc(name)+'</span></button>'+klasseChip_(sus)+(arr.length>1?'<span class="parent-n">'+arr.length+' Anlässe</span>':'')+'</div>'+arr.map(elternRow).join('')+'</div>';
     }
-    var offen=order.slice(0,5).map(gruppe).join('');
-    var rest=order.slice(5);
+    var offen=order.map(gruppe).join('');
+    var rest=[];
     if(!rest.length)return offen;
     return offen+'<details class="parent-rest"><summary>Weitere '+rest.length+(rest.length===1?' Kind':' Kinder')+' anzeigen</summary>'+rest.map(gruppe).join('')+'</details>';
   }
   var eltern=items.filter(function(x){return x.typ==='vergessen'||x.typ==='positiv';});
   var aufgaben=items.filter(function(x){return x.typ!=='vergessen'&&x.typ!=='positiv';});
+  function elternZeile(it,name,sus){
+    var h=it.h,k=it.kurs,fach=k&&k.fach?k.fach:'',last=elternKontaktText_(h),positiv=it.typ==='positiv';
+    var reason=positiv?'Positive Rückmeldung':(h.punkt||'Material')+' fehlt '+h.anzahl+'×';
+    var attrs=' data-sus="'+h.susId+'" data-kurs="'+h.kursId+'"'+(positiv?'':' data-punkt="'+A.esc(h.punkt)+'" data-anzahl="'+h.anzahl+'"');
+    var pre=positiv?'positiv':'eltern';
+    return '<div class="today-task'+(positiv?' ist-positiv':'')+'"><button class="inbox-open" data-act="open-sus" data-sus="'+A.esc(h.susId)+'"><div class="inbox-icon '+(positiv?'ic-positiv':'ic-eltern')+'">'+ICON_('eltern')+'</div><div class="inbox-main"><b>'+A.esc(name)+klasseChip_(sus)+'</b><span>'+A.esc((fach?fach+' · ':'')+reason+(last?' · '+last:''))+'</span></div></button>'+
+      '<div class="today-task-actions"><button class="btn small primary" data-act="'+pre+'-nachricht"'+attrs+'>Nachricht</button>'+
+      '<button class="btn small ghost" data-act="'+pre+'-spaeter"'+attrs+' title="Nächste Stunde erinnern">Später</button>'+
+      (positiv?'<button class="btn small ghost" data-act="positiv-ausblenden"'+attrs+' title="Ausblenden">✕</button>':'<button class="btn small ghost" data-act="eltern-besprochen"'+attrs+' title="Besprochen">✓</button>')+'</div></div>';
+  }
   function elternRow(it){
     var h=it.h,k=it.kurs,fach=k&&k.fach?k.fach:'',last=elternKontaktText_(h),reason='',positiv=it.typ==='positiv';
     if(positiv)reason=h.signal==='mitarbeit_verbessert'?'Mitarbeit in letzter Zeit deutlich verbessert':'Mitarbeit zuletzt besonders zuverlässig und engagiert';
@@ -7654,15 +7908,15 @@ function inboxHTML(datum){
       (positiv?'<button class="parent-more" data-act="positiv-ausblenden"'+attrs+'>Ausblenden</button>':'<button class="parent-more" data-act="eltern-besprochen"'+attrs+'>Besprochen</button>')+'</div></div>';
   }
   function taskRow(it){
-    if(it.typ==='liste')return '<div class="today-task"><button class="inbox-open" data-act="aufgabe-open" data-aufgabe="'+A.esc(it.a.id)+'"><div class="inbox-icon">□</div><div class="inbox-main"><b>'+A.esc(it.titel)+'</b><span>'+A.esc(it.sub)+(it.offen!==undefined?' · '+it.offen+' offen':'')+'</span></div><div class="chev">›</div></button><div class="today-task-actions">'+(it.offen>0?'<button class="btn small" data-act="eltern-erinnern" data-aufgabe="'+A.esc(it.a.id)+'">Eltern erinnern</button>':'')+'</div></div>';
-    if(it.typ==='wiedervorlage')return '<div class="today-task"><button class="inbox-open" data-act="open-sus" data-sus="'+it.sus.id+'"><div class="inbox-icon">↻</div><div class="inbox-main"><b>'+A.esc(it.titel)+klasseChip_(it.sus)+'</b>'+'<span>'+A.esc(it.sub)+'</span></div><div class="chev">›</div></button><div class="today-task-actions"><button class="btn small" data-act="wv-erledigt" data-id="'+A.esc(it.wv.id)+'">Erledigt</button></div></div>';
-    if(it.typ==='straf')return '<div class="today-task"><button class="inbox-open" data-act="open-sus" data-sus="'+it.sus.id+'"><div class="inbox-icon">!</div><div class="inbox-main"><b>'+A.esc(it.titel)+klasseChip_(it.sus)+'</b>'+'<span>'+A.esc(it.sub)+'</span></div><div class="chev">›</div></button><div class="today-task-actions">'+(it.faellig?'<button class="btn small" data-act="straf-erledigt" data-straf-id="'+A.esc(it.x.aufgabe.id)+'">Abgegeben ✓</button>'+(it.x.aufgabe.nachsitzen?'':'<button class="btn small" data-act="straf-nachsitzen" data-straf-id="'+A.esc(it.x.aufgabe.id)+'">Nicht abgegeben</button>'):'')+'</div></div>';
-    return '<div class="today-task"><button class="inbox-open" data-act="open-sus" data-sus="'+it.sus.id+'"><div class="inbox-icon">!</div><div class="inbox-main"><b>'+A.esc(it.titel)+klasseChip_(it.sus)+'</b>'+'<span>'+A.esc(it.sub)+'</span></div><div class="chev">›</div></button></div>';
+    if(it.typ==='liste')return '<div class="today-task"><button class="inbox-open" data-act="aufgabe-open" data-aufgabe="'+A.esc(it.a.id)+'"><div class="inbox-icon ic-liste">'+ICON_('liste')+'</div><div class="inbox-main"><b>'+A.esc(it.titel)+'</b><span>'+A.esc(it.sub)+(it.offen!==undefined?' · '+it.offen+' offen':'')+'</span></div><div class="chev">›</div></button><div class="today-task-actions">'+(it.offen>0?'<button class="btn small" data-act="eltern-erinnern" data-aufgabe="'+A.esc(it.a.id)+'">Eltern erinnern</button>':'')+'</div></div>';
+    if(it.typ==='wiedervorlage')return '<div class="today-task"><button class="inbox-open" data-act="open-sus" data-sus="'+it.sus.id+'"><div class="inbox-icon ic-wv">'+ICON_('wv')+'</div><div class="inbox-main"><b>'+A.esc(it.titel)+klasseChip_(it.sus)+'</b>'+'<span>'+A.esc(it.sub)+'</span></div><div class="chev">›</div></button><div class="today-task-actions"><button class="btn small" data-act="wv-erledigt" data-id="'+A.esc(it.wv.id)+'">Erledigt</button></div></div>';
+    if(it.typ==='straf')return '<div class="today-task t-straf'+(it.faellig?' faellig':'')+'"><button class="inbox-open" data-act="open-sus" data-sus="'+it.sus.id+'"><div class="inbox-icon ic-straf'+(it.faellig?' faellig':'')+'">'+ICON_('straf')+'</div><div class="inbox-main"><b>'+A.esc(it.titel)+klasseChip_(it.sus)+'</b>'+'<span>'+A.esc(it.sub)+'</span></div><div class="chev">›</div></button><div class="today-task-actions">'+(it.faellig?'<button class="btn small" data-act="straf-erledigt" data-straf-id="'+A.esc(it.x.aufgabe.id)+'">Abgegeben ✓</button>'+(it.x.aufgabe.nachsitzen?'':'<button class="btn small" data-act="straf-nachsitzen" data-straf-id="'+A.esc(it.x.aufgabe.id)+'">Nicht abgegeben</button>'):'')+'</div></div>';
+    return '<div class="today-task t-hinweis"><button class="inbox-open" data-act="open-sus" data-sus="'+it.sus.id+'"><div class="inbox-icon ic-hinweis">'+ICON_('hinweis')+'</div><div class="inbox-main"><b>'+A.esc(it.titel)+klasseChip_(it.sus)+'</b>'+'<span>'+A.esc(it.sub)+'</span></div><div class="chev">›</div></button></div>';
   }
-  var elternKopf='<div class="today-section-head"><div class="today-section-title"><h3>Elternkommunikation</h3><span class="today-count">'+eltern.length+'</span></div><button class="btn small" style="white-space:nowrap;flex-shrink:0" data-act="eltern-generator">Neue Nachricht</button></div>';
-  var elternSection=zuWrap_('heute.eltern',true,elternKopf,eltern.length?'<div class="parent-list">'+elternGruppiert(eltern)+'</div>':'<div class="inbox-empty">Heute ist keine Elternkommunikation offen.</div>','today-section');
-  var taskKopf='<div class="today-section-head"><div class="today-section-title"><h3>Aufgaben & Rückläufe</h3><span class="today-count">'+aufgaben.length+'</span></div><span class="today-section-note">nur für Klassen, die du heute hast</span></div>';
-  var taskSection=zuWrap_('heute.aufgaben',true,taskKopf,aufgaben.length?'<div class="task-list">'+aufgaben.map(taskRow).join('')+'</div>':'<div class="inbox-empty">Für heute sind keine Rückläufe oder offenen Aufgaben fällig.</div>','today-section');
+  var elternKopf='<div class="today-section-head"><div class="today-section-title"><h3>Elternkommunikation</h3><span class="today-count">'+eltern.length+'</span></div><button class="btn small" style="white-space:nowrap;flex-shrink:0" data-act="eltern-generator">＋ Nachricht</button></div>';
+  var elternSection=zuWrap_('heute.eltern',true,elternKopf,eltern.length?'<div class="task-list kacheln '+kachelDichte_(eltern.length)+'">'+elternGruppiert(eltern)+'</div>':'<div class="inbox-empty">Heute ist keine Elternkommunikation offen.</div>','today-section');
+  var taskKopf='<div class="today-section-head"><div class="today-section-title"><h3>Aufgaben & Rückläufe</h3><span class="today-count">'+aufgaben.length+'</span></div></div>';
+  var taskSection=zuWrap_('heute.aufgaben',true,taskKopf,aufgaben.length?'<div class="task-list kacheln '+kachelDichte_(aufgaben.length)+'">'+aufgaben.map(taskRow).join('')+'</div>':'<div class="inbox-empty">Für heute sind keine Rückläufe oder offenen Aufgaben fällig.</div>','today-section');
   var cleanN=inboxAufraeumItems_().length;
   return '<section class="workspace-section today-inbox"><div class="today-inbox-head"><div><h2>Für heute</h2><p>'+(items.length?items.length+' offene'+(items.length===1?'r Punkt':' Punkte'):'Alles erledigt')+'</p></div><div class="today-inbox-actions">'+(cleanN?'<button class="btn small" data-act="inbox-cleanup">Inbox aufräumen · '+cleanN+'</button>':'')+'<button class="btn small" data-act="craft-quick-note">Beobachtung festhalten</button></div></div>'+elternSection+taskSection+'</section>';
 }
@@ -7999,7 +8253,7 @@ function fieldHTML(f) {
     }
 
     inner = '<input type="hidden" name="' + f.key + '" value="' + A.esc(gew) + '">' +
-      '<div class="farb-wahl">' + A.FARBEN.map(function (c) {
+      '<div class="farb-wahl">' + (f.vorschlaege || A.FARBEN).map(function (c) {
         return '<button type="button" class="farb-opt' + (c.hex.toLowerCase() === gew.toLowerCase() ? ' on' : '') + '" ' +
           'data-farbe="' + c.hex + '" style="--fc:' + c.hex + '">' +
           '<span class="farb-punkt"></span>' + A.esc(c.name) + '</button>';
@@ -8289,21 +8543,56 @@ function lessonRowHTML(b, datum) {
     '</div><div class="chev">›</div></button>';
 }
 
+/* V76: Stunde als Kachel */
+function stundenEnde_(nr) { var x = A.cfg('stunden').filter(function (y) { return A.num(y.nr, 0) === A.num(nr, 0); })[0]; return x ? (x.bis || '') : ''; }
+function lessonKachelHTML_(b, datum) {
+  var kurs = A.byId('Kurse', b.kursId);
+  var st = A.stundeFuer(datum, b.von, b.kursId, false);
+  var sus = kurs ? A.susDesKurses(kurs.id) : [];
+  var erfasst = 0;
+  sus.forEach(function (s) { var m = A.mitarbeitFuer(datum, b.von, s.id); if (m && m.wert !== '') erfasst++; });
+  var flags = [];
+  var lage = kurs ? aufgabenStatusKurs(kurs.id, datum) : {};
+  if (st && st.entfaellt === '1') flags.push('<span class="lk-flag bad">entfällt</span>');
+  if (st && st.entfaellt === '2') flags.push('<span class="lk-flag warn">vertreten</span>');
+  if (lage.ueberfaellig) flags.push('<span class="lk-flag bad">Liste überfällig</span>');
+  else if (lage.heute) flags.push('<span class="lk-flag warn">Liste heute fällig</span>');
+  else if (lage.bald) flags.push('<span class="lk-flag warn">Liste bald fällig</span>');
+  if (kurs && sus.length) { var cb = A.checkBilanzStunde(datum, b.von, kurs.id); if (cb.gesamt) flags.push('<span class="lk-flag bad">' + cb.gesamt + '× vergessen</span>'); }
+  var zustand = '';
+  if (datum === A.todayISO()) {
+    var d = new Date(), jetzt = ('0' + d.getHours()).slice(-2) + ':' + ('0' + d.getMinutes()).slice(-2);
+    var von = stundenZeit(b.von), bis = stundenEnde_(b.bis);
+    if (von && bis && jetzt >= von && jetzt < bis) zustand = 'jetzt';
+    else if (bis && jetzt >= bis) zustand = 'vorbei';
+  }
+  var zeile = [];
+  if (b.raum) zeile.push('Raum ' + A.esc(b.raum));
+  if (sus.length) zeile.push('🙂 ' + erfasst + '/' + sus.length);
+  return '<button class="lesson-kachel' + (kurs ? '' : ' frei') + (zustand ? ' ' + zustand : '') + (st && st.entfaellt === '1' ? ' entfaellt' : '') + '" data-act="open-stunde" ' +
+    'data-datum="' + datum + '" data-von="' + b.von + '" data-bis="' + b.bis + '" data-kurs="' + A.esc(b.kursId) + '" style="--kc:' + A.kursFarbe(kurs) + '">' +
+    '<span class="lk-top"><span class="lk-nr">' + A.blockLabel(b) + ' Std.</span><span class="lk-zeit">' + stundenZeit(b.von) + (stundenEnde_(b.bis) ? '–' + stundenEnde_(b.bis) : '') + '</span>' +
+    (zustand === 'jetzt' ? '<span class="lk-jetzt">jetzt</span>' : '') + '</span>' +
+    '<b class="lk-titel">' + A.esc(kurs ? A.kursLabel(kurs) : 'Kein Kurs hinterlegt') + '</b>' +
+    (st && st.notiz ? '<span class="lk-notiz">' + A.esc(st.notiz) + '</span>' : '') +
+    (zeile.length ? '<span class="lk-sub">' + zeile.join(' · ') + '</span>' : '') +
+    (flags.length ? '<span class="lk-flags">' + flags.join('') + '</span>' : '') +
+    '</button>';
+}
+
 function tagesAnsichtHTML(datum) {
   var tag = A.tagVon(datum);
   var heute = datum === A.todayISO();
 
-  var h = '<div class="datebar">' +
-    '<button data-act="tag-minus" aria-label="Vorheriger Tag">‹</button>' +
-    '<div class="d-main" data-act="datum-waehlen">' +
-      '<div class="d-day">' + (heute ? 'Heute · ' : '') + A.tagName(tag, true) + '</div>' +
-      '<div class="d-date">' + A.fmtDate(datum) + '</div>' +
-    '</div>' +
-    '<button data-act="tag-plus" aria-label="Nächster Tag">›</button>' +
-    '</div>' + heuteModusHTML();
-
-  /* V51: Erst „Für heute“, danach die Stunden, dann die Hinweise */
-  h += cockpitHTML(datum);
+  /* V76: Kopf wie eine Tagesnotiz in Craft, danach Stunden als Kacheln, dann „Für heute“ */
+  var monate = ['Januar','Februar','März','April','Mai','Juni','Juli','August','September','Oktober','November','Dezember'];
+  var dd = datum.split('-');
+  var h = '<div class="tag-kopf"><div class="tag-kopf-text" data-act="datum-waehlen">' +
+      '<div class="tag-eyebrow">' + (heute ? 'Heute' : (datum < A.todayISO() ? 'Vergangener Tag' : 'Vorschau')) + '</div>' +
+      '<h1>' + A.tagName(tag, true) + ', ' + Number(dd[2]) + '. ' + monate[Number(dd[1]) - 1] + '</h1></div>' +
+    '<div class="tag-kopf-nav"><button class="tag-pfeil" data-act="tag-minus" aria-label="Vorheriger Tag">‹</button>' +
+      (heute ? '' : '<button class="tag-heute-btn" data-act="tag-heute">Heute</button>') +
+      '<button class="tag-pfeil" data-act="tag-plus" aria-label="Nächster Tag">›</button></div></div>' + heuteModusHTML();
   var frei = A.freierTag(datum);
   if (frei) h += '<div class="frei-banner ' + frei.art + '"><b>' + A.esc(frei.name) + '</b><span>' + (frei.art === 'feiertag' ? 'Feiertag' : (frei.art === 'ferien' ? 'Ferien' : 'Freier Tag')) + ' – kein Unterricht laut Kalender</span></div>';
   var bloecke = A.bloeckeFuerDatum(datum);
@@ -8312,8 +8601,10 @@ function tagesAnsichtHTML(datum) {
       ? 'Wochenende – kein Unterricht eingetragen.'
       : 'Für diesen Tag steht nichts im Stundenplan.<br><span class="small">Unter <b>Plan</b> lässt sich der Stundenplan anlegen.</span>'));
   } else {
-    h += card('', bloecke.map(function (b) { return lessonRowHTML(b, datum); }).join(''));
+    h += '<section class="kachel-sektion"><div class="kachel-sektion-titel">Stunden · ' + bloecke.length + '</div><div class="lesson-grid">' +
+      bloecke.map(function (b) { return lessonKachelHTML_(b, datum); }).join('') + '</div></section>';
   }
+  h += cockpitHTML(datum);
   h += craftHeuteHTML(datum);
   h += sicherungsHinweisHTML_();
   return h;
@@ -8527,6 +8818,8 @@ VIEWS.stunde = {
         '<button class="btn primary block" data-act="open-klasse" data-klasse="' + kurs.klasseId + '">Klasse öffnen</button>');
     }
 
+    h += '<div class="btn-row stunde-schnell"><button class="btn" data-act="kurs-bereich" data-kurs="' + kurs.id + '" data-b="noten">Noten eintragen</button>' +
+      '<button class="btn" data-act="open-kurs" data-kurs="' + kurs.id + '">Kurs öffnen</button></div>';
     h += card('Unterrichtsreihe', unterrichtsreiheHTML_(kurs.id,true));
 
     var offeneStrafen = A.offeneStrafarbeiten(kurs.id);
@@ -8640,7 +8933,7 @@ VIEWS.plan = {
       var gruppen = A.klassen().map(function (klasse) {
         var kk = A.kurseDerKlasse(klasse.id);
         if (!kk.length) return '';
-        return '<div class="plan-kursgruppe"><div class="plan-kursgruppe-title">' + A.esc(klasse.name) + '</div>' +
+        return '<div class="plan-kursgruppe zeile"><div class="plan-kursgruppe-title">' + A.esc(klasse.name) + '</div>' +
           '<div class="plan-kurschips">' + kk.map(function (kurs) {
             var f = A.kursFarbe(kurs);
             var aktiv = ui.planKursId === kurs.id;
@@ -8654,10 +8947,7 @@ VIEWS.plan = {
           }).join('') + '</div></div>';
       }).filter(Boolean).join('');
 
-      h += card('Kurse', '<div class="card-body">' + gruppen +
-        dismissHint('plan-kurs-ablage',
-          'Kurs ziehen und im Stundenplan ablegen. Auf Touch-Geräten geht auch: Kurs antippen, dann das gewünschte Feld.',
-          'hint-box') + '</div>', 'plan-kurswahl');
+      h += card('Kurse einplanen', '<div class="card-body">' + gruppen + '</div>', 'plan-kurswahl');
     } else {
       h += '<div class="hint-box">Lege zuerst eine Klasse und darunter mindestens ein Fach an.</div>';
     }
@@ -8666,12 +8956,17 @@ VIEWS.plan = {
       h += '<div class="hint-box"><b>' + A.esc(A.kursLabel(A.byId('Kurse', ui.planKursId))) +
         '</b> ist ausgewählt. Tippe auf ein Feld, um den Kurs dort einzutragen.</div>';
     } else {
-      h += dismissHint('plan-bedienung',
-        'Kurse können direkt auf die Stunden gezogen werden. Bereits belegte Felder lassen sich ebenfalls verschieben. Antippen öffnet weiterhin die Einstellungen.');
+      h += dismissHint('plan-bedienung2',
+        'Kurs ins Raster ziehen – oder antippen und dann ein Feld wählen. Belegte Felder lassen sich verschieben, Antippen öffnet die Einstellungen.');
     }
 
     var head = '<div class="gh"></div>' + A.TAGE.map(function (t) { return '<div class="gh">' + t.kurz + '</div>'; }).join('');
-    var body = stunden.map(function (s) {
+    /* V78: leere Stunden am Ende einklappen */
+    var letzte = 0;
+    stunden.forEach(function (s) { var nr = A.num(s.nr, 0); if (A.TAGE.some(function (t) { return A.planZelle(t.nr, nr); })) letzte = Math.max(letzte, nr); });
+    var grenze = Math.max(6, letzte + 1);
+    var versteckt = ui.planAlle ? 0 : stunden.filter(function (s) { return A.num(s.nr, 0) > grenze; }).length;
+    var body = stunden.filter(function (s) { return ui.planAlle || A.num(s.nr, 0) <= grenze; }).map(function (s) {
       var nr = A.num(s.nr, 0);
       var zellen = A.TAGE.map(function (t) {
         var p = A.planZelle(t.nr, nr);
@@ -8702,8 +8997,11 @@ VIEWS.plan = {
     }).join('');
 
     h += '<div class="grid-wrap"><div class="plan-grid">' + head + body + '</div></div>';
-    h += '<div class="btn-row"><button class="btn" data-act="plan-stunden">Stundenzeiten</button>' +
-         '<button class="btn" data-act="neue-klasse">Klasse anlegen</button></div>';
+    h += '<div class="plan-fuss">' +
+      (versteckt ? '<button class="btn small ghost" data-act="plan-alle">＋ ' + versteckt + ' weitere Stunde' + (versteckt === 1 ? '' : 'n') + ' zeigen</button>' :
+        (ui.planAlle ? '<button class="btn small ghost" data-act="plan-alle">Leere Stunden einklappen</button>' : '<span></span>')) +
+      '<span class="plan-fuss-rechts"><button class="btn small ghost" data-act="plan-stunden">Stundenzeiten</button>' +
+      '<button class="btn small ghost" data-act="neue-klasse">Klasse anlegen</button></span></div>';
     return h;
   }
 };
@@ -8725,31 +9023,15 @@ VIEWS.klassen = {
 
     var h = '';
 
-    h += ks.map(function (k) {
+    h += kachelGrid_('', ks.map(function (k) {
       var sus = A.susDerKlasse(k.id);
       var kurse = A.kurseDerKlasse(k.id);
-      var kopf = '<button class="row" data-act="open-klasse" data-klasse="' + k.id + '">' +
-        '<div class="row-main"><div class="row-title">' + A.esc(k.name) + '</div>' +
-        '<div class="row-sub">' + sus.length + ' Schüler:innen · ' + kurse.length + ' Fach/Fächer' +
-        (function(){var ls=listenKlassenStat(k.id);return ls.listen ? ' · ' + ls.listen + ' Liste(n) · ' + ls.offen + ' Abgaben offen' : '';})() + '</div></div>' +
-        '<div class="chev">›</div></button>';
-
-      var kursZeilen = kurse.map(function (ku) {
-        var schnitt = kursSchnitt(ku);
-        return '<button class="row sub" data-act="open-kurs" data-kurs="' + ku.id + '">' +
-          '<div class="pill" style="background:' + A.kursFarbe(ku) + ';height:22px;width:6px"></div>' +
-          '<div class="row-main"><div class="row-title">' + A.esc(ku.fach || 'ohne Fach') + '</div></div>' +
-          '<div class="row-val">' + (schnitt === null ? '' : 'Ø ' + A.fmtNote(schnitt)) + '</div>' +
-          '<div class="chev">›</div></button>';
-      }).join('');
-
-      var plus = '<button class="row sub" data-act="neuer-kurs" data-klasse="' + k.id + '">' +
-        '<div class="row-main"><div class="row-title accent-text">＋ Fach hinzufügen</div></div></button>';
-
-      var std = k.id === A.standardKlasseId();
-      return '<div class="card klassen-card">' +
-        zuWrap_('klassen.' + k.id, std, kopf, kursZeilen + plus) + '</div>';
-    }).join('');
+      var ls = listenKlassenStat(k.id);
+      return kachel_({ act: 'open-klasse', data: { klasse: k.id }, icon: 'users', titel: k.name,
+        farbe: kurse.length ? A.kursFarbe(kurse[0]) : '',
+        info: sus.length + ' Schüler:innen · ' + kurse.length + (kurse.length === 1 ? ' Fach' : ' Fächer'),
+        badge: ls.offen ? ls.offen + ' offen' : '', badgeWarn: ls.ueber > 0 });
+    }).join('') + kachel_({ act: 'neue-klasse', icon: 'plus', titel: 'Klasse anlegen', leer: true }));
 
     var arch = A.klassen(true).filter(function (k) { return String(k.archiviert) === '1'; });
     if (arch.length) {
@@ -8771,7 +9053,7 @@ function klassenAmpelDaten_(klasseId){var sus=A.susDerKlasse(klasseId),ls=listen
 function klassenAmpelHTML_(klasseId){var d=klassenAmpelDaten_(klasseId);return '<div class="ampel-grid">'+['ruecklauf','eltern','ziele'].concat(craftAn_()?['craft']:[]).map(function(key){var x=d[key];return '<button class="ampel-item" data-act="klasse-ampel-detail" data-klasse="'+klasseId+'" data-kind="'+key+'"><div class="ampel-top"><i class="ampel-dot '+x.state+'"></i><b>'+x.label+'</b></div><span>'+A.esc(x.text)+'</span></button>';}).join('')+'</div>';}
 
 VIEWS.klasse = {
-  title: function (p) { var k = A.byId('Klassen', p.id); return k ? k.name : 'Klasse'; },
+  title: function (p) { var k = A.byId('Klassen', p.id); var n = k ? k.name : 'Klasse'; var bn = { sus: 'Schüler:innen', listen: 'Listen & Abgaben', eltern: 'Eltern' }[p.b || '']; return bn ? n + ' · ' + bn : n; },
   actions: function (p) { return '<button class="icon-btn" data-act="klasse-bearbeiten" data-klasse="' + p.id + '">···</button>'; },
   body: function (p) {
     var k = A.byId('Klassen', p.id);
@@ -8779,23 +9061,31 @@ VIEWS.klasse = {
     var sus = A.susDerKlasse(k.id);
     var kurse = A.kurseDerKlasse(k.id);
 
-    var h = '<div class="hint-box">Die Schüler:innen gehören zur Klasse, nicht zum Fach. ' +
-      'Jedes weitere Fach übernimmt sie automatisch.</div>';
+    var b = p.b || '';
+    var h = '';
+    if (!b) {
+      var ls = listenKlassenStat(k.id), komm = kommunikationsHinweiseKlasse(k.id), amp = klassenAmpelDaten_(k.id);
+      h += kachelGrid_('Fächer', kurse.map(function (ku) {
+        var st = kursNotenStat_(ku);
+        return kachel_({ act: 'open-kurs', data: { kurs: ku.id }, icon: 'buch', titel: ku.fach || 'ohne Fach', farbe: A.kursFarbe(ku),
+          info: (st.schnitt === null ? 'noch keine Noten' : 'Ø ' + A.fmtNote(st.schnitt)) + ' · ' + st.leistungen + ' Leistung' + (st.leistungen === 1 ? '' : 'en'),
+          badge: st.offen ? st.offen + ' Noten offen' : '' });
+      }).join('') + kachel_({ act: 'neuer-kurs', data: { klasse: k.id }, icon: 'plus', titel: 'Fach hinzufügen', leer: true }));
+      var sitzI = sitzPlanKennzahlen(sitzPlanFlex(k.id));
+      h += kachelGrid_('Klasse',
+        kachel_({ act: 'klasse-bereich', data: { klasse: k.id, b: 'sus' }, icon: 'users', titel: 'Schüler:innen', info: sus.length + ' in der Klasse' }) +
+        kachel_({ act: 'klasse-bereich', data: { klasse: k.id, b: 'listen' }, icon: 'liste', titel: 'Listen & Abgaben',
+          info: ls.listen ? ls.listen + ' Liste' + (ls.listen === 1 ? '' : 'n') : 'keine offenen Listen',
+          badge: ls.offen ? ls.offen + ' offen' : '', badgeWarn: ls.ueber > 0 }) +
+        kachel_({ act: 'klasse-bereich', data: { klasse: k.id, b: 'eltern' }, icon: 'eltern', titel: 'Eltern',
+          info: komm.length ? komm.length + ' Hinweis' + (komm.length === 1 ? '' : 'e') : 'nichts offen', badge: komm.length ? String(komm.length) : '' }) +
+        kachel_({ act: 'open-sitzplan', data: { klasse: k.id }, icon: 'sitzplan', titel: 'Sitzplan', info: sitzI.tische + ' Tische · ' + sitzI.plaetze + ' Plätze' }) +
+        kachel_({ act: 'klasse-ampel-detail', data: { klasse: k.id, kind: 'ziele' }, icon: 'ziel', titel: 'Förderziele', info: A.esc(amp.ziele.text) })
+      );
+      return h;
+    }
 
-    h += card('Klassenstatus', klassenAmpelHTML_(k.id));
-    h += zuCard_('klasse.' + k.id + '.faecher', true, 'Fächer (' + kurse.length + ')', (kurse.length ? kurse.map(function (ku) {
-      var schnitt = kursSchnitt(ku);
-      var lz = A.list('Leistungen', function (l) { return l.kursId === ku.id; }).length;
-      return '<button class="row" data-act="open-kurs" data-kurs="' + ku.id + '">' +
-        '<div class="pill" style="background:' + A.kursFarbe(ku) + '"></div>' +
-        '<div class="row-main"><div class="row-title">' + A.esc(ku.fach || 'ohne Fach') + '</div>' +
-        '<div class="row-sub">' + lz + ' Leistung(en)' +
-        (schnitt === null ? '' : ' · Ø ' + A.fmtNote(schnitt)) + (craftAn_()&&craftLinkFuer_(ku.id)?' · Craft ↗':'') + '</div></div>' +
-        '<div class="chev">›</div></button>';
-    }).join('') : empty('📚', 'Noch kein Fach angelegt.')));
-
-    h += '<button class="btn primary block" data-act="neuer-kurs" data-klasse="' + k.id + '">Fach hinzufügen</button>';
-
+    if (b === 'listen') {
     var erledigteListen = listenDerKlasse(k.id, true).filter(function(a){ return !!a.erledigt; });
     h += card('Listen & Abgaben', klassenListenHTML(k.id) +
       ((erledigteListen.length || kurse.length) ? '<div class="aufgabe-neu-zeile aufgabe-duo">' +
@@ -8803,16 +9093,12 @@ VIEWS.klasse = {
         (erledigteListen.length ? '<button class="btn block" data-act="listen-archiv" data-klasse="' + k.id + '">Abgeschlossene Listen (' + erledigteListen.length + ')</button>' : '') +
         '</div>' : ''));
 
-    h += kommunikationKlasseHTML(k.id);
+      return h;
+    }
+    if (b === 'eltern') return kommunikationKlasseHTML(k.id);
 
-    var sitz = sitzPlanFlex(k.id);
-    var sitzInfo = sitzPlanKennzahlen(sitz);
-    h += card('Sitzplan',
-      '<button class="row" data-act="open-sitzplan" data-klasse="' + k.id + '">' +
-        '<div class="row-main"><div class="row-title">Sitzplan erstellen / bearbeiten</div>' +
-        '<div class="row-sub">' + sus.length + ' Schüler:innen · ' + sitzInfo.tische + ' Tische · ' + sitzInfo.plaetze + ' Plätze · Drag & Drop möglich</div></div>' +
-        '<div class="chev">›</div></button>', 'klasse-sitzplan-card');
-
+    h += '<div class="hint-box">Die Schüler:innen gehören zur Klasse, nicht zum Fach. ' +
+      'Jedes weitere Fach übernimmt sie automatisch.</div>';
     var susRows = sus.length ? sus.map(function (s) {
       var teile = kurse.map(function (ku) {
         var g = A.gesamtnote(ku, s.id).note;
@@ -8834,7 +9120,7 @@ VIEWS.klasse = {
         return '<button type="button" class="sort-chip' + (o[0] === sm ? ' on' : '') + '" data-act="sus-sort" data-modus="' + o[0] + '">' + o[1] + '</button>';
       }).join('') + '</div>' : '';
     h += zuCard_('klasse.' + k.id + '.sus', true, 'Schüler:innen (' + sus.length + ')', sus.length ? sortBar + '<div class="sus-grid">' + susRows + '</div>' : susRows);
-    h += '<div class="btn-row">' +
+    h += '<div class="btn-row klasse-btns">' +
       '<button class="btn" data-act="sus-neu" data-klasse="' + k.id + '">Einzeln</button>' +
       '<button class="btn" data-act="sus-liste" data-klasse="' + k.id + '">Liste einfügen</button></div>';
 
@@ -8950,8 +9236,9 @@ function unterrichtsreiheFuer_(kursId){return unterrichtsreihen_()[kursId]||null
 function unterrichtsreiheSet_(kursId,rec){var x=unterrichtsreihen_();if(rec&&String(rec.titel||'').trim())x[kursId]=rec;else delete x[kursId];A.setCfg('unterrichtsreihen',x);}
 function unterrichtsreiheHTML_(kursId,compact){var r=unterrichtsreiheFuer_(kursId);if(!r)return '<div class="reihe-card"><div class="reihe-head"><div><b>Noch keine aktuelle Reihe</b><span>Arbeitsstand zur Unterrichtsplanung hinterlegen.</span></div><button class="btn small" data-act="reihe-bearbeiten" data-kurs="'+kursId+'">Einrichten</button></div></div>';var cur=Math.max(1,Number(r.aktuell||1)||1),ges=Math.max(cur,Number(r.gesamt||cur)||cur),pct=Math.max(0,Math.min(100,Math.round(cur/ges*100))),link=String(r.link||craftLinkFuer_(kursId)||'').trim();return '<div class="reihe-card"><div class="reihe-head"><div><b>'+A.esc(r.titel)+'</b><span>Stunde '+cur+' von '+ges+'</span></div></div><div class="reihe-progress"><i style="width:'+pct+'%"></i></div>'+(r.naechste?'<div class="reihe-next">Nächste Stunde: '+A.esc(r.naechste)+'</div>':'')+'<div class="reihe-actions">'+(link?'<button class="btn small" data-act="reihe-open" data-kurs="'+kursId+'">In Craft öffnen</button>':'')+(!compact?'<button class="btn small" data-act="reihe-bearbeiten" data-kurs="'+kursId+'">Bearbeiten</button>':'')+(cur<ges?'<button class="btn small primary" data-act="reihe-naechste" data-kurs="'+kursId+'">Weiter zu '+(cur+1)+'</button>':'')+'</div></div>';}
 
+var KURS_BEREICHE_ = { noten: 'Noten eintragen', uebersicht: 'Notenübersicht', listen: 'Listen & To-dos', bewertung: 'Bewertung', reihe: 'Unterrichtsreihe' };
 VIEWS.kurs = {
-  title: function (p) { var ku = A.byId('Kurse', p.id); return ku ? A.kursLabel(ku) : 'Kurs'; },
+  title: function (p) { var ku = A.byId('Kurse', p.id); var n = ku ? A.kursLabel(ku) : 'Kurs'; var bn = KURS_BEREICHE_[p.b || '']; return bn ? n + ' · ' + bn : n; },
   actions: function (p) { var c=craftAn_()?craftLinkFuer_(p.id):''; return (c?'<button class="icon-btn" data-act="craft-open" data-kurs="'+p.id+'" title="In Craft öffnen">C</button>':'') + '<button class="icon-btn" data-act="kurs-bearbeiten" data-kurs="' + p.id + '">···</button>'; },
   body: function (p) {
     var kurs = A.byId('Kurse', p.id);
@@ -8961,6 +9248,22 @@ VIEWS.kurs = {
     var gesamt = sus.map(function (s) { return A.gesamtnote(kurs, s.id).note; });
     var sp = A.notenspiegel(gesamt);
     var kats = A.kategorienVon(kurs);
+
+    var b = p.b || '';
+    if (!b) {
+      var st = kursNotenStat_(kurs);
+      var aufg = aufgabenOffen(kurs.id).length;
+      return kachelGrid_('', kachel_({ act: 'kurs-bereich', data: { kurs: kurs.id, b: 'noten' }, icon: 'noten', titel: 'Noten eintragen', gross: true, farbe: A.kursFarbe(kurs),
+          info: st.leistungen ? st.leistungen + ' Leistung' + (st.leistungen === 1 ? '' : 'en') + (st.offen ? ' · ' + st.offen + ' Noten fehlen noch' : ' · alles eingetragen') : 'Noch keine Leistung – hier anlegen',
+          badge: st.offen ? String(st.offen) : '' }) +
+        kachel_({ act: 'kurs-bereich', data: { kurs: kurs.id, b: 'uebersicht' }, icon: 'chart', titel: 'Notenübersicht', info: st.schnitt === null ? 'noch kein Schnitt' : 'Ø ' + A.fmtNote(st.schnitt) + ' · Notenspiegel · PDF' }) +
+        kachel_({ act: 'kurs-bereich', data: { kurs: kurs.id, b: 'listen' }, icon: 'liste', titel: 'Listen & To-dos', info: aufg ? aufg + ' offen' : 'nichts offen' }) +
+        kachel_({ act: 'kurs-bereich', data: { kurs: kurs.id, b: 'bewertung' }, icon: 'regler', titel: 'Bewertung', info: 'Gewichtung · Notenschlüssel' }) +
+        kachel_({ act: 'kurs-bereich', data: { kurs: kurs.id, b: 'reihe' }, icon: 'reihe', titel: 'Unterrichtsreihe', info: 'Themen und Stundenfolge' }) +
+        kachel_({ act: 'open-klasse', data: { klasse: kurs.klasseId }, icon: 'users', titel: 'Klasse ' + ((A.klasseVonKurs(kurs) || {}).name || ''), info: sus.length + ' Schüler:innen · Sitzplan' }));
+    }
+    if (b === 'reihe') return card('Aktuelle Unterrichtsreihe', unterrichtsreiheHTML_(kurs.id, false));
+    if (b === 'listen') return card('Listen & To-dos', aufgabenRows(kurs, true), 'aufgaben-card');
 
     var craftUrl=craftLinkFuer_(kurs.id);
     var h = !craftAn_()?'':'<section class="craft-strip"><div><span class="craft-mark">C</span><div><b>Unterrichtsplanung in Craft</b><small>' + (craftUrl?'Dokument verknüpft':'Noch kein Dokument verknüpft') + '</small></div></div><div class="craft-actions">' + (craftUrl?'<button class="btn" data-act="craft-open" data-kurs="'+kurs.id+'">In Craft öffnen</button>':'') + '<button class="btn" data-act="craft-link" data-kurs="'+kurs.id+'">' + (craftUrl?'Link ändern':'Craft verknüpfen') + '</button></div></section>';
@@ -8978,10 +9281,11 @@ VIEWS.kurs = {
         '<div class="row-val">' + A.fmtNote(schnitt) + '</div><div class="chev">›</div></button>';
     }).join('') : empty('📝', 'Noch keine Leistungen erfasst.');
 
-    h += card('Leistungen', lRows);
-    h += '<button class="btn primary block" data-act="leistung-neu" data-kurs="' + kurs.id + '">Neue Leistung</button>';
-    h += card('Listen & To-dos', aufgabenRows(kurs, true), 'aufgaben-card');
-
+    if (b === 'noten') {
+      return '<button class="btn primary block noten-neu-oben" data-act="leistung-neu" data-kurs="' + kurs.id + '">＋ Neue Leistung</button>' +
+        card(leistungen.length ? 'Bestehende Leistung wählen' : 'Leistungen', lRows);
+    }
+    if (b === 'uebersicht') {
     h += card('Notenspiegel (Gesamtnoten)',
       '<div class="card-body">' + spiegelHTML(sp) +
       '<div class="stat-row">' +
@@ -9022,6 +9326,8 @@ VIEWS.kurs = {
         '<thead>' + th + '</thead><tbody>' + tb + '</tbody></table></div>');
       h += '<button class="btn primary block" data-act="noten-pdf" data-kurs="' + kurs.id + '">📄 Noten als PDF exportieren</button>';
     }
+    return h;
+    }
 
     var sch = A.schluesselVon(kurs, null);
     h += card('Bewertung', '<div class="card-body">' +
@@ -9039,9 +9345,6 @@ VIEWS.kurs = {
       (kurs.fach ? '<button class="btn small block" style="margin-top:8px" data-act="fach-vorgabe-speichern" data-kurs="' + kurs.id + '">' +
         'Als Vorgabe für ' + A.esc(kurs.fach) + ' merken</button>' : '') +
       '</div>');
-
-    h += card('Aktuelle Unterrichtsreihe', unterrichtsreiheHTML_(kurs.id,false));
-
     return h;
   }
 };
@@ -9051,7 +9354,7 @@ VIEWS.kurs = {
 /* ====================================================================== */
 
 VIEWS.sus = {
-  title: function (p) { var s = A.byId('SuS', p.id); return s ? A.susName(s) : 'Schüler:in'; },
+  title: function (p) { var s = A.byId('SuS', p.id); var n = s ? A.susName(s) : 'Schüler:in'; if (!p.b) return n; var bn = p.b === 'verlauf' ? 'Verlauf' : (p.b.indexOf('f:') === 0 ? ((A.byId('Kurse', p.b.slice(2)) || {}).fach || 'Fach') : p.b.replace(/\s*\(\d+\)$/, '')); return n + ' · ' + bn; },
   actions: function (p) { return '<button class="icon-btn" data-act="sus-bearbeiten" data-sus="' + p.id + '">···</button>'; },
   body: function (p) {
     var s = A.byId('SuS', p.id);
@@ -9059,6 +9362,7 @@ VIEWS.sus = {
     var klasse = A.byId('Klassen', s.klasseId);
     if (!klasse) return card('', empty('❓', 'Klasse nicht gefunden.'));
     var kurse = A.kurseDerKlasse(klasse.id);
+    var card = kartenSammler_();
 
     var h = '<div class="profile-head"><div class="profile-eyebrow">'+A.esc(klasse.name)+'</div><h1>'+A.esc(A.susName(s))+'</h1><div class="profile-head-actions"><button class="btn" data-act="eltern-nachricht" data-sus="'+s.id+'">Elternnachricht</button><button class="btn" data-act="gespraech-neu" data-sus="'+s.id+'">Gespräch protokollieren</button><button class="btn" data-act="kind-pdf" data-sus="'+s.id+'">Übersicht als PDF</button></div></div>';
     var timelineFilter=(ui.timelineFilterBySus&&ui.timelineFilterBySus[s.id])||'all';
@@ -9077,7 +9381,7 @@ VIEWS.sus = {
 
     h += card('Beobachtungen & Förderziele', susBeobachtungPanelHTML_(s.id));
 
-    if (!kurse.length) return h + card('', empty('📚', 'Für diese Klasse ist noch kein Fach angelegt.'));
+    if (!kurse.length && !p.b) h += cardOrig_('', empty('📚', 'Für diese Klasse ist noch kein Fach angelegt.'));
 
     kurse.forEach(function (kurs) {
       var g = A.gesamtnote(kurs, s.id);
@@ -9132,11 +9436,29 @@ VIEWS.sus = {
           '</div>';
       }
 
-      h += card(kurs.fach || 'ohne Fach', inner);
+      h += card(kurs.fach || 'ohne Fach', inner, '', 'f:' + kurs.id);
     });
 
     if (s.notiz) h += card('Notiz', '<div class="card-body">' + A.esc(s.notiz).replace(/\n/g, '<br>') + '</div>');
-    return h;
+    var b = p.b || '';
+    if (b === 'verlauf') return ['Seit letztem Mal', 'Verlauf'].map(function (k) { var t = card.finde(k); return t ? t.html : ''; }).join('');
+    if (b) { var teil = card.finde(b); return teil ? teil.html : ''; }
+    /* Übersicht: Kopf + Kacheln */
+    var fachK = kurse.map(function (kurs) {
+      var g = A.gesamtnote(kurs, s.id), st = A.strafStand(kurs.id, s.id);
+      return kachel_({ act: 'sus-bereich', data: { sus: s.id, b: 'f:' + kurs.id }, icon: 'buch', titel: kurs.fach || 'ohne Fach', farbe: A.kursFarbe(kurs),
+        info: g.note === null ? 'noch keine Noten' : 'Ø ' + A.fmtNote(g.note) + ' · Zeugnis ' + A.rundeNote(g.note),
+        badge: st.faellig ? 'Strafarbeit' : (st.gesamt ? st.gesamt + '× vergessen' : ''), badgeWarn: !!st.faellig });
+    }).join('');
+    var abg = card.liste.filter(function (x) { return /^Offene Abgaben/.test(x.key); })[0];
+    var komm = kommunikationsHinweiseFuerSus(s.id).filter(function (x) { return x.typ === 'vergessen'; }).length;
+    var ziele = foerderzieleFuer_(s.id, false).length;
+    var weitere = kachel_({ act: 'sus-bereich', data: { sus: s.id, b: 'verlauf' }, icon: 'reihe', titel: 'Verlauf', info: 'Seit letztem Mal · alle Einträge' }) +
+      kachel_({ act: 'sus-bereich', data: { sus: s.id, b: 'Beobachtungen & Förderziele' }, icon: 'ziel', titel: 'Beobachtungen & Förderziele', info: ziele ? ziele + ' Förderziel' + (ziele === 1 ? '' : 'e') + ' aktiv' : 'Beobachtung festhalten' }) +
+      kachel_({ act: 'sus-bereich', data: { sus: s.id, b: 'Elternkommunikation' }, icon: 'eltern', titel: 'Eltern', info: komm ? komm + ' Hinweis' + (komm === 1 ? '' : 'e') : 'Verlauf und neue Nachricht', badge: komm ? String(komm) : '' }) +
+      (abg ? kachel_({ act: 'sus-bereich', data: { sus: s.id, b: abg.key }, icon: 'liste', titel: 'Offene Abgaben', info: abg.key.replace(/^Offene Abgaben\s*/, '').replace(/[()]/g, '') + ' offen', badge: '!', badgeWarn: true }) : '') +
+      (s.notiz ? kachel_({ act: 'sus-bereich', data: { sus: s.id, b: 'Notiz' }, icon: 'notiz', titel: 'Notiz', info: A.esc(String(s.notiz).slice(0, 40)) }) : '');
+    return h + (kurse.length ? kachelGrid_('Fächer', fachK) : card.liste.map(function (x) { return x.html; }).join('')) + kachelGrid_('Übersicht', weitere);
   }
 };
 
@@ -9155,29 +9477,15 @@ VIEWS.noten = {
     }
 
     var h = '';
-    var leer = true;
-    kurse.forEach(function (kurs) {
-      var leistungen = A.list('Leistungen', function (l) { return l.kursId === kurs.id; })
-        .sort(function (a, b) { return String(b.datum).localeCompare(String(a.datum)); });
-      if (!leistungen.length) return;
-      leer = false;
-      var sus = A.susDesKurses(kurs.id);
-      var rows = leistungen.map(function (l) {
-        var noten = sus.map(function (s) { return A.noteFuer(l, s.id, kurs); }).filter(function (n) { return n !== null; });
-        var schnitt = noten.length ? noten.reduce(function (a, b) { return a + b; }, 0) / noten.length : null;
-        var offen = sus.length - noten.length;
-        return '<button class="row" data-act="open-leistung" data-leistung="' + l.id + '">' +
-          '<div class="pill" style="background:' + A.kursFarbe(kurs) + ';height:26px"></div>' +
-          '<div class="row-main"><div class="row-title">' + A.esc(l.titel || l.kategorie) + '</div>' +
-          '<div class="row-sub">' + A.esc(l.kategorie) + (l.datum ? ' · ' + A.fmtDateShort(l.datum) : '') +
-          (offen > 0 ? ' · <span class="badge warn">' + offen + ' offen</span>' : '') + '</div></div>' +
-          '<div class="row-val">' + A.fmtNote(schnitt) + '</div><div class="chev">›</div></button>';
-      }).join('');
-      h += zuCard_('noten.' + kurs.id, kurs.klasseId === A.standardKlasseId(), A.kursLabel(kurs) + ' (' + leistungen.length + ')', rows);
-    });
-
-    if (leer) h += card('', empty('📊', 'Noch keine Leistungen erfasst.'));
-    h += '<button class="btn primary block" data-act="leistung-neu">Neue Leistung</button>';
+    var std = A.standardKlasseId();
+    var sortiert = kurse.slice().sort(function (a, b) { return (b.klasseId === std) - (a.klasseId === std); });
+    h += '<div class="small muted noten-hinweis">Fach wählen → Leistung wählen oder neu anlegen → Noten eintragen.</div>';
+    h += kachelGrid_('', sortiert.map(function (kurs) {
+      var st = kursNotenStat_(kurs);
+      return kachel_({ act: 'kurs-bereich', data: { kurs: kurs.id, b: 'noten' }, icon: 'noten', titel: A.kursLabel(kurs), farbe: A.kursFarbe(kurs),
+        info: (st.schnitt === null ? 'noch keine Noten' : 'Ø ' + A.fmtNote(st.schnitt)) + ' · ' + st.leistungen + ' Leistung' + (st.leistungen === 1 ? '' : 'en'),
+        badge: st.offen ? st.offen + ' offen' : '' });
+    }).join(''));
     return h;
   }
 };
@@ -9294,9 +9602,14 @@ VIEWS.leistung = {
 /*  Mehr                                                                  */
 /* ====================================================================== */
 
+var MEHR_KACHELN_ = [
+  ['Konto', 'user'], ['Datensynchronisation', 'sync'], ['Speicher & Sicherung', 'speicher'], ['Arbeitskontext', 'ziel'],
+  ['Unterricht', 'buch'], ['Bewertung', 'regler'], ['Kommunikation', 'eltern'], ['Craft', 'notiz'], ['App', 'app'], ['Bestand', 'chart']
+];
 VIEWS.mehr = {
-  title: function () { return 'Einstellungen'; },
-  body: function () {
+  title: function (p) { return (p && p.b) || 'Einstellungen'; },
+  body: function (p) {
+    var card = kartenSammler_();
     var s = A.Sync;
     var statusText = { off: 'nicht eingerichtet', ok: 'verbunden', pending: 'Änderungen warten', busy: 'überträgt …', err: 'Fehler' }[s.status] || '–';
     var sch = A.cfg('notenschluessel');
@@ -9428,8 +9741,25 @@ VIEWS.mehr = {
       '<div class="kv"><span class="k">Abhak-Einträge</span><span class="v">' + z.c + '</span></div>' +
       '</div>');
 
-    h += '<div class="small muted" style="text-align:center;padding:6px 10px 20px"><b>Schulapp · Version ' + A.VERSION + '</b><br>Deine Daten sind deinem Konto zugeordnet und zusätzlich lokal auf diesem Gerät zwischengespeichert.</div>';
-    return h;
+    var fuss = '<div class="small muted" style="text-align:center;padding:6px 10px 20px"><b>Schulapp · Version ' + A.VERSION + '</b><br>Deine Daten sind deinem Konto zugeordnet und zusätzlich lokal auf diesem Gerät zwischengespeichert.</div>';
+    var b = (p && p.b) || '';
+    if (b) { var teil = card.finde(b); return teil ? teil.html : card.liste.map(function (x) { return x.html; }).join(''); }
+    var infos = {
+      'Konto': user ? A.esc(user.name || user.email || '') : '',
+      'Datensynchronisation': statusText + (s.pendingCount() ? ' · ' + s.pendingCount() + ' offen' : ''),
+      'Speicher & Sicherung': 'Sicherung, Papierkorb, Fehlerprotokoll',
+      'Arbeitskontext': stdKl ? 'Meine Klasse: ' + A.esc(stdKl.name) : 'keine Standardklasse',
+      'Unterricht': 'Ferien, Stundenzeiten, Strafarbeit, Smileys',
+      'Bewertung': 'Fächer, Gewichtung, Notenschlüssel',
+      'Kommunikation': 'Elternnachrichten und Hinweise',
+      'Craft': 'Verbindung',
+      'App': 'Farbdesign, Sperre, Export',
+      'Bestand': z.s + ' Schüler:innen · ' + z.n + ' Noten'
+    };
+    return kachelGrid_('', MEHR_KACHELN_.filter(function (m) { return card.finde(m[0]); }).map(function (m) {
+      return kachel_({ act: 'mehr-bereich', data: { b: m[0] }, icon: m[1], titel: m[0] === 'Datensynchronisation' ? 'Abgleich' : m[0], info: infos[m[0]] || '',
+        badge: m[0] === 'Datensynchronisation' && s.status === 'err' ? 'Fehler' : '', badgeWarn: true });
+    }).join('')) + fuss;
   }
 };
 
@@ -10314,6 +10644,12 @@ ACT['neue-klasse'] = function () {
 
 ACT['open-klasse'] = function (el) { push('klasse', { id: el.getAttribute('data-klasse') }); };
 ACT['open-kurs'] = function (el) { push('kurs', { id: el.getAttribute('data-kurs') }); };
+ACT['plan-alle'] = function () { ui.planAlle = !ui.planAlle; render(); };
+ACT['tag-heute'] = function () { ui.datum = A.todayISO(); render(); };
+ACT['sus-bereich'] = function (el) { push('sus', { id: el.getAttribute('data-sus'), b: el.getAttribute('data-b') }); };
+ACT['mehr-bereich'] = function (el) { push('mehr', { b: el.getAttribute('data-b') }); };
+ACT['kurs-bereich'] = function (el) { push('kurs', { id: el.getAttribute('data-kurs'), b: el.getAttribute('data-b') }); };
+ACT['klasse-bereich'] = function (el) { push('klasse', { id: el.getAttribute('data-klasse'), b: el.getAttribute('data-b') }); };
 ACT['open-sitzplan'] = function (el) {
   ui.sitzAuswahl = null;
   ui.sitzLayout = false;
@@ -11589,8 +11925,16 @@ ACT['farbdesign'] = function () {
   Modal.form({
     title: 'Farbdesign',
     hinweis: 'Du kannst eine der vorgeschlagenen Farben nehmen oder unten über die Farbauswahl jeden beliebigen Farbton wählen. Der Hell-/Dunkelmodus deines Geräts bleibt erhalten.',
-    fields: [{ key: 'farbe', label: 'Akzentfarbe', type: 'farbe', value: aktuelleDesignFarbe() }],
+    fields: [
+      { key: 'farbe', label: 'Akzentfarbe', type: 'farbe', value: aktuelleDesignFarbe(), vorschlaege: [{ name: 'Neutral', hex: FARBDESIGN_HEX.neutral }].concat(A.FARBEN) },
+      { key: 'flaeche', label: 'Hintergrund', type: 'select', value: A.cfg('designFlaeche') || 'standard',
+        options: Object.keys(DESIGN_FLAECHEN).map(function (k) { return { value: k, label: DESIGN_FLAECHEN[k] }; }),
+        hint: 'Gilt im hellen Modus; der Dunkelmodus bleibt dunkel.' },
+      { key: 'kraeftig', label: 'Kräftige Akzente (Überschriften, Hauptknöpfe und aktiver Reiter in der Akzentfarbe)', type: 'checkbox', value: !!A.cfg('designKraeftig') }
+    ],
     onSave: function (v) {
+      A.setCfg('designFlaeche', DESIGN_FLAECHEN[v.flaeche] ? v.flaeche : 'standard');
+      A.setCfg('designKraeftig', !!v.kraeftig);
       var hex = String(v.farbe || '').toLowerCase();
       var preset = '';
       Object.keys(FARBDESIGN_HEX).some(function (key) {
@@ -11951,6 +12295,12 @@ ACT['fehlerprotokoll'] = function () {
 };
 
 var AENDERUNGEN_ = [
+  ['V78', ['Stundenplan aufgeräumt: Kurse je Klasse in einer Zeile, nur noch ein Hinweis, leere Stunden am Ende eingeklappt (lassen sich aufklappen), Stundenzeiten/Klasse anlegen als kleine Links unter dem Raster.']],
+  ['V77', ['„Für heute“ als Kacheln (Elternkommunikation und Aufgaben & Rückläufe). Je mehr Einträge, desto kleiner und dichter die Kacheln. Bei Elternhinweisen: „Später“ = nächste Stunde erinnern, ✓ = besprochen.', 'Abstände im Stundenplan (Kursauswahl, Hinweise, Knöpfe unter dem Raster) korrigiert.']],
+  ['V76', ['Heute neu: Kopf wie eine Tagesnotiz, Stunden als Kacheln oben (laufende Stunde markiert, vergangene verblasst), darunter „Für heute“.', 'Elternhinweise unter Heute als kompakte Zeilen statt großer Karten.', 'Abstände in allen Ansichten vereinheitlicht.']],
+  ['V75', ['Kacheln auch bei Schüler:innen (Fächer, Verlauf, Beobachtungen, Eltern) und unter Mehr (Einstellungen nach Bereichen).']],
+  ['V74', ['Klassen, Klasse und Fach als Kacheln (wie Karten in Craft): jede Kachel öffnet eine eigene Seite.', 'Noten eintragen hat einen festen Weg: Noten → Fach → Leistung wählen oder neu anlegen. Im Fach steht „Noten eintragen“ als große Kachel ganz oben.', 'In jeder Stunde gibt es den Knopf „Noten eintragen“.']],
+  ['V73', ['Klassenansicht: „Fach hinzufügen“ steht jetzt in der Fächer-Karte statt als großer Knopf dazwischen; Abstände zwischen den Karten wieder gleichmäßig.', 'Aufklappbare Kartenköpfe (Fächer, Schüler:innen) sehen aus wie alle anderen Überschriften.', 'Sortierung der Schüler:innen als ruhiger Umschalter statt großer Knöpfe.', 'Neue Icons unter „Für heute“ (Liste, Wiedervorlage, Strafarbeit, Hinweis) mit Farbe je Art.', 'Farbdesign „Blau“ ist jetzt wirklich blau (vorher wurde es vom Grundstil schwarz überdeckt); der bisherige Look heißt „Neutral“.', 'Farbdesign: zusätzlich Hintergrundton (Weiß, Warm, Kühl, getönt) und „Kräftige Akzente“.']],
   ['V72', ['Sicherung (Export) ist jetzt mit AES-256 verschlüsselt; beim Import wird nach dem Sicherungspasswort gefragt.', 'Strafarbeiten: Abgabefrist beim Vergeben; am Fälligkeitstag fragt „Heute“ nach. Bei „Nicht abgegeben“ legst du einen Nachsitztermin fest und bekommst eine vorformulierte Elternnachricht.']],
   ['V71', ['Craft ist aus der App herausgenommen: keine Craft-Leiste, keine Craft-Knöpfe, keine Übertragung mehr. Beobachtungen, Förderziele und Elternkommunikation bleiben wie bisher in der App gespeichert.']],
   ['V70', ['Listen: Unten steht jetzt „Fertig“, oben „Liste abschließen“. Nach „Fertig“ zeigt die App, wie viele noch fehlen, mit dem Knopf „Eltern erinnern“.', 'Die Zahl (z. B. 3/6) in der Übersicht aktualisiert sich jetzt sofort nach dem Abhaken.']],
