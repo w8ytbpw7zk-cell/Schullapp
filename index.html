@@ -3358,7 +3358,7 @@ var TABLES = ['Klassen', 'Kurse', 'SuS', 'Stundenplan', 'Stunden', 'Mitarbeit',
               'Leistungen', 'Noten', 'Checks', 'Settings'];
 
 /* Eine einzige Stelle für die Versionsangabe (Anzeige unter „Mehr“). */
-var APP_VERSION = 'V89';
+var APP_VERSION = 'V90';
 
 /* V15: Diese Adresse ist die verbindliche Login-Adresse. */
 /* V58: Keine feste Server-Adresse mehr in der App. Sie wird über den Einladungslink/-code oder Mehr → Server gesetzt. */
@@ -8739,6 +8739,10 @@ function navWischZurueck_() { NAV_TOUCH_ZEIT_ = Date.now(); if (navZurueck()) re
 var NAV_TOUCH_ZEIT_ = 0, NAV_HIST_AN_ = false;
 function navHistoryInit_() {
   if (NAV_HIST_AN_ || !window.history || !history.pushState) return;
+  /* V90: Nicht auf iPhone/iPad – dort zeigt die Rand-Wischgeste von iOS sonst ein altes Standbild der Seite
+     (beim Start war das der Ladebildschirm mit dem Logo). Dort übernimmt die eigene Wischgeste der App. */
+  var ua = navigator.userAgent || '';
+  if (/iPhone|iPad|iPod|Android/.test(ua) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1)) return;
   NAV_HIST_AN_ = true;
   try { history.replaceState({ sa: 'basis' }, ''); history.pushState({ sa: 'app' }, ''); } catch (e) { return; }
   window.addEventListener('popstate', function () {
@@ -13102,6 +13106,7 @@ ACT['fehlerprotokoll'] = function () {
 };
 
 var AENDERUNGEN_ = [
+  ['V90', ['iPhone/iPad: Beim Wischen vom linken Rand erscheint nicht mehr kurz das Logo. Die Zurück-Anbindung an den Browser-Verlauf gilt jetzt nur noch am Computer.']],
   ['V89', ['Gesprächsmappe pro Kind (statt „Übersicht als PDF“): Noten je Fach mit Mitarbeit-Trend, Arbeitsverhalten, Beobachtungen, Förderziele, Elternkontakte und Leitfaden – auch als PDF.', 'Noten schneller eintragen: „Automatisch weiter“ nach einer fertigen Note, Fortschrittsanzeige, ↑/↓ und „Weiter“-Taste.', 'Zufallsauswahl merkt sich, wer dran war.', 'Am Mac funktioniert jetzt die Zurück-Geste (Trackpad, Magic Mouse, Maus-Zurücktaste).']],
   ['V88', ['Mehr → „Mitarbeit-Stufen“ zeigt jetzt die neuen Icons statt der alten Smileys; überall „Mitarbeits-Vorschlag“ statt „Smiley-Vorschlag“.']],
   ['V87', ['Hausaufgaben aus Craft: Was in der Tagesnotiz unter „Sonstiges“ als „HA: …“ steht, erscheint in der nächsten Stunde des Kurses als „Hausaufgabe kontrollieren“ (und als Hinweis auf der Stunden-Kachel).', 'Klassenarbeiten/Tests/Diktate aus dem Stoffverteilungsplan werden am Tag selbst automatisch als Leistung angelegt.', 'Nach „Als verschickt“ bei Elternnachrichten fragt die App, wann sie dich zum Nachhaken erinnern soll.', 'Wischgesten unter „Für heute“: rechts = besprochen/erledigt, links = später – mit Finger und Maus.', 'Eigenes App-Icon, Startbildschirm, Linien-Icons statt Emojis.']],
