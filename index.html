@@ -1792,10 +1792,11 @@ button.week-cell { cursor: pointer; font: inherit; }
   transform: rotate(180deg);
   transform-origin: center center;
 }
+/* V85: Tische NICHT zurückdrehen – sonst wären die Plätze am Tisch vertauscht (anderer Sitzplan). Nur die Schrift wird aufgerichtet. */
 .sitz-perspektive-pult .sitz-tisch,
 .sitz-perspektive-pult .sitz-tisch-edit,
 .sitz-perspektive-pult .sitz-tisch-slot {
-  transform: rotate(180deg);
+  transform: none;
 }
 .sitz-front-marker {
   display: flex;
@@ -3143,6 +3144,16 @@ input:focus,select:focus,textarea:focus{background:var(--surface)!important}
 .cp-pr{display:flex;align-items:baseline;gap:8px;flex-wrap:wrap;padding:9px 12px;border-radius:11px;background:color-mix(in srgb,#d65045 7%,var(--flaeche));font-size:13px}
 .cp-pr-dot{width:8px;height:8px;border-radius:50%;flex:none;align-self:center}
 .cp-pr span:last-child{color:var(--ink-2);font-size:12px}
+
+/* V84 */
+.craft-links{display:flex;flex-wrap:wrap;gap:6px}
+.craft-link-btn{display:inline-flex;align-items:center;gap:4px;padding:3px 9px;border:0;border-radius:8px;background:color-mix(in srgb,#9500c2 9%,var(--surface));color:var(--ink);font:inherit;font-size:13px;cursor:pointer}
+.craft-link-btn span{color:#9500c2;font-weight:700}
+@media(prefers-color-scheme:dark){.craft-link-btn span{color:#edb2ff}}
+
+/* V85: Pultsicht = derselbe Sitzplan, um 180° gedreht (Blick vom Pult in die Klasse) */
+.sitz-perspektive-pult .sitz-tisch-grid{transform:rotate(180deg)}
+.sitz-perspektive-pult .sitzplatz,.sitz-perspektive-pult .sitz-tisch-edit>*,.sitz-perspektive-pult .sitz-tisch-slot>*{transform:rotate(180deg)}
 </style>
 </head>
 <body>
@@ -3282,7 +3293,7 @@ var TABLES = ['Klassen', 'Kurse', 'SuS', 'Stundenplan', 'Stunden', 'Mitarbeit',
               'Leistungen', 'Noten', 'Checks', 'Settings'];
 
 /* Eine einzige Stelle für die Versionsangabe (Anzeige unter „Mehr“). */
-var APP_VERSION = 'V83';
+var APP_VERSION = 'V85';
 
 /* V15: Diese Adresse ist die verbindliche Login-Adresse. */
 /* V58: Keine feste Server-Adresse mehr in der App. Sie wird über den Einladungslink/-code oder Mehr → Server gesetzt. */
@@ -7887,7 +7898,24 @@ function craftNamenEntfernen_(t){
 }
 function craftTaskText_(it){return craftNamenEntfernen_(craftTaskText0_(it));}
 function craftTaskText0_(it){var name='ein Kind';if(it.typ==='vergessen')return 'Elternnachricht prüfen: '+name+' · '+it.h.punkt+' '+it.h.anzahl+'×'+(it.kurs&&it.kurs.fach?' · '+it.kurs.fach:'');if(it.typ==='positiv')return 'Positive Elternrückmeldung erwägen: '+name+(it.kurs&&it.kurs.fach?' · '+it.kurs.fach:'');if(it.typ==='liste')return 'Einsammel-Liste prüfen: '+it.a.titel+(it.offen!==undefined?' · '+it.offen+' offen':'');if(it.typ==='wiedervorlage')return 'Wiedervorlage Elternkontakt: '+name;if(it.typ==='straf')return 'Offene Strafarbeit prüfen: '+name+(it.kurs&&it.kurs.fach?' · '+it.kurs.fach:'');return it.titel||'Schulapp-Aufgabe';}
-function craftPostTasks_(items,datum){var c=craftApiConfig_();if(!craftApiUrlGueltig_(c.url))return Promise.reject(new Error('Craft-Verbindung fehlt'));var url=String(c.url).replace(/\/$/,'')+'/tasks';var tasks=items.map(function(it){return {markdown:craftTaskText_(it),taskInfo:{scheduleDate:datum},location:{type:'dailyNote',date:datum}};});return fetch(url,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({tasks:tasks})}).then(function(r){return r.text().then(function(t){var j={};try{j=t?JSON.parse(t):{};}catch(e){}if(!r.ok)throw new Error((j&&j.message)||('Craft HTTP '+r.status));return j;});});}
+/* V84: To-do als lila Callout-Aufgabe in die Tagesnotiz (wie deine anderen To-dos); Fallback: normale Aufgabe */
+var CRAFT_LILA_={color:'#9500c2',colorDark:'#edb2ff'};
+function craftJson_(path,opt){var c=craftApiConfig_();opt=opt||{};var init={method:opt.method||'GET',headers:{'Accept':'application/json'}};if(opt.body!==undefined){init.headers['Content-Type']='application/json';init.body=JSON.stringify(opt.body);}
+  return fetch(String(c.url).replace(/\/$/,'')+'/'+path,init).then(function(r){return r.text().then(function(t){var j={};try{j=t?JSON.parse(t):{};}catch(e){}if(!r.ok)throw new Error((j&&j.message)||('Craft HTTP '+r.status));return j;});});}
+function craftTodoLila_(texte,datum){
+  return craftJson_('blocks?date='+encodeURIComponent(datum)+'&maxDepth=1').then(function(j){
+    var seite=j&&j.data&&j.data[0]?j.data[0]:j;if(!seite||!seite.id)throw new Error('Tagesnotiz nicht gefunden');
+    var kids=seite.content||[],letzte=null;for(var i=0;i<kids.length;i++){if(kids[i].type==='table')break;if(kids[i].listStyle==='task'||kids[i].taskInfo)letzte=kids[i];}
+    var pos=letzte?{position:'after',siblingId:letzte.id}:{position:'start',pageId:seite.id};
+    var blocks=texte.map(function(t){return {type:'text',listStyle:'task',decorations:['callout'],color:CRAFT_LILA_.color,colorDark:CRAFT_LILA_.colorDark,taskInfo:{state:'todo',scheduleDate:datum},markdown:'<callout>- [ ] '+String(t).replace(/[<>]/g,'')+'</callout>'};});
+    return craftJson_('blocks',{method:'POST',body:{blocks:blocks,position:pos}});
+  });
+}
+function craftPostTasks_(items,datum){
+  var texte=items.map(craftTaskText_);
+  return craftTodoLila_(texte,datum).catch(function(e){try{console.warn('Craft lila fehlgeschlagen, nutze /tasks',e);}catch(x){}return craftPostTasksEinfach_(items,datum);});
+}
+function craftPostTasksEinfach_(items,datum){var c=craftApiConfig_();if(!craftApiUrlGueltig_(c.url))return Promise.reject(new Error('Craft-Verbindung fehlt'));var url=String(c.url).replace(/\/$/,'')+'/tasks';var tasks=items.map(function(it){return {markdown:craftTaskText_(it),taskInfo:{scheduleDate:datum},location:{type:'dailyNote',date:datum}};});return fetch(url,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({tasks:tasks})}).then(function(r){return r.text().then(function(t){var j={};try{j=t?JSON.parse(t):{};}catch(e){}if(!r.ok)throw new Error((j&&j.message)||('Craft HTTP '+r.status));return j;});});}
 var craftAutoBusy_=false;
 function craftSyncInbox_(datum,onlyKey,silent){
   if(!craftAn_())return Promise.reject(new Error('Craft ist ausgeschaltet'));
@@ -9108,7 +9136,7 @@ VIEWS.stunde = {
       '<div class="prop-row"><span class="prop-k">Stunde</span><span class="prop-v">' + spanne + (st.entfaellt === '1' ? ' · <b>entfällt</b>' : (st.entfaellt === '2' ? ' · <b>wird vertreten</b>' : '')) + '</span></div>' +
       (kN ? '<div class="prop-row"><span class="prop-k">Kurs</span><span class="prop-v">' + A.esc(kN) + '</span></div>' : '') +
       (st.notiz ? '<div class="prop-row"><span class="prop-k">Notiz</span><span class="prop-v">' + A.esc(st.notiz) + '</span></div>' : '') +
-      (kurs && craftTagInhalt_(p.datum, kurs, p.stunde, p.bis) ? '<div class="prop-row"><span class="prop-k">Inhalt</span><span class="prop-v">' + A.esc(craftTagInhalt_(p.datum, kurs, p.stunde, p.bis)) + ' <span class="craft-tag">Craft</span></span></div>' : '') +
+      (kurs && craftTagLinks_(p.datum, kurs, p.stunde, p.bis).length ? '<div class="prop-row"><span class="prop-k">Inhalt</span><span class="prop-v craft-links">' + craftTagLinks_(p.datum, kurs, p.stunde, p.bis).map(function (x) { return x.block ? '<button class="craft-link-btn" data-act="craft-stunde-oeffnen" data-block="' + A.esc(x.block) + '">' + A.esc(x.text) + ' <span>↗</span></button>' : '<span>' + A.esc(x.text) + '</span>'; }).join('') + '</span></div>' : '') +
       '</div>';
 
     if (!kurs) return h + card('', empty('👥', 'Zu dieser Stunde ist kein Kurs hinterlegt.'));
@@ -9331,7 +9359,7 @@ VIEWS.klassen = {
       return kachel_({ act: 'open-klasse', data: { klasse: k.id }, icon: 'users', titel: k.name,
         farbe: kurse.length ? A.kursFarbe(kurse[0]) : '',
         info: sus.length + ' Schüler:innen · ' + kurse.length + (kurse.length === 1 ? ' Fach' : ' Fächer'),
-        badge: ls.offen ? ls.offen + ' offen' : '', badgeWarn: ls.ueber > 0 });
+        badge: ls.listen ? ls.listen + (ls.listen === 1 ? ' Liste offen' : ' Listen offen') : '', badgeWarn: ls.ueber > 0 });
     }).join('') + kachel_({ act: 'neue-klasse', icon: 'plus', titel: 'Klasse anlegen', leer: true }));
 
     var arch = A.klassen(true).filter(function (k) { return String(k.archiviert) === '1'; });
@@ -9377,7 +9405,7 @@ VIEWS.klasse = {
         kachel_({ act: 'klasse-bereich', data: { klasse: k.id, b: 'sus' }, icon: 'users', titel: 'Schüler:innen', info: sus.length + ' in der Klasse' }) +
         kachel_({ act: 'klasse-bereich', data: { klasse: k.id, b: 'listen' }, icon: 'liste', titel: 'Listen & Abgaben',
           info: ls.listen ? ls.listen + ' Liste' + (ls.listen === 1 ? '' : 'n') : 'keine offenen Listen',
-          badge: ls.offen ? ls.offen + ' offen' : '', badgeWarn: ls.ueber > 0 }) +
+          badge: ls.listen ? ls.listen + (ls.listen === 1 ? ' Liste offen' : ' Listen offen') : '', badgeWarn: ls.ueber > 0 }) +
         kachel_({ act: 'klasse-bereich', data: { klasse: k.id, b: 'eltern' }, icon: 'eltern', titel: 'Eltern',
           info: komm.length ? komm.length + ' Hinweis' + (komm.length === 1 ? '' : 'e') : 'nichts offen', badge: komm.length ? String(komm.length) : '' }) +
         kachel_({ act: 'open-sitzplan', data: { klasse: k.id }, icon: 'sitzplan', titel: 'Sitzplan', info: sitzI.tische + ' Tische · ' + sitzI.plaetze + ' Plätze' }) +
@@ -9640,17 +9668,25 @@ function craftTagInhalt_(datum,kurs,von,bis){
   var cache=craftPlanCache_(),md=VORSCHAU_AKTIV?(datum===A.todayISO()?CRAFT_TAG_DEMO_:''):(cache.tage&&cache.tage[datum]&&cache.tage[datum].md);
   return craftTagParse_(md,kurs,von,bis);
 }
-function craftTagParse_(md,kurs,von,bis){
+function craftBlockLink_(id){var c=craftApiConfig_(),sp=String(c.spaceId||'f93a0edb-2be8-2c7e-1bab-a210264fec93');return id?'craftdocs://open?spaceId='+encodeURIComponent(sp)+'&blockId='+encodeURIComponent(id):'';}
+function craftTagLinks_(datum,kurs,von,bis){
+  var cache=craftPlanCache_(),md=VORSCHAU_AKTIV?(datum===A.todayISO()?CRAFT_TAG_DEMO_:''):(cache.tage&&cache.tage[datum]&&cache.tage[datum].md);
+  if(!md||!kurs)return [];
+  var roh=craftTagParse_(md,kurs,von,bis,true);return roh||[];
+}
+function craftTagParse_(md,kurs,von,bis,mitLinks){
   if(!md||!kurs)return '';
   var t=craftTabellen_(md).filter(function(t){return t.kopf.some(function(h){return /stunde/i.test(h);})&&t.kopf.some(function(h){return /inhalt/i.test(h);});})[0];
-  if(!t)return '';
+  if(!t)return mitLinks?[]:'';
   var is=t.kopf.findIndex(function(h){return /stunde/i.test(h);}),ii=t.kopf.findIndex(function(h){return /inhalt/i.test(h);});
   var kl=A.klasseVonKurs(kurs),kn=kl?String(kl.name).replace(/\s+/g,'').toLowerCase():'',fb=craftFachNorm_(kurs.fach);
   var out=[];
   /* 1. Zeile = Stunde, falls die Zeile zur Klasse passt; sonst alle Zeilen mit Klasse + Fach-Kürzel */
-  for(var n=Number(von);n<=Number(bis||von);n++){var z=t.zeilen[n-1];if(z&&String(z[is]||'').replace(/\s+/g,'').toLowerCase().indexOf(kn)===0){var x=craftMdText_(z[ii]||'');if(x&&out.indexOf(x)<0)out.push(x);}}
-  if(!out.length)t.zeilen.forEach(function(z){var c=String(z[is]||'').trim(),cn=c.replace(/\s+/g,'').toLowerCase();if(cn.indexOf(kn)!==0)return;var rest=craftFachNorm_(c.replace(/^\s*\S+\s*/,''));if(rest&&fb.indexOf(rest)!==0&&rest.indexOf(fb)!==0)return;var x=craftMdText_(z[ii]||'');if(x&&out.indexOf(x)<0)out.push(x);});
-  return out.join(' · ');
+  var roh=[];
+  function nimm(z){var x=craftMdText_(z[ii]||'');if(!x||out.indexOf(x)>=0)return;out.push(x);var lm=String(z[ii]||'').match(/\]\(block:\/\/([0-9A-Za-z-]+)\)/);roh.push({text:x,block:lm?lm[1]:''});}
+  for(var n=Number(von);n<=Number(bis||von);n++){var z=t.zeilen[n-1];if(z&&String(z[is]||'').replace(/\s+/g,'').toLowerCase().indexOf(kn)===0)nimm(z);}
+  if(!out.length)t.zeilen.forEach(function(z){var c=String(z[is]||'').trim(),cn=c.replace(/\s+/g,'').toLowerCase();if(cn.indexOf(kn)!==0)return;var rest=craftFachNorm_(c.replace(/^\s*\S+\s*/,''));if(rest&&fb.indexOf(rest)!==0&&rest.indexOf(fb)!==0)return;nimm(z);});
+  return mitLinks?roh:out.join(' · ');
 }
 
 /* --- Laden (gedrosselt) --- */
@@ -9921,26 +9957,33 @@ VIEWS.sus = {
 /* ====================================================================== */
 
 VIEWS.noten = {
-  title: function () { return 'Noten'; },
+  title: function (p) { var k = p && p.klasse ? A.byId('Klassen', p.klasse) : null; return k ? 'Noten · ' + k.name : 'Noten'; },
   actions: function () { return '<button class="icon-btn" data-act="leistung-neu">＋</button>'; },
-  body: function () {
+  body: function (p) {
     var kurse = A.alleKurse();
     if (!kurse.length) {
       return card('', empty('📊', 'Noch kein Fach angelegt.')) +
         '<button class="btn primary block" data-act="neue-klasse">Klasse anlegen</button>';
     }
-
-    var h = '';
+    /* V84: erst die Klasse, dann das Fach */
+    var kl = p && p.klasse ? A.byId('Klassen', p.klasse) : null;
+    if (kl) {
+      return kachelGrid_('', A.kurseDerKlasse(kl.id).map(function (kurs) {
+        var st = kursNotenStat_(kurs);
+        return kachel_({ act: 'kurs-bereich', data: { kurs: kurs.id, b: 'noten' }, icon: 'noten', titel: kurs.fach || 'ohne Fach', farbe: A.kursFarbe(kurs),
+          info: (st.schnitt === null ? 'noch keine Noten' : 'Ø ' + A.fmtNote(st.schnitt)) + ' · ' + st.leistungen + ' Leistung' + (st.leistungen === 1 ? '' : 'en'),
+          badge: st.offen ? st.offen + ' Noten offen' : '' });
+      }).join(''));
+    }
     var std = A.standardKlasseId();
-    var sortiert = kurse.slice().sort(function (a, b) { return (b.klasseId === std) - (a.klasseId === std); });
-    h += '<div class="small muted noten-hinweis">Fach wählen → Leistung wählen oder neu anlegen → Noten eintragen.</div>';
-    h += kachelGrid_('', sortiert.map(function (kurs) {
-      var st = kursNotenStat_(kurs);
-      return kachel_({ act: 'kurs-bereich', data: { kurs: kurs.id, b: 'noten' }, icon: 'noten', titel: A.kursLabel(kurs), farbe: A.kursFarbe(kurs),
-        info: (st.schnitt === null ? 'noch keine Noten' : 'Ø ' + A.fmtNote(st.schnitt)) + ' · ' + st.leistungen + ' Leistung' + (st.leistungen === 1 ? '' : 'en'),
-        badge: st.offen ? st.offen + ' offen' : '' });
-    }).join(''));
-    return h;
+    var ks = A.klassen().slice().sort(function (a, b) { return (b.id === std) - (a.id === std); });
+    return '<div class="small muted noten-hinweis">Klasse → Fach → Leistung wählen oder neu anlegen.</div>' +
+      kachelGrid_('', ks.filter(function (k) { return A.kurseDerKlasse(k.id).length; }).map(function (k) {
+        var kk = A.kurseDerKlasse(k.id), offen = 0;
+        kk.forEach(function (ku) { offen += kursNotenStat_(ku).offen; });
+        return kachel_({ act: 'noten-klasse', data: { klasse: k.id }, icon: 'users', titel: k.name, farbe: A.kursFarbe(kk[0]),
+          info: kk.map(function (ku) { return ku.fach; }).join(' · '), badge: offen ? offen + ' Noten offen' : '' });
+      }).join(''));
   }
 };
 
@@ -11117,6 +11160,8 @@ ACT['open-klasse'] = function (el) { push('klasse', { id: el.getAttribute('data-
 ACT['open-kurs'] = function (el) { push('kurs', { id: el.getAttribute('data-kurs') }); };
 ACT['plan-alle'] = function () { ui.planAlle = !ui.planAlle; render(); };
 ACT['tag-heute'] = function () { ui.datum = A.todayISO(); render(); };
+ACT['noten-klasse'] = function (el) { push('noten', { klasse: el.getAttribute('data-klasse') }); };
+ACT['craft-stunde-oeffnen'] = function (el) { var u = craftBlockLink_(el.getAttribute('data-block')); if (u) window.location.href = u; };
 ACT['sus-bereich'] = function (el) { push('sus', { id: el.getAttribute('data-sus'), b: el.getAttribute('data-b') }); };
 ACT['mehr-bereich'] = function (el) { push('mehr', { b: el.getAttribute('data-b') }); };
 ACT['kurs-bereich'] = function (el) { push('kurs', { id: el.getAttribute('data-kurs'), b: el.getAttribute('data-b') }); };
@@ -11450,7 +11495,9 @@ function sitzplanPdfBlob_(klasseId) {
     var seatY = y + (tableH - seatH) / 2;
 
     for (var i = 0; i < n; i++) {
-      var seatX = x + pad + i * (seatW + seatGap);
+      /* V85: In der Pultsicht ist der ganze Raum um 180° gedreht – auch die Plätze am Tisch */
+      var pos = perspektive === 'pult' ? (n - 1 - i) : i;
+      var seatX = x + pad + pos * (seatW + seatGap);
       var sid = seats[i];
       var sus = sid ? A.byId('SuS', sid) : null;
       var name = sus ? A.susName(sus, 'vorname') : '';
@@ -12768,6 +12815,8 @@ ACT['fehlerprotokoll'] = function () {
 };
 
 var AENDERUNGEN_ = [
+  ['V85', ['Sitzplan: Pultsicht zeigt jetzt genau dieselbe Sitzordnung wie die Tafelansicht, nur um 180° gedreht (vorderste Reihe unten, links und rechts getauscht – so wie du vom Pult aus in die Klasse schaust). Gilt auch fürs PDF.']],
+  ['V84', ['To-dos landen in Craft als lila Aufgaben-Block, direkt unter deinen anderen Aufgaben der Tagesnotiz.', 'In der Stunde öffnet ein Tipp auf den Inhalt die Stundenseite direkt in Craft.', 'Noten: erst Klasse, dann Fach.', 'Klassen-Kacheln zeigen „2 Listen offen“ statt der Zahl fehlender Abgaben.']],
   ['V83', ['Craft wird gelesen: Die Unterrichtsreihe kommt aus deinem Stoffverteilungsplan (Einheit, Lernnachweis, heute und nächstes Mal). Die Stunden-Kacheln zeigen den Inhalt aus der Tabelle deiner Tagesnotiz. Anstehende Klassenarbeiten/Tests erscheinen unter Heute.', 'Einrichtung unter Mehr → App → Craft-Verbindung.']],
   ['V82', ['To-dos gibt es nur noch in Craft: ＋ → To-do schreibt direkt in die Craft-Tagesnotiz. In der Schulapp werden keine To-dos mehr angelegt oder angezeigt (alte bleiben gespeichert, sind aber ausgeblendet).', '„Liste anlegen“ legt nur noch Einsammel-Listen an.']],
   ['V81', ['Schnelles To-do (＋ unten rechts) kann zusätzlich als Aufgabe in die Craft-Tagesnotiz geschrieben werden – am Tag der Frist, sonst heute. Namen von Kindern werden vorher entfernt. Auch To-dos ohne Fach (nur Craft) möglich.', 'Craft-Verbindung unter Mehr → App.', 'Einsammellisten: drei Kinder nebeneinander (iPad/Mac vier), abgehakt grün – weniger Scrollen.']],
