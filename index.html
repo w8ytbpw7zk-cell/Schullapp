@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="theme-color" content="#1f2a44" media="(prefers-color-scheme: dark)">
-<meta name="theme-color" content="#f5f6fa" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#121212" media="(prefers-color-scheme: dark)">
+<meta name="theme-color" content="#ffffff" media="(prefers-color-scheme: light)">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="Schulapp">
@@ -13,7 +13,7 @@
 <title>Schulapp</title>
 <!-- Schulapp V55 – Sitzregel-Fenster mit Prioritätsmenü (V54: Sitzregel „nicht neben“ auch vor/hinter (V53: Sitzplan: Konflikte und Prioritäten (V52: Elternkommunikation als Blöcke pro Kind, Klassen/Fächer einklappbar (V51: Heute neu geordnet, Sicherungs-Hinweise, Kind-Übersicht als PDF (V50: Gerätespeicher, Papierkorb) -->
 <link rel="manifest" href="manifest.webmanifest">
-<link rel="apple-touch-icon" href="./icon-192.png">
+<link rel="apple-touch-icon" href="./icon-180.png">
 <link rel="icon" type="image/png" sizes="192x192" href="./icon-192.png">
 <style>
 /* =====================================================================
@@ -3154,9 +3154,43 @@ input:focus,select:focus,textarea:focus{background:var(--surface)!important}
 /* V85: Pultsicht = derselbe Sitzplan, um 180° gedreht (Blick vom Pult in die Klasse) */
 .sitz-perspektive-pult .sitz-tisch-grid{transform:rotate(180deg)}
 .sitz-perspektive-pult .sitzplatz,.sitz-perspektive-pult .sitz-tisch-edit>*,.sitz-perspektive-pult .sitz-tisch-slot>*{transform:rotate(180deg)}
+
+/* V87 */
+.empty-ico{display:inline-flex!important;align-items:center;justify-content:center;width:52px;height:52px;border-radius:16px;background:var(--flaeche);color:var(--ink-3);margin-bottom:10px}
+.empty-ico svg{width:24px;height:24px}
+.mit-notiz-ico svg{width:11px;height:11px;vertical-align:-1px}
+.icon-btn svg{width:20px;height:20px}
+
+/* V87: Startbildschirm + Ladering */
+#startSplash{position:fixed;inset:0;z-index:99999;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;background:#fff;transition:opacity .4s ease}
+#startSplash.weg{opacity:0;pointer-events:none}
+#startSplash .splash-ico{width:84px;height:84px;filter:drop-shadow(0 10px 24px rgba(90,70,220,.28));animation:splashPop .5s ease-out}
+#startSplash .splash-ico svg{width:100%;height:100%}
+#startSplash .splash-name{font:600 17px/1 -apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;letter-spacing:-.01em;color:#2a2a2e}
+@keyframes splashPop{from{transform:scale(.86);opacity:0}to{transform:none;opacity:1}}
+@media(prefers-color-scheme:dark){#startSplash{background:#121212}#startSplash .splash-name{color:#eee}}
+.spin-ring{display:inline-block;width:14px;height:14px;border:2px solid currentColor;border-right-color:transparent;border-radius:50%;animation:spin .8s linear infinite;vertical-align:-2px}
+
+/* V87: HA-Kontrolle */
+.ha-kontrolle{display:flex;align-items:center;gap:12px;margin:0 0 var(--gap-sektion);padding:12px 14px;border-radius:var(--r,13px);background:color-mix(in srgb,#9500c2 8%,var(--surface))}
+.ha-kontrolle .ha-ico{display:flex;align-items:center;justify-content:center;flex:none;width:32px;height:32px;border-radius:10px;background:#9500c2;color:#fff}
+.ha-kontrolle b{display:block;font-size:14px}
+.ha-kontrolle span{font-size:12.5px;color:var(--ink-2)}
+.lk-flag.ha{background:color-mix(in srgb,#9500c2 12%,var(--surface));color:#7a00a0}
+@media(prefers-color-scheme:dark){.lk-flag.ha{color:#edb2ff}}
+/* V87: Wischen (Finger und Maus) */
+.task-list.kacheln .today-task[data-wisch]{touch-action:pan-y;user-select:none;-webkit-user-select:none;position:relative;transition:transform .18s ease,opacity .18s ease,background .15s}
+.task-list.kacheln .today-task.wischt{transition:none;cursor:grabbing}
+.task-list.kacheln .today-task.wisch-r{background:color-mix(in srgb,#1f9d6b 18%,var(--surface))!important}
+.task-list.kacheln .today-task.wisch-l{background:color-mix(in srgb,#d98a2b 18%,var(--surface))!important}
+.task-list.kacheln .today-task[data-wisch-label]::after{content:attr(data-wisch-label);position:absolute;top:10px;right:12px;font-size:11px;font-weight:700;padding:2px 8px;border-radius:20px;background:var(--surface);color:var(--ink)}
+.task-list.kacheln .today-task.weg{opacity:0}
+.wisch-tipp{font-size:11.5px;color:var(--ink-3);margin:-2px 2px 8px}
 </style>
 </head>
 <body>
+<div id="startSplash" aria-hidden="true"><div class="splash-ico"><svg viewBox="0 0 100 100"><defs><linearGradient id="sg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#4a63e8"/><stop offset="1" stop-color="#7c4dd6"/></linearGradient></defs><rect width="100" height="100" rx="23" fill="url(#sg)"/><rect x="23" y="23" width="24" height="24" rx="7" fill="#fff"/><rect x="53" y="23" width="24" height="24" rx="7" fill="#fff" opacity=".35"/><rect x="23" y="53" width="24" height="24" rx="7" fill="#fff"/><rect x="53" y="53" width="24" height="24" rx="7" fill="#fff"/><path d="M29 35l4 4 8-8" stroke="#4a63e8" stroke-width="3.4" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg></div><div class="splash-name">Schulapp</div></div>
+<script>(function(){var t0=Date.now();function weg(){var e=document.getElementById('startSplash');if(!e||e.classList.contains('weg'))return;var w=Math.max(0,450-(Date.now()-t0));setTimeout(function(){e.classList.add('weg');setTimeout(function(){if(e.parentNode)e.parentNode.removeChild(e);},420);},w);}window.__splashWeg=weg;window.addEventListener('load',function(){setTimeout(weg,900);});})();</script>
 
 
 <div id="authGate" class="auth-gate hidden">
@@ -3170,7 +3204,7 @@ input:focus,select:focus,textarea:focus{background:var(--surface)!important}
       <div class="field"><label>Passwort</label><input id="loginPassword" type="password" autocomplete="current-password" required></div>
       <label class="auth-check"><input id="loginRemember" type="checkbox" checked> Eingeloggt bleiben</label>
       <button class="btn primary block" type="submit" data-busy-text="Anmeldung läuft …">Anmelden</button>
-      <button class="btn block" type="button" id="bioLoginBtn" hidden style="margin-top:9px">🔐 Mit Face ID / Touch ID anmelden</button>
+      <button class="btn block" type="button" id="bioLoginBtn" hidden style="margin-top:9px">Mit Face ID / Touch ID anmelden</button>
       <button class="btn block" type="button" id="offlineOpenBtn" hidden style="margin-top:9px">Ohne Server öffnen (Daten dieses Geräts)</button>
       <div class="auth-switch"><button type="button" id="showReset">Passwort vergessen?</button></div>
       <div class="auth-switch">Noch kein Konto? <button type="button" id="showRegister">Konto erstellen</button></div>
@@ -3293,7 +3327,7 @@ var TABLES = ['Klassen', 'Kurse', 'SuS', 'Stundenplan', 'Stunden', 'Mitarbeit',
               'Leistungen', 'Noten', 'Checks', 'Settings'];
 
 /* Eine einzige Stelle für die Versionsangabe (Anzeige unter „Mehr“). */
-var APP_VERSION = 'V86';
+var APP_VERSION = 'V87';
 
 /* V15: Diese Adresse ist die verbindliche Login-Adresse. */
 /* V58: Keine feste Server-Adresse mehr in der App. Sie wird über den Einladungslink/-code oder Mehr → Server gesetzt. */
@@ -6460,6 +6494,11 @@ var ICON_PFADE_ = {
   regler: '<path d="M4 21v-7"/><path d="M4 10V3"/><path d="M12 21v-9"/><path d="M12 8V3"/><path d="M20 21v-5"/><path d="M20 12V3"/><path d="M2 14h4"/><path d="M10 8h4"/><path d="M18 16h4"/>',
   reihe: '<path d="M8 6h13"/><path d="M8 12h13"/><path d="M8 18h13"/><path d="M3 6h.01"/><path d="M3 12h.01"/><path d="M3 18h.01"/>',
   plus: '<path d="M12 5v14"/><path d="M5 12h14"/>',
+  kalender: '<rect width="18" height="18" x="3" y="4" rx="2"/><path d="M16 2v4"/><path d="M8 2v4"/><path d="M3 10h18"/>',
+  papierkorb: '<path d="M3 6h18"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>',
+  uhr: '<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
+  tisch: '<rect width="18" height="7" x="3" y="8" rx="2"/><path d="M6 15v5"/><path d="M18 15v5"/>',
+  sprechblase: '<path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z"/>',
   wuerfel: '<rect width="12" height="12" x="2" y="10" rx="2"/><path d="m17.92 14 3.5-3.5a2.24 2.24 0 0 0 0-3l-5-4.92a2.24 2.24 0 0 0-3 0L10 6"/><path d="M6 18h.01"/><path d="M10 14h.01"/><path d="M15 6h.01"/><path d="M18 9h.01"/>',
   puzzle: '<path d="M15.39 4.39a1 1 0 0 0 1.68-.474 2.5 2.5 0 1 1 3.014 3.015 1 1 0 0 0-.474 1.68l1.683 1.682a2.414 2.414 0 0 1 0 3.414L19.61 15.39a1 1 0 0 1-1.68-.474 2.5 2.5 0 1 0-3.014 3.015 1 1 0 0 1 .474 1.68l-1.683 1.682a2.414 2.414 0 0 1-3.414 0L8.61 19.61a1 1 0 0 0-1.68.474 2.5 2.5 0 1 1-3.014-3.015 1 1 0 0 0 .474-1.68l-1.683-1.682a2.414 2.414 0 0 1 0-3.414L4.39 8.61a1 1 0 0 1 1.68.474 2.5 2.5 0 1 0 3.014-3.015 1 1 0 0 1-.474-1.68l1.683-1.682a2.414 2.414 0 0 1 3.414 0z"/>',
   datei: '<path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z"/><path d="M14 2v4a2 2 0 0 0 2 2h4"/><path d="M12 18v-6"/><path d="m9 15 3 3 3-3"/>',
@@ -6644,7 +6683,7 @@ function hideAuth() { authGate.classList.add('hidden'); }
 function authStatus(text, working) {
   authError.classList.toggle('working', !!working);
   if (working && text) {
-    authError.innerHTML = '<span class="auth-loading"><span class="auth-gear" aria-hidden="true">⚙</span><span>' + A.esc(text) + '</span></span>';
+    authError.innerHTML = '<span class="auth-loading"><span class="auth-gear spin-ring" aria-hidden="true"></span><span>' + A.esc(text) + '</span></span>';
   } else {
     authError.textContent = text || '';
   }
@@ -6657,7 +6696,7 @@ function authBusy(form, busy) {
   if (busy) {
     if (!submit.getAttribute('data-idle-html')) submit.setAttribute('data-idle-html', submit.innerHTML);
     var busyText = submit.getAttribute('data-busy-text') || 'Bitte warten …';
-    submit.innerHTML = '<span class="btn-gear" aria-hidden="true">⚙</span>' + A.esc(busyText);
+    submit.innerHTML = '<span class="btn-gear spin-ring" aria-hidden="true"></span>' + A.esc(busyText);
     submit.setAttribute('aria-busy', 'true');
   } else {
     var idle = submit.getAttribute('data-idle-html');
@@ -7401,10 +7440,10 @@ function planKursHinweis(kursId, bezugsdatum) {
   var offen = aufgabenOffen(kursId).filter(function (a) { return a.frist; });
   if (!offen.length) return null;
   var ueber = offen.filter(function (a) { return a.frist < datum; });
-  if (ueber.length) return { cls: 'bad', text: '📋 überfällig', frist: ueber[0].frist };
+  if (ueber.length) return { cls: 'bad', text: 'überfällig', frist: ueber[0].frist };
   var baldBis = A.addDays(datum, 7);
   var bald = offen.filter(function (a) { return a.frist >= datum && a.frist <= baldBis; })[0];
-  if (bald) return { cls: 'warn', text: '📋 ' + A.fmtDateShort(bald.frist), frist: bald.frist };
+  if (bald) return { cls: 'warn', text: 'bis ' + A.fmtDateShort(bald.frist), frist: bald.frist };
   return null;
 }
 
@@ -7822,8 +7861,24 @@ function elternNachrichtOeffnen(susId, preset) {
       else if(g.typ==='positiv'){elternVorgangSet_(g,'verschickt',editor.value);}
       else{var hist=elternVerlauf_();var hr={id:A.uid('kom'),susId:susId,kursId:g.kursId||'',zeit:new Date().toISOString(),status:'verschickt',anlass:elternGrundLabel_(g),typ:g.typ||'preset',notiz:editor.value||''};hist.push(hr);A.setCfg('elternVerlauf',hist.slice(-500));craftKarteiAutoKommunikation_(hr);}
       close();render();window.toast('Als verschickt gespeichert');
+      setTimeout(function(){wiedervorlageNachNachricht_(susId,g);},250);
     });
   }});
+}
+/* V87: Nach einer Elternnachricht fragen, ob/wann nachgehakt werden soll */
+function wiedervorlageNachNachricht_(susId,g){
+  var sus=A.byId('SuS',susId);if(!sus)return;
+  Modal.form({title:'Nachhaken?',hinweis:'Soll „Für heute“ dich an '+A.susName(sus)+' erinnern, um zu prüfen, ob sich etwas getan hat?',
+    fields:[{key:'wann',label:'Erinnern',type:'select',value:'7',options:[{value:'',label:'Nein, nicht nachhaken'},{value:'3',label:'In 3 Tagen'},{value:'7',label:'In einer Woche'},{value:'14',label:'In zwei Wochen'},{value:'28',label:'In vier Wochen'}]}],
+    onSave:function(v){
+      if(!v.wann){return;}
+      var datum=A.addDays(A.todayISO(),Number(v.wann)),hist=elternVerlauf_(),jetzt=Date.now(),rec=null;
+      for(var i=hist.length-1;i>=0;i--){if(hist[i].susId===susId&&jetzt-new Date(hist[i].zeit||0).getTime()<5*60000){rec=hist[i];break;}}
+      if(!rec){rec={id:A.uid('kom'),susId:susId,kursId:(g&&g.kursId)||'',zeit:new Date().toISOString(),status:'verschickt',anlass:(g?elternGrundLabel_(g):'Elternnachricht'),typ:(g&&g.typ)||'preset',notiz:''};hist.push(rec);}
+      rec.wiedervorlage=datum;rec.wvErledigt='';
+      A.setCfg('elternVerlauf',hist.slice(-500));render();
+      window.toast('Wiedervorlage am '+A.fmtDateShort(datum));
+    }});
 }
 
 function zeigeElternSchwellenHinweis(h, straf) {
@@ -8212,7 +8267,7 @@ function inboxHTML(datum){
     var reason=positiv?'Positive Rückmeldung':(h.punkt||'Material')+' fehlt '+h.anzahl+'×';
     var attrs=' data-sus="'+h.susId+'" data-kurs="'+h.kursId+'"'+(positiv?'':' data-punkt="'+A.esc(h.punkt)+'" data-anzahl="'+h.anzahl+'"');
     var pre=positiv?'positiv':'eltern';
-    return '<div class="today-task'+(positiv?' ist-positiv':'')+'"><button class="inbox-open" data-act="open-sus" data-sus="'+A.esc(h.susId)+'"><div class="inbox-icon '+(positiv?'ic-positiv':'ic-eltern')+'">'+ICON_('eltern')+'</div><div class="inbox-main"><b>'+A.esc(name)+klasseChip_(sus)+'</b><span>'+A.esc((fach?fach+' · ':'')+reason+(last?' · '+last:''))+'</span></div></button>'+
+    return '<div class="today-task'+(positiv?' ist-positiv':'')+'" data-wisch="1"><button class="inbox-open" data-act="open-sus" data-sus="'+A.esc(h.susId)+'"><div class="inbox-icon '+(positiv?'ic-positiv':'ic-eltern')+'">'+ICON_('eltern')+'</div><div class="inbox-main"><b>'+A.esc(name)+klasseChip_(sus)+'</b><span>'+A.esc((fach?fach+' · ':'')+reason+(last?' · '+last:''))+'</span></div></button>'+
       '<div class="today-task-actions"><button class="btn small primary" data-act="'+pre+'-nachricht"'+attrs+'>Nachricht</button>'+
       '<button class="btn small ghost" data-act="'+pre+'-spaeter"'+attrs+' title="Nächste Stunde erinnern">Später</button>'+
       (positiv?'<button class="btn small ghost" data-act="positiv-ausblenden"'+attrs+' title="Ausblenden">✕</button>':'<button class="btn small ghost" data-act="eltern-besprochen"'+attrs+' title="Besprochen">✓</button>')+'</div></div>';
@@ -8232,12 +8287,12 @@ function inboxHTML(datum){
   }
   function taskRow(it){
     if(it.typ==='liste')return '<div class="today-task"><button class="inbox-open" data-act="aufgabe-open" data-aufgabe="'+A.esc(it.a.id)+'"><div class="inbox-icon ic-liste">'+ICON_('liste')+'</div><div class="inbox-main"><b>'+A.esc(it.titel)+'</b><span>'+A.esc(it.sub)+(it.offen!==undefined?' · '+it.offen+' offen':'')+'</span></div><div class="chev">›</div></button><div class="today-task-actions">'+(it.offen>0?'<button class="btn small" data-act="eltern-erinnern" data-aufgabe="'+A.esc(it.a.id)+'">Eltern erinnern</button>':'')+'</div></div>';
-    if(it.typ==='wiedervorlage')return '<div class="today-task"><button class="inbox-open" data-act="open-sus" data-sus="'+it.sus.id+'"><div class="inbox-icon ic-wv">'+ICON_('wv')+'</div><div class="inbox-main"><b>'+A.esc(it.titel)+klasseChip_(it.sus)+'</b>'+'<span>'+A.esc(it.sub)+'</span></div><div class="chev">›</div></button><div class="today-task-actions"><button class="btn small" data-act="wv-erledigt" data-id="'+A.esc(it.wv.id)+'">Erledigt</button></div></div>';
-    if(it.typ==='straf')return '<div class="today-task t-straf'+(it.faellig?' faellig':'')+'"><button class="inbox-open" data-act="open-sus" data-sus="'+it.sus.id+'"><div class="inbox-icon ic-straf'+(it.faellig?' faellig':'')+'">'+ICON_('straf')+'</div><div class="inbox-main"><b>'+A.esc(it.titel)+klasseChip_(it.sus)+'</b>'+'<span>'+A.esc(it.sub)+'</span></div><div class="chev">›</div></button><div class="today-task-actions">'+(it.faellig?'<button class="btn small" data-act="straf-erledigt" data-straf-id="'+A.esc(it.x.aufgabe.id)+'">Abgegeben ✓</button>'+(it.x.aufgabe.nachsitzen?'':'<button class="btn small" data-act="straf-nachsitzen" data-straf-id="'+A.esc(it.x.aufgabe.id)+'">Nicht abgegeben</button>'):'')+'</div></div>';
+    if(it.typ==='wiedervorlage')return '<div class="today-task" data-wisch="1"><button class="inbox-open" data-act="open-sus" data-sus="'+it.sus.id+'"><div class="inbox-icon ic-wv">'+ICON_('wv')+'</div><div class="inbox-main"><b>'+A.esc(it.titel)+klasseChip_(it.sus)+'</b>'+'<span>'+A.esc(it.sub)+'</span></div><div class="chev">›</div></button><div class="today-task-actions"><button class="btn small" data-act="wv-erledigt" data-id="'+A.esc(it.wv.id)+'">Erledigt</button></div></div>';
+    if(it.typ==='straf')return '<div class="today-task t-straf'+(it.faellig?' faellig':'')+'"'+(it.faellig?' data-wisch="1"':'')+'><button class="inbox-open" data-act="open-sus" data-sus="'+it.sus.id+'"><div class="inbox-icon ic-straf'+(it.faellig?' faellig':'')+'">'+ICON_('straf')+'</div><div class="inbox-main"><b>'+A.esc(it.titel)+klasseChip_(it.sus)+'</b>'+'<span>'+A.esc(it.sub)+'</span></div><div class="chev">›</div></button><div class="today-task-actions">'+(it.faellig?'<button class="btn small" data-act="straf-erledigt" data-straf-id="'+A.esc(it.x.aufgabe.id)+'">Abgegeben ✓</button>'+(it.x.aufgabe.nachsitzen?'':'<button class="btn small" data-act="straf-nachsitzen" data-straf-id="'+A.esc(it.x.aufgabe.id)+'">Nicht abgegeben</button>'):'')+'</div></div>';
     return '<div class="today-task t-hinweis"><button class="inbox-open" data-act="open-sus" data-sus="'+it.sus.id+'"><div class="inbox-icon ic-hinweis">'+ICON_('hinweis')+'</div><div class="inbox-main"><b>'+A.esc(it.titel)+klasseChip_(it.sus)+'</b>'+'<span>'+A.esc(it.sub)+'</span></div><div class="chev">›</div></button></div>';
   }
   var elternKopf='<div class="today-section-head"><div class="today-section-title"><h3>Elternkommunikation</h3><span class="today-count">'+eltern.length+'</span></div><button class="btn small" style="white-space:nowrap;flex-shrink:0" data-act="eltern-generator">＋ Nachricht</button></div>';
-  var elternSection=zuWrap_('heute.eltern',true,elternKopf,eltern.length?'<div class="task-list kacheln '+kachelDichte_(eltern.length)+'">'+elternGruppiert(eltern)+'</div>':'<div class="inbox-empty">Heute ist keine Elternkommunikation offen.</div>','today-section');
+  var elternSection=zuWrap_('heute.eltern',true,elternKopf,eltern.length?(A.LS.get('wischTippGesehen',0)<3?'<div class="wisch-tipp">Tipp: Kachel nach rechts wischen = besprochen, nach links = später (geht auch mit der Maus).</div>':'')+'<div class="task-list kacheln '+kachelDichte_(eltern.length)+'">'+elternGruppiert(eltern)+'</div>':'<div class="inbox-empty">Heute ist keine Elternkommunikation offen.</div>','today-section');
   var taskKopf='<div class="today-section-head"><div class="today-section-title"><h3>Aufgaben & Rückläufe</h3><span class="today-count">'+aufgaben.length+'</span></div></div>';
   var taskSection=zuWrap_('heute.aufgaben',true,taskKopf,aufgaben.length?'<div class="task-list kacheln '+kachelDichte_(aufgaben.length)+'">'+aufgaben.map(taskRow).join('')+'</div>':'<div class="inbox-empty">Für heute sind keine Rückläufe oder offenen Aufgaben fällig.</div>','today-section');
   var cleanN=inboxAufraeumItems_().length;
@@ -8446,7 +8501,7 @@ window.onStorageChange = function (text) {
     document.documentElement.style.setProperty('--banner-h', '0px');
     return;
   }
-  el.innerHTML = '<span>⚠️ ' + A.esc(text) + '</span><button type="button">Details</button>';
+  el.innerHTML = '<span>' + A.esc(text) + '</span><button type="button">Details</button>';
   el.hidden = false;
   document.documentElement.style.setProperty('--banner-h', el.offsetHeight + 'px');
 };
@@ -8736,8 +8791,11 @@ function card(title, inner, cls) {
     (title ? '<div class="card-head">' + A.esc(title) + '</div>' : '') + inner + '</div>';
 }
 
+/* V87: leere Zustände mit Linien-Icons statt Emojis */
+var EMPTY_ICON_ = { '❓': 'hinweis', '👥': 'users', '🧑‍🎓': 'users', '🌤️': 'kalender', '☕': 'kalender', '📚': 'buch', '📊': 'chart', '📝': 'noten', '🗑️': 'papierkorb' };
 function empty(icon, text) {
-  return '<div class="empty"><span class="big">' + icon + '</span>' + text + '</div>';
+  var key = EMPTY_ICON_[icon] || 'hinweis';
+  return '<div class="empty"><span class="big empty-ico">' + ICON_(key) + '</span>' + text + '</div>';
 }
 
 function spiegelHTML(sp) {
@@ -8843,11 +8901,11 @@ function lessonRowHTML(b, datum) {
   if (sus.length) flags += '<span class="badge' + (erfasst ? ' accent' : '') + '">Mitarbeit ' + erfasst + '/' + sus.length + '</span>';
   if (kurs && sus.length) {
     var cb = A.checkBilanzStunde(datum, b.von, kurs.id);
-    if (cb.gesamt) flags += '<span class="badge bad">📋 ' + cb.gesamt + '</span>';
+    if (cb.gesamt) flags += '<span class="badge bad">' + cb.gesamt + '× vergessen</span>';
   }
-  if (aufgabenLage.ueberfaellig) flags += '<span class="badge bad">📋 überfällig</span>';
-  else if (aufgabenLage.heute) flags += '<span class="badge warn">📋 heute fällig</span>';
-  else if (aufgabenLage.bald) flags += '<span class="badge warn">📋 bald fällig</span>';
+  if (aufgabenLage.ueberfaellig) flags += '<span class="badge bad">Liste überfällig</span>';
+  else if (aufgabenLage.heute) flags += '<span class="badge warn">Liste heute fällig</span>';
+  else if (aufgabenLage.bald) flags += '<span class="badge warn">Liste bald fällig</span>';
 
   var zweiteZeile = [];
   if (b.raum) zweiteZeile.push('Raum ' + A.esc(b.raum));
@@ -8882,6 +8940,7 @@ function lessonKachelHTML_(b, datum) {
   else if (lage.heute) flags.push('<span class="lk-flag warn">Liste heute fällig</span>');
   else if (lage.bald) flags.push('<span class="lk-flag warn">Liste bald fällig</span>');
   if (kurs && sus.length) { var cb = A.checkBilanzStunde(datum, b.von, kurs.id); if (cb.gesamt) flags.push('<span class="lk-flag bad">' + cb.gesamt + '× vergessen</span>'); }
+  if (kurs && craftHaKontrolle_(kurs, datum)) flags.push('<span class="lk-flag ha">HA kontrollieren</span>');
   var zustand = '';
   if (datum === A.todayISO()) {
     var d = new Date(), jetzt = ('0' + d.getHours()).slice(-2) + ':' + ('0' + d.getMinutes()).slice(-2);
@@ -8930,7 +8989,7 @@ function tagesAnsichtHTML(datum) {
   }
   var pruef = craftPruefungsHinweiseHTML_(datum);
   if (pruef) h += '<section class="kachel-sektion"><div class="kachel-sektion-titel">Bald: Lernnachweise</div>' + pruef + '</section>';
-  setTimeout(function () { craftPlanAuffrischen_(datum); }, 0);
+  setTimeout(function () { craftPlanAuffrischen_(datum, false, bloecke.map(function (b) { var k = A.byId('Kurse', b.kursId); return k ? vorigeStundeDatum_(k, datum) : ''; })); if (VORSCHAU_AKTIV) craftLeistungenAbgleichen_(); }, 0);
   h += cockpitHTML(datum);
   h += craftHeuteHTML(datum);
   h += sicherungsHinweisHTML_();
@@ -8979,7 +9038,7 @@ function wochenAufgabenKurz(kurs, datum) {
     }
     out.push({
       cls: st.art === 'ueberfaellig' ? 'bad' : 'warn',
-      text: (st.art === 'ueberfaellig' ? '⚠ ' : '📋 ') + t
+      text: t
     });
   });
 
@@ -9025,7 +9084,7 @@ function wochenZelleHTML(datum, nr, bloecke) {
   var entfaellt = !!(st && (st.entfaellt === '1' || st.entfaellt === '2'));
   var vertreten = !!(st && st.entfaellt === '2');
 
-  if (cb.gesamt) alerts.push({ cls: 'bad', text: '📋 ' + cb.gesamt + ' offen' });
+  if (cb.gesamt) alerts.push({ cls: 'bad', text: cb.gesamt + ' offen' });
 
   var alertHTML = alerts.length
     ? '<div class="wc-alerts">' + alerts.slice(0, 3).map(function (a) {
@@ -9137,6 +9196,7 @@ VIEWS.stunde = {
       (kN ? '<div class="prop-row"><span class="prop-k">Kurs</span><span class="prop-v">' + A.esc(kN) + '</span></div>' : '') +
       (st.notiz ? '<div class="prop-row"><span class="prop-k">Notiz</span><span class="prop-v">' + A.esc(st.notiz) + '</span></div>' : '') +
       (kurs && craftTagLinks_(p.datum, kurs, p.stunde, p.bis).length ? '<div class="prop-row"><span class="prop-k">Inhalt</span><span class="prop-v craft-links">' + craftTagLinks_(p.datum, kurs, p.stunde, p.bis).map(function (x) { return x.block ? '<button class="craft-link-btn" data-act="craft-stunde-oeffnen" data-block="' + A.esc(x.block) + '">' + A.esc(x.text) + ' <span>↗</span></button>' : '<span>' + A.esc(x.text) + '</span>'; }).join('') + '</span></div>' : '') +
+      (kurs && craftTagSonstiges_(p.datum, kurs).length ? '<div class="prop-row"><span class="prop-k">Sonstiges</span><span class="prop-v">' + A.esc(craftTagSonstiges_(p.datum, kurs).join(' · ')) + '</span></div>' : '') +
       '</div>';
 
     if (!kurs) return h + card('', empty('👥', 'Zu dieser Stunde ist kein Kurs hinterlegt.'));
@@ -9148,7 +9208,7 @@ VIEWS.stunde = {
 
     h += '<div class="btn-row stunde-schnell"><button class="btn" data-act="kurs-bereich" data-kurs="' + kurs.id + '" data-b="noten">Noten eintragen</button>' +
       '<button class="btn" data-act="open-kurs" data-kurs="' + kurs.id + '">Kurs öffnen</button></div>';
-    setTimeout(function () { craftPlanAuffrischen_(p.datum); }, 0);
+    setTimeout(function () { craftPlanAuffrischen_(p.datum, false, [vorigeStundeDatum_(kurs, p.datum)]); }, 0);
     h += card('Unterrichtsreihe', unterrichtsreiheHTML_(kurs.id,true,p.datum));
 
     var offeneStrafen = A.offeneStrafarbeiten(kurs.id);
@@ -9177,6 +9237,8 @@ VIEWS.stunde = {
         'aufgaben-card' + aufgabenCardKlasse);
     }
 
+    var haK = craftHaKontrolle_(kurs, p.datum);
+    if (haK) h += '<div class="ha-kontrolle"><span class="ha-ico">' + ICON_('haken') + '</span><div><b>Hausaufgabe kontrollieren</b><span>' + A.esc(haK.text) + ' · aufgegeben ' + A.tagName(A.tagVon(haK.datum)).slice(0, 2) + ' ' + A.fmtDateShort(haK.datum) + '</span></div></div>';
     /* --- Abhaken als Kachelraster: Standard ist „alle dabei“ --- */
     var punkte = A.checkpunkteFuer(kurs.id, p.stunde, p.datum) || [];
     if (punkte.length) {
@@ -9222,7 +9284,7 @@ VIEWS.stunde = {
         '<div class="kachel-name" data-act="mitarbeit-notiz" data-sus="' + s.id + '">' +
           '<span class="nn">' + A.esc(A.susKurz(s)) + '</span>' +
           '<span class="avg">' + (schnitt ? 'Ø ' + A.fmtNote(schnitt.note, 1) : '–') +
-          (m && m.bemerkung ? ' 💬' : '') + '</span>' +
+          (m && m.bemerkung ? ' <span class="mit-notiz-ico">' + ICON_('sprechblase') + '</span>' : '') + '</span>' +
         '</div><div class="smileys">' + btns + '</div></div>';
     }).join('');
 
@@ -9252,7 +9314,7 @@ VIEWS.stunde = {
 
 VIEWS.plan = {
   title: function () { return 'Stundenplan'; },
-  actions: function () { return '<button class="icon-btn" data-act="plan-stunden">🕐</button>'; },
+  actions: function () { return '<button class="icon-btn" data-act="plan-stunden" title="Stundenzeiten">' + ICON_('uhr') + '</button>'; },
   body: function () {
     var stunden = A.cfg('stunden');
     var kurse = A.alleKurse();
@@ -9311,8 +9373,8 @@ VIEWS.plan = {
         var planLageJetzt = aufgabenStatusKurs(kurs.id, A.todayISO());
         var planLageStunde = aufgabenStatusKurs(kurs.id, naechstesDatum);
         var planAlarm = null;
-        if (planLageJetzt.ueberfaellig) planAlarm = { cls: 'bad', text: '📋 überfällig' };
-        else if (planLageStunde.heute || planLageStunde.bald) planAlarm = { cls: 'warn', text: '📋 bald' };
+        if (planLageJetzt.ueberfaellig) planAlarm = { cls: 'bad', text: 'überfällig' };
+        else if (planLageStunde.heute || planLageStunde.bald) planAlarm = { cls: 'warn', text: 'bald' };
         return '<button class="cell filled' + (teilBlock ? ' fortsetzung' : '') + '" data-act="plan-zelle" ' +
           'data-plan-drop="1" data-plan-id="' + p.id + '" data-drag-kurs="' + kurs.id + '" draggable="true" ' +
           'data-tag="' + t.nr + '" data-stunde="' + nr + '" ' +
@@ -9546,7 +9608,7 @@ VIEWS.sitzplan = {
         (perspektive === 'pult' ? vorne : '') +
       '</div>') +
       '<div class="btn-row"><button class="btn' + (layout ? ' sitz-mode-on' : '') + '" data-act="sitz-layout-toggle" data-klasse="' + k.id + '">' +
-        (layout ? '✓ Layout fertig' : '🪑 Tische anordnen') + '</button>' +
+        (layout ? '✓ Layout fertig' : 'Tische anordnen') + '</button>' +
       '<button class="btn" data-act="sitzplan-mischen" data-klasse="' + k.id + '">Zufällig mischen</button></div>' +
       '<div class="btn-row"><button class="btn" data-act="sitzregeln" data-klasse="' + k.id + '">Regeln</button>' +
       '<button class="btn primary" data-act="sitzplan-vorschlaege" data-klasse="' + k.id + '">Sitzplan vorschlagen</button></div>' +
@@ -9663,7 +9725,8 @@ function craftPlanFuerKurs_(kurs,datum){
     if(!einheit&&info)einheit=String(info.p.einheit||'').replace(/,/g,', ');}
   var pruefungen=zeilen.filter(function(z){return z.von>=datum&&!z.ab&&/klassenarbeit|\bka\b|test|diktat|lernzielkontrolle/i.test(z.inhalt)&&!/zurück|besprech|vorbereitung|puffer|verbesser/i.test(z.inhalt);});
   if(spaeterStart){naechste=null;}
-  return {gefunden:true,spaeterStart:spaeterStart,einheit:einheit,lernnachweis:info?info.p.lernnachweis:'',zeitraum:info?info.titel:'',heute:heute,naechste:naechste,pruefungen:pruefungen,stand:cache.plan&&cache.plan.zeit};
+  var lnAlle=zeilen.filter(function(z){return !z.ab&&/klassenarbeit|\bka\b|test|diktat|lernzielkontrolle/i.test(z.inhalt)&&!/zurück|besprech|vorbereitung|puffer|verbesser/i.test(z.inhalt);});
+  return {gefunden:true,lnAlle:lnAlle,spaeterStart:spaeterStart,einheit:einheit,lernnachweis:info?info.p.lernnachweis:'',zeitraum:info?info.titel:'',heute:heute,naechste:naechste,pruefungen:pruefungen,stand:cache.plan&&cache.plan.zeit};
 }
 function craftDemoPlan_(){var h=A.todayISO();function f(n){var d=A.addDays(h,n);var p=d.split('-');return A.tagName(A.tagVon(d)).slice(0,2)+' '+Number(p[2])+'.'+Number(p[1])+'.';}return CRAFT_PLAN_DEMO_.replace('§HEUTE§',f(0)).replace('§P2§',f(2)).replace('§P4§',f(4)).replace('§P9§',f(9)).replace('§HEUTE§',f(0)).replace('§P1§',f(1)).replace('§P5§',f(5));}
 
@@ -9674,10 +9737,32 @@ function craftTagInhalt_(datum,kurs,von,bis){
 }
 function craftBlockLink_(id){var c=craftApiConfig_(),sp=String(c.spaceId||'f93a0edb-2be8-2c7e-1bab-a210264fec93');return id?'craftdocs://open?spaceId='+encodeURIComponent(sp)+'&blockId='+encodeURIComponent(id):'';}
 function craftTagLinks_(datum,kurs,von,bis){
-  var cache=craftPlanCache_(),md=VORSCHAU_AKTIV?(datum===A.todayISO()?CRAFT_TAG_DEMO_:''):(cache.tage&&cache.tage[datum]&&cache.tage[datum].md);
+  var cache=craftPlanCache_(),md=VORSCHAU_AKTIV?craftDemoTag_(datum):(cache.tage&&cache.tage[datum]&&cache.tage[datum].md);
   if(!md||!kurs)return [];
   var roh=craftTagParse_(md,kurs,von,bis,true);return roh||[];
 }
+/* V87: Spalte „Sonstiges“ (z. B. „HA: Akk.“, „Merkblatt“) */
+function craftTagSonstiges_(datum,kurs){
+  var cache=craftPlanCache_(),md=VORSCHAU_AKTIV?craftDemoTag_(datum):(cache.tage&&cache.tage[datum]&&cache.tage[datum].md);
+  if(!md||!kurs)return [];
+  var t=craftTabellen_(md).filter(function(t){return t.kopf.some(function(h){return /stunde/i.test(h);})&&t.kopf.some(function(h){return /sonstig/i.test(h);});})[0];
+  if(!t)return [];
+  var is=t.kopf.findIndex(function(h){return /stunde/i.test(h);}),io=t.kopf.findIndex(function(h){return /sonstig/i.test(h);});
+  var kl=A.klasseVonKurs(kurs),kn=kl?String(kl.name).replace(/\s+/g,'').toLowerCase():'',fb=craftFachNorm_(kurs.fach),out=[];
+  t.zeilen.forEach(function(z){var c=String(z[is]||'').trim(),m=c.match(/^(\S+)\s*(.*)$/);if(!m||m[1].toLowerCase()!==kn)return;var rest=craftFachNorm_(m[2]);if(!rest||!(fb.indexOf(rest)===0||rest.indexOf(fb)===0))return;var x=craftMdText_(z[io]||'');if(x&&out.indexOf(x)<0)out.push(x);});
+  return out;
+}
+function craftHaText_(eintraege){return eintraege.filter(function(x){return /^(ha|hausaufgabe)/i.test(x);}).map(function(x){return x.replace(/^(ha|hausaufgaben?)\s*:?\s*/i,'').trim()||x;});}
+function vorigeStundeDatum_(kurs,datum){
+  for(var i=1;i<=21;i++){var d=A.addDays(datum,-i);if(A.freierTag&&A.freierTag(d))continue;if(A.bloeckeFuerDatum(d).some(function(b){return b.kursId===kurs.id;}))return d;}
+  return '';
+}
+function craftHaKontrolle_(kurs,datum){
+  if(!kurs)return null;var vd=vorigeStundeDatum_(kurs,datum);if(!vd)return null;
+  var ha=craftHaText_(craftTagSonstiges_(vd,kurs));return ha.length?{datum:vd,text:ha.join(' · ')}:null;
+}
+function craftDemoTag_(datum){if(datum===A.todayISO())return CRAFT_TAG_DEMO_;var v=null;try{var k=A.alleKurse().filter(function(k){var kl=A.klasseVonKurs(k);return kl&&kl.name==='4a'&&k.fach==='Deutsch';})[0];v=k?vorigeStundeDatum_(k,A.todayISO()):null;}catch(e){}return datum===v?'| Stunde | Sonstiges | Inhalt |\n| --- | --- | --- |\n| 4a D | HA: S. 34 Nr. 2 | Fabel lesen |':'';}
+
 function craftTagParse_(md,kurs,von,bis,mitLinks){
   /* V86: Zuordnung NUR über Klasse + Fach in der Spalte „Stunde“ (z. B. „6f D“, „6f Sp“).
      Die Zeilennummer wird nicht mehr benutzt – deine Tabelle hat auch Zeilen für KoMa, PS, Pausen. */
@@ -9701,9 +9786,33 @@ function craftTagParse_(md,kurs,von,bis,mitLinks){
   return mitLinks?links:texte.join(' · ');
 }
 
+/* V87: Klassenarbeiten/Tests aus dem Plan am Tag selbst als Leistung anlegen (für die Noteneingabe) */
+var craftLeistAbglLetzt_=0;
+function craftLnTyp_(t){return /diktat/i.test(t)?'Diktat':(/test|lernziel/i.test(t)?'Test':'Klassenarbeit');}
+function craftLeistungenAbgleichen_(){
+  if(Date.now()-craftLeistAbglLetzt_<60000)return;craftLeistAbglLetzt_=Date.now();
+  var heute=A.todayISO(),map=A.cfg('craftLeistungAuto');map=map&&typeof map==='object'?A.clone(map):{};var neu=[],geaendert=false;
+  A.alleKurse().forEach(function(k){
+    var p=craftPlanFuerKurs_(k,heute);if(!p||!p.gefunden||!p.lnAlle)return;
+    p.lnAlle.forEach(function(z){
+      if(z.von>heute||z.von<A.addDays(heute,-21))return;
+      var typ=craftLnTyp_(z.inhalt),key=k.id+'|'+z.einheit+'|'+typ;
+      if(map[key]&&A.byId('Leistungen',map[key]))return;
+      var kats=A.kategorienVon(k).map(function(c){return c.name;});
+      var kat=kats.filter(function(n){return typ==='Klassenarbeit'?/klassenarbeit|^ka$/i.test(n):(typ==='Test'?/test|lzk|lernziel/i.test(n):/diktat/i.test(n));})[0]||kats.filter(function(n){return /klassenarbeit/i.test(n);})[0]||kats[0]||typ;
+      var vorh=A.list('Leistungen',function(l){return l.kursId===k.id&&l.kategorie===kat&&l.datum&&Math.abs((new Date(l.datum)-new Date(z.von))/86400000)<=3;})[0];
+      if(vorh){map[key]=vorh.id;geaendert=true;return;}
+      var l=A.put('Leistungen',{id:A.uid('le'),kursId:k.id,klasseId:k.klasseId,kategorie:kat,titel:typ+' · '+z.einheit,datum:z.von,maxPunkte:'',gewicht:'1',notenschluessel:'',quelle:'craft'});
+      map[key]=l.id;geaendert=true;neu.push(A.kursLabel(k)+' ('+A.fmtDateShort(z.von)+')');
+    });
+  });
+  if(geaendert)A.setCfg('craftLeistungAuto',map);
+  if(neu.length)window.toast('Aus Craft als Leistung angelegt: '+neu.join(', '));
+}
+
 /* --- Laden (gedrosselt) --- */
 var craftPlanLaedt_=false;
-function craftPlanAuffrischen_(datum,erzwingen){
+function craftPlanAuffrischen_(datum,erzwingen,weitere){
   if(VORSCHAU_AKTIV||craftPlanLaedt_||!navigator.onLine)return;
   var c=craftApiConfig_();if(!craftApiUrlGueltig_(c.url))return;var pc=craftPlanCfg_();
   var cache=craftPlanCache_(),jetzt=Date.now(),alt=function(e){return !e||!e.ts||jetzt-e.ts>10*60*1000;};
@@ -9711,12 +9820,14 @@ function craftPlanAuffrischen_(datum,erzwingen){
   var jobs=[];
   if(pc.planId&&(erzwingen||(alt(cache.plan)&&!(cache.planFehlerTs&&jetzt-cache.planFehlerTs<10*60*1000))))jobs.push(craftLesenMd_('id='+encodeURIComponent(pc.planId)+'&maxDepth=-1').then(function(md){cache.plan={md:md,ts:Date.now(),zeit:new Date().toISOString()};}));
   cache.tage=cache.tage||{};
-  if(pc.tagesnotiz&&(erzwingen||alt(cache.tage[datum])))jobs.push(craftLesenMd_('date='+encodeURIComponent(datum)+'&maxDepth=-1').then(function(md){cache.tage[datum]={md:md,ts:Date.now()};}).catch(function(e){cache.tage[datum]={md:'',ts:Date.now(),fehler:e.message};}));
+  [datum].concat(weitere||[]).filter(function(d,i,a){return d&&a.indexOf(d)===i;}).forEach(function(d){
+    if(pc.tagesnotiz&&(erzwingen||alt(cache.tage[d])))jobs.push(craftLesenMd_('date='+encodeURIComponent(d)+'&maxDepth=-1').then(function(md){cache.tage[d]={md:md,ts:Date.now()};}).catch(function(e){cache.tage[d]={md:'',ts:Date.now(),fehler:e.message};}));
+  });
   if(!jobs.length)return;
   craftPlanLaedt_=true;
   return Promise.all(jobs).then(function(){
     var k=Object.keys(cache.tage).sort();while(k.length>14){delete cache.tage[k.shift()];}
-    cache.fehler='';craftPlanCacheSet_(cache);craftPlanLaedt_=false;render();return true;
+    cache.fehler='';craftPlanCacheSet_(cache);craftPlanLaedt_=false;try{craftLeistungenAbgleichen_();}catch(e){}render();return true;
   }).catch(function(e){cache.fehler=e.message;cache.planFehlerTs=Date.now();craftPlanCacheSet_(cache);craftPlanLaedt_=false;if(erzwingen)throw e;});
 }
 
@@ -9931,7 +10042,7 @@ VIEWS.sus = {
           (st.grenze
             ? '<div class="straf-leiste' + (st.faellig ? ' voll' : '') + '">' +
               (st.faellig
-                ? '⚠️ <b>' + (st.faellig > 1 ? st.faellig + ' Strafarbeiten' : 'Strafarbeit') +
+                ? '<b>' + (st.faellig > 1 ? st.faellig + ' Strafarbeiten' : 'Strafarbeit') +
                   ' fällig</b> · nächster Hinweis nach ' + st.bisZurNaechsten + ' weiteren'
                 : 'Noch <b>' + st.bisZurNaechsten + '</b> bis zur Strafarbeit (ab ' + st.grenze + ')') +
               '</div>'
@@ -10125,7 +10236,7 @@ VIEWS.mehr = {
     var sch = A.cfg('notenschluessel');
 
     var user = A.Auth.currentUser();
-    var initials = user && user.name ? user.name.trim().split(/\s+/).slice(0, 2).map(function (x) { return x.charAt(0).toUpperCase(); }).join('') : '👤';
+    var initials = user && user.name ? user.name.trim().split(/\s+/).slice(0, 2).map(function (x) { return x.charAt(0).toUpperCase(); }).join('') : '–';
     var h = card('Konto', '<div class="card-body"><div class="account-box">' +
       '<div class="account-avatar">' + A.esc(initials) + '</div>' +
       '<div class="account-main"><div class="account-name">' + A.esc(user ? user.name : '–') + '</div>' +
@@ -10153,7 +10264,7 @@ VIEWS.mehr = {
       '<button class="row" data-act="speicher-info"><div class="row-main"><div class="row-title">Speicher auf diesem Gerät</div>' +
         '<div class="row-sub">' + ({ idb: 'Geräte-Datenbank', ls: 'Browser-Speicher (begrenzt)', speicher: 'nur Arbeitsspeicher', start: '–' }[A.Store.mode] || '–') +
         (A.Krypto.schluessel((A.Auth.currentUser() || {}).id) ? ' · verschlüsselt' : '') +
-        ' · ' + anzahlZeilen + ' Einträge' + (A.Store.fehler ? ' · ⚠️ Problem' : '') + '</div></div><div class="chev">›</div></button>' +
+        ' · ' + anzahlZeilen + ' Einträge' + (A.Store.fehler ? ' · Problem' : '') + '</div></div><div class="chev">›</div></button>' +
       '<button class="row" data-act="papierkorb"><div class="row-main"><div class="row-title">Zuletzt gelöscht</div>' +
         '<div class="row-sub">' + (pkAnzahl ? pkAnzahl + ' Eintrag/Einträge wiederherstellbar' : 'gelöschte Klassen, Fächer, Schüler:innen wiederherstellen') + '</div></div><div class="chev">›</div></button>' +
       '<button class="row" data-act="fehlerprotokoll"><div class="row-main"><div class="row-title">Fehlerprotokoll</div><div class="row-sub">Letzte Fehler auf diesem Gerät ansehen und kopieren</div></div><div class="chev">›</div></button>' +
@@ -10343,6 +10454,7 @@ function renderScrollHerstellen_() {
   });
 }
 function render() {
+  if (window.__splashWeg) window.__splashWeg();
   applyFarbdesign();
   var cur = currentView();
   if (!cur.def) { route.stack = []; cur = currentView(); }
@@ -10382,6 +10494,42 @@ ACT['zu-toggle'] = function (el) {
 /* --- Heute ------------------------------------------------------------ */
 
 function quickSusPicker_(titel,cb){var alle=A.list('SuS',function(x){return String(x.aktiv||'1')!=='0';}),kid=A.standardKlasseId();if(!alle.length){window.toast('Noch keine Schüler:innen angelegt.',true);return;}var kl=A.klassen(true),body='<div class="sus-picker-tools"><select id="qKl"><option value="">Alle Klassen</option>'+kl.map(function(k){return '<option value="'+k.id+'" '+(k.id===kid?'selected':'')+'>'+A.esc(k.name)+'</option>';}).join('')+'</select><input id="qSearch" type="search" placeholder="Schüler:in suchen …"></div><div id="qPeople" class="sus-picker-list"></div>';Modal.open({title:titel,body:body,after:function(bg,close){var ks=bg.querySelector('#qKl'),q=bg.querySelector('#qSearch'),out=bg.querySelector('#qPeople');function draw(){var term=String(q.value||'').trim().toLowerCase(),k=ks.value,arr=alle.filter(function(x){return(!k||x.klasseId===k)&&(!term||A.susName(x,'vorname').toLowerCase().includes(term)||A.susName(x,'nachname').toLowerCase().includes(term));});out.innerHTML=arr.map(function(x){var c=A.byId('Klassen',x.klasseId);return '<button class="sus-picker-row" data-q-sus="'+x.id+'"><span class="sus-picker-main"><b>'+A.esc(A.susName(x,'vorname'))+'</b><span>'+A.esc(c?c.name:'')+'</span></span><span>›</span></button>';}).join('')||'<div class="inbox-empty">Keine Treffer.</div>';}ks.addEventListener('change',draw);q.addEventListener('input',draw);out.addEventListener('click',function(e){var b=e.target.closest('[data-q-sus]');if(!b)return;var id=b.getAttribute('data-q-sus');close();setTimeout(function(){cb(id);},0);});draw();setTimeout(function(){q.focus();},40);}});}
+/* (Wischgesten s. unten) */
+
+/* V87: Wischgesten für Kacheln unter „Für heute“ – Finger (Touch) und Maus (gedrückt ziehen) */
+(function(){
+  var RECHTS=['eltern-besprochen','positiv-ausblenden','wv-erledigt','straf-erledigt'],LINKS=['eltern-spaeter','positiv-spaeter'];
+  var LABEL={'eltern-besprochen':'✓ Besprochen','positiv-ausblenden':'Ausblenden','wv-erledigt':'✓ Erledigt','straf-erledigt':'✓ Abgegeben','eltern-spaeter':'Später','positiv-spaeter':'Später'};
+  function knopf(el,liste){for(var i=0;i<liste.length;i++){var b=el.querySelector('[data-act="'+liste[i]+'"]');if(b)return b;}return null;}
+  var st=null,klickSperre=0;
+  document.addEventListener('pointerdown',function(e){
+    if(e.button!==undefined&&e.button!==0)return;
+    var el=e.target.closest&&e.target.closest('.task-list.kacheln .today-task[data-wisch]');if(!el)return;
+    if(e.target.closest('input,textarea,select'))return;
+    st={el:el,x:e.clientX,y:e.clientY,id:e.pointerId,aktiv:false,dx:0,r:knopf(el,RECHTS),l:knopf(el,LINKS)};
+  },true);
+  document.addEventListener('pointermove',function(e){
+    if(!st||e.pointerId!==st.id)return;
+    var dx=e.clientX-st.x,dy=e.clientY-st.y;
+    if(!st.aktiv){if(Math.abs(dy)>10&&Math.abs(dy)>Math.abs(dx)){st=null;return;}if(Math.abs(dx)<10)return;st.aktiv=true;st.el.classList.add('wischt');try{st.el.setPointerCapture(e.pointerId);}catch(x){}}
+    if(dx>0&&!st.r)dx=dx/4;if(dx<0&&!st.l)dx=dx/4;
+    st.dx=dx;st.el.style.transform='translateX('+dx+'px) rotate('+(dx/60)+'deg)';
+    var b=dx>80?st.r:(dx<-80?st.l:null);
+    st.el.classList.toggle('wisch-r',!!(b&&dx>0));st.el.classList.toggle('wisch-l',!!(b&&dx<0));
+    if(b)st.el.setAttribute('data-wisch-label',LABEL[b.getAttribute('data-act')]||'');else st.el.removeAttribute('data-wisch-label');
+    e.preventDefault();
+  },{passive:false});
+  function ende(e){
+    if(!st||(e&&e.pointerId!==st.id))return;var s=st;st=null;if(!s.aktiv)return;
+    klickSperre=Date.now();s.el.classList.remove('wischt','wisch-r','wisch-l');s.el.removeAttribute('data-wisch-label');
+    var b=s.dx>80?s.r:(s.dx<-80?s.l:null);
+    if(b){try{A.LS.set('wischTippGesehen',(A.LS.get('wischTippGesehen',0)||0)+1);}catch(x){}s.el.style.transform='translateX('+(s.dx>0?420:-420)+'px)';s.el.classList.add('weg');setTimeout(function(){b.click();},170);}
+    else s.el.style.transform='';
+  }
+  document.addEventListener('pointerup',ende,true);document.addEventListener('pointercancel',ende,true);
+  document.addEventListener('click',function(e){if(e.isTrusted&&Date.now()-klickSperre<350&&e.target.closest&&e.target.closest('.today-task[data-wisch]')){e.stopPropagation();e.preventDefault();}},true);
+})();
+
 /* V81: Schnelles To-do – wahlweise auch als Aufgabe in die Craft-Tagesnotiz (ohne Namen von Kindern) */
 function craftTodoVerbunden_(){return craftApiUrlGueltig_(craftApiConfig_().url);}
 function quickTodoOpen_(){
@@ -10489,7 +10637,7 @@ ACT['zufall-sus'] = function () {
     title: 'Zufällige Auswahl',
     body: '<div class="tool-result"><div class="tool-result-name" id="zufName">' + A.esc(A.susName(erster)) + '</div>' +
       '<div class="hint-box">Bei „Nochmal“ wird nach Möglichkeit nicht direkt dieselbe Person gezogen.</div></div>',
-    foot: '<button class="btn primary" id="zufNochmal">🎲 Nochmal</button>',
+    foot: '<button class="btn primary" id="zufNochmal">Nochmal</button>',
     after: function (bg) {
       bg.querySelector('#zufNochmal').addEventListener('click', function () {
         var s = ziehe();
@@ -10518,7 +10666,7 @@ function gruppenDialog(puzzle) {
   Modal.open({
     title: puzzle ? 'Gruppenpuzzle' : 'Gruppen bilden',
     body: body,
-    foot: '<button class="btn primary" id="gruppenNeu">🎲 Neu mischen</button>',
+    foot: '<button class="btn primary" id="gruppenNeu">Neu mischen</button>',
     after: function (bg) {
       var zahl = bg.querySelector('#gruppenZahl');
       var modus = bg.querySelector('#gruppenModus');
@@ -10921,7 +11069,7 @@ ACT['mitarbeit'] = function (el) {
   var schnitt = A.mitarbeitSchnitt(p.kursId, susId);
   var m = A.mitarbeitFuer(p.datum, p.stunde, susId);
   zeile.querySelector('.avg').innerHTML = (schnitt ? 'Ø ' + A.fmtNote(schnitt.note, 1) : '–') +
-    (m && m.bemerkung ? ' 💬' : '');
+    (m && m.bemerkung ? ' ·' : '');
   if (navigator.vibrate) navigator.vibrate(8);
 };
 
@@ -12828,6 +12976,7 @@ ACT['fehlerprotokoll'] = function () {
 };
 
 var AENDERUNGEN_ = [
+  ['V87', ['Hausaufgaben aus Craft: Was in der Tagesnotiz unter „Sonstiges“ als „HA: …“ steht, erscheint in der nächsten Stunde des Kurses als „Hausaufgabe kontrollieren“ (und als Hinweis auf der Stunden-Kachel).', 'Klassenarbeiten/Tests/Diktate aus dem Stoffverteilungsplan werden am Tag selbst automatisch als Leistung angelegt.', 'Nach „Als verschickt“ bei Elternnachrichten fragt die App, wann sie dich zum Nachhaken erinnern soll.', 'Wischgesten unter „Für heute“: rechts = besprochen/erledigt, links = später – mit Finger und Maus.', 'Eigenes App-Icon, Startbildschirm, Linien-Icons statt Emojis.']],
   ['V86', ['Craft-Tagesnotiz: Inhalte werden nur noch über Klasse + Fach zugeordnet („6f D“, „6f Sp“), nicht mehr über die Zeilennummer – vorher konnte z. B. bei Sport der Deutsch-Inhalt erscheinen. Mehrere Links in einer Zelle werden einzeln angeboten.', 'Unterrichtsreihe: Liegt die nächste Feinplanung noch in der Zukunft, zeigt die App die laufende Einheit aus dem Jahresplan und „ab …“ die kommende.']],
   ['V85', ['Sitzplan: Pultsicht zeigt jetzt genau dieselbe Sitzordnung wie die Tafelansicht, nur um 180° gedreht (vorderste Reihe unten, links und rechts getauscht – so wie du vom Pult aus in die Klasse schaust). Gilt auch fürs PDF.']],
   ['V84', ['To-dos landen in Craft als lila Aufgaben-Block, direkt unter deinen anderen Aufgaben der Tagesnotiz.', 'In der Stunde öffnet ein Tipp auf den Inhalt die Stundenseite direkt in Craft.', 'Noten: erst Klasse, dann Fach.', 'Klassen-Kacheln zeigen „2 Listen offen“ statt der Zahl fehlender Abgaben.']],
