@@ -3278,6 +3278,14 @@ input:focus,select:focus,textarea:focus{background:var(--surface)!important}
 .zu-chev{transition:transform .22s var(--ease-out)}
 /* Bewegung reduzieren */
 @media(prefers-reduced-motion:reduce){*,*::before,*::after{animation-duration:.01ms!important;animation-delay:0s!important;transition-duration:.01ms!important}}
+
+/* V92: Papierkorb */
+.pk-liste{display:flex;flex-direction:column;gap:8px}
+.pk-kachel{display:flex;align-items:center;gap:12px;padding:12px 14px;border-radius:14px;background:var(--flaeche)}
+.pk-kachel .pk-main{flex:1;min-width:0}
+.pk-kachel .pk-title{font-weight:600;font-size:14px}
+.pk-kachel .pk-sub{font-size:12px;color:var(--ink-2);margin-top:2px}
+.pk-bald{color:#c4443a;font-weight:600}
 </style>
 </head>
 <body>
@@ -3419,7 +3427,7 @@ var TABLES = ['Klassen', 'Kurse', 'SuS', 'Stundenplan', 'Stunden', 'Mitarbeit',
               'Leistungen', 'Noten', 'Checks', 'Settings'];
 
 /* Eine einzige Stelle für die Versionsangabe (Anzeige unter „Mehr“). */
-var APP_VERSION = 'V91';
+var APP_VERSION = 'V93';
 
 /* V15: Diese Adresse ist die verbindliche Login-Adresse. */
 /* V58: Keine feste Server-Adresse mehr in der App. Sie wird über den Einladungslink/-code oder Mehr → Server gesetzt. */
@@ -4564,6 +4572,26 @@ function papierkorbWiederherstellen(gid) {
   });
   papierkorbVerwerfen(gid);
   return { ok: true, anzahl: zurueck };
+}
+
+/* V92: Nach 30 Tagen wirklich löschen – Inhalte gelöschter Einträge werden geleert (nur die ID bleibt
+   als Lösch-Markierung für den Abgleich). Läuft höchstens einmal am Tag. */
+function papierkorbEndgueltig() {
+  var heute = new Date().toISOString().slice(0, 10);
+  try { if (localStorage.getItem('pkEndgueltigTag') === heute) return 0; localStorage.setItem('pkEndgueltigTag', heute); } catch (e) {}
+  var grenze = new Date(Date.now() - PAPIERKORB_TAGE * 86400000).toISOString(), n = 0;
+  var schutz = {}; Object.keys(cfg('papierkorb') || {}).forEach(function (k) { var e = (cfg('papierkorb') || {})[k]; if (e && e.ids) e.ids.forEach(function (i) { schutz[i] = true; }); });
+  TABLES.forEach(function (t) {
+    if (t === 'Settings') return;
+    (DB[t] || []).slice().forEach(function (rec) {
+      if (!rec || String(rec.deleted) !== '1' || !rec.updatedAt || rec.updatedAt >= grenze || schutz[rec.id]) return;
+      var leer = {}, inhalt = false;
+      Object.keys(rec).forEach(function (k) { if (k === 'id' || k === 'deleted' || k === 'updatedAt' || k === 'userId') return; if (rec[k] !== '' && rec[k] !== null && rec[k] !== undefined) inhalt = true; leer[k] = ''; });
+      if (!inhalt) return;
+      leer.id = rec.id; leer.deleted = '1'; put(t, leer); n++;
+    });
+  });
+  return n;
 }
 
 /** Entfernt den Eintrag aus der Liste (die Daten bleiben als gelöscht markiert). */
@@ -6374,7 +6402,7 @@ global.A = {
   VERSION: APP_VERSION,
   DB: DB, LS: LS, Sync: Sync, Auth: Auth, Store: Store, Krypto: Krypto,
   loadLocal: loadLocal, saveLocal: saveLocal, migriere: migriere, settingsMigrieren: settingsMigrieren,
-  papierkorbListe: papierkorbListe, papierkorbWiederherstellen: papierkorbWiederherstellen, papierkorbVerwerfen: papierkorbVerwerfen,
+  papierkorbListe: papierkorbListe, papierkorbEndgueltig: papierkorbEndgueltig, papierkorbWiederherstellen: papierkorbWiederherstellen, papierkorbVerwerfen: papierkorbVerwerfen,
   doppelteKlassen: doppelteKlassen, klassenZusammenfuehren: klassenZusammenfuehren, klassenDuplikate: klassenDuplikate, klassenGetrenntMerken: klassenGetrenntMerken, klassenGruppeZusammenfuehren: klassenGruppeZusammenfuehren, namensSchluessel: namensSchluessel,
   list: list, byId: byId, put: put, del: del, delKaskade: delKaskade,
   cfg: cfg, setCfg: setCfg,
@@ -9108,6 +9136,7 @@ function tagesAnsichtHTML(datum) {
     h += '<section class="kachel-sektion"><div class="kachel-sektion-titel">Stunden · ' + bloecke.length + '</div><div class="lesson-grid">' +
       bloecke.map(function (b) { return lessonKachelHTML_(b, datum); }).join('') + '</div></section>';
   }
+  setTimeout(function () { try { if (!VORSCHAU_AKTIV && A.Sync && A.Sync.lastPull) A.papierkorbEndgueltig(); } catch (e) {} }, 1500);
   var pruef = craftPruefungsHinweiseHTML_(datum);
   if (pruef) h += '<section class="kachel-sektion"><div class="kachel-sektion-titel">Bald: Lernnachweise</div>' + pruef + '</section>';
   setTimeout(function () { craftPlanAuffrischen_(datum, false, bloecke.map(function (b) { var k = A.byId('Kurse', b.kursId); return k ? vorigeStundeDatum_(k, datum) : ''; })); if (VORSCHAU_AKTIV) craftLeistungenAbgleichen_(); }, 0);
@@ -10342,7 +10371,7 @@ VIEWS.leistung = {
         '<div class="mit-name"><div class="nn">' + A.esc(A.susName(s)) + '</div></div>' +
         '<div class="eingabe">' + chip +
           '<input class="pkt" data-note-input data-sus="' + s.id + '" data-idx="' + i + '" type="text" enterkeyhint="next" autocomplete="off" ' +
-          'inputmode="decimal" value=""' + A.esc(wert) + '" placeholder="' + (mitPunkten ? 'P.' : 'Note') + '">' +
+          'inputmode="decimal" value="' + A.esc(wert) + '" placeholder="' + (mitPunkten ? 'P.' : 'Note') + '">' +
           '<div class="nums ' + noteKlasse(n) + '">' + A.fmtNote(n, 1) + '</div>' +
         '</div></div>';
     }).join('');
@@ -10441,7 +10470,7 @@ VIEWS.mehr = {
         '<div class="row-sub">' + ({ idb: 'Geräte-Datenbank', ls: 'Browser-Speicher (begrenzt)', speicher: 'nur Arbeitsspeicher', start: '–' }[A.Store.mode] || '–') +
         (A.Krypto.schluessel((A.Auth.currentUser() || {}).id) ? ' · verschlüsselt' : '') +
         ' · ' + anzahlZeilen + ' Einträge' + (A.Store.fehler ? ' · Problem' : '') + '</div></div><div class="chev">›</div></button>' +
-      '<button class="row" data-act="papierkorb"><div class="row-main"><div class="row-title">Zuletzt gelöscht</div>' +
+      '<button class="row" data-act="papierkorb"><div class="row-main"><div class="row-title">Papierkorb</div>' +
         '<div class="row-sub">' + (pkAnzahl ? pkAnzahl + ' Eintrag/Einträge wiederherstellbar' : 'gelöschte Klassen, Fächer, Schüler:innen wiederherstellen') + '</div></div><div class="chev">›</div></button>' +
       '<button class="row" data-act="fehlerprotokoll"><div class="row-main"><div class="row-title">Fehlerprotokoll</div><div class="row-sub">Letzte Fehler auf diesem Gerät ansehen und kopieren</div></div><div class="chev">›</div></button>' +
       '<button class="row" data-act="was-neu"><div class="row-main"><div class="row-title">Was ist neu</div><div class="row-sub">Änderungen in dieser Version</div></div><div class="chev">›</div></button>');
@@ -10558,7 +10587,7 @@ VIEWS.mehr = {
     return kachelGrid_('', MEHR_KACHELN_.filter(function (m) { return card.finde(m[0]); }).map(function (m) {
       return kachel_({ act: 'mehr-bereich', data: { b: m[0] }, icon: m[1], titel: m[0] === 'Datensynchronisation' ? 'Abgleich' : m[0], info: infos[m[0]] || '',
         badge: m[0] === 'Datensynchronisation' && s.status === 'err' ? 'Fehler' : '', badgeWarn: true });
-    }).join('')) + fuss;
+    }).join('') + kachel_({ act: 'papierkorb', icon: 'papierkorb', titel: 'Papierkorb', info: pkAnzahl ? pkAnzahl + ' wiederherstellbar · 30 Tage' : 'leer', badge: pkAnzahl ? String(pkAnzahl) : '' })) + fuss;
   }
 };
 
@@ -10589,16 +10618,17 @@ VIEWS.verbindung = {
 /* ====================================================================== */
 
 VIEWS.papierkorb = {
-  title: function () { return 'Zuletzt gelöscht'; },
+  title: function () { return 'Papierkorb'; },
   body: function () {
     var liste = A.papierkorbListe();
-    var h = '<div class="hint-box">Gelöschte Klassen, Fächer, Schüler:innen, Leistungen und Stunden bleiben hier 30 Tage wiederherstellbar – mit allen zugehörigen Noten, Mitarbeits- und Abhak-Einträgen.</div>';
-    if (!liste.length) return h + empty('🗑️', 'Nichts gelöscht.');
-    return h + card('', liste.map(function (e) {
-      return '<div class="pk-row"><div class="pk-main"><div class="pk-title">' + A.esc(e.label) + '</div>' +
-        '<div class="pk-sub">gelöscht am ' + A.fmtDate(String(e.zeit).slice(0, 10)) + ' · ' + e.anzahl + ' Eintrag/Einträge</div></div>' +
-        '<button class="btn primary" data-act="pk-restore" data-id="' + A.esc(e.id) + '">Zurückholen</button></div>';
-    }).join(''));
+    var h = '<div class="hint-box">Gelöschte Klassen, Fächer, Schüler:innen, Leistungen (mit allen Noten) und Stunden bleiben hier <b>30 Tage</b> wiederherstellbar. Danach werden sie endgültig gelöscht.</div>';
+    if (!liste.length) return h + empty('🗑️', 'Der Papierkorb ist leer.');
+    return h + '<div class="pk-liste">' + liste.map(function (e) {
+      var ende = A.addDays(String(e.zeit).slice(0, 10), 30), rest = Math.max(0, Math.round((new Date(ende) - new Date(A.todayISO())) / 86400000));
+      return '<div class="pk-kachel"><div class="pk-main"><div class="pk-title">' + A.esc(e.label) + '</div>' +
+        '<div class="pk-sub">gelöscht am ' + A.fmtDate(String(e.zeit).slice(0, 10)) + ' · ' + e.anzahl + ' Einträge · <span class="' + (rest <= 5 ? 'pk-bald' : '') + '">noch ' + rest + ' Tag' + (rest === 1 ? '' : 'e') + '</span></div></div>' +
+        '<button class="btn primary" data-act="pk-restore" data-id="' + A.esc(e.id) + '">Wiederherstellen</button></div>';
+    }).join('') + '</div>';
   }
 };
 
@@ -11298,10 +11328,16 @@ ACT['mitarbeit-rest'] = function () {
 ACT['mitarbeit-leeren'] = function () {
   var p = currentView().p;
   if (!confirm('Alle Mitarbeits-Einträge dieser Stunde löschen?')) return;
+  var vorher = [];
   A.susDesKurses(p.kursId).forEach(function (s) {
+    var m = A.mitarbeitFuer(p.datum, p.stunde, s.id);
+    if (m && m.wert !== '') vorher.push({ id: s.id, wert: m.wert, bem: m.bemerkung || '' });
     A.setMitarbeit(p.datum, p.stunde, p.kursId, s.id, '');
   });
   render();
+  if (vorher.length) window.toast(vorher.length + ' Einträge geleert', false, { label: 'Rückgängig', fn: function () {
+    vorher.forEach(function (v) { A.setMitarbeit(p.datum, p.stunde, p.kursId, v.id, v.wert, v.bem); }); render(); window.toast('Wiederhergestellt');
+  } });
 };
 
 ACT['stunde-menu'] = function () {
@@ -12511,7 +12547,8 @@ ACT['leistung-neu'] = function (el) {
 ACT['noten-fertig'] = function () {
   var felder = Array.prototype.slice.call(main.querySelectorAll('[data-note-input]'));
   felder.forEach(function (ni) { clearTimeout(ni._saveTimer); ni._saveTimer = null; });
-  felder.forEach(function (ni) { if (ni.isConnected) speichereNote(ni); });
+  /* V93: nur bearbeitete Felder speichern – ein unberührtes Feld überschreibt nie eine vorhandene Note */
+  felder.forEach(function (ni) { if (ni.isConnected && ni.dataset.dirty === '1') speichereNote(ni); });
   window.toast('Noten gespeichert');
   back();
 };
@@ -13186,6 +13223,8 @@ ACT['fehlerprotokoll'] = function () {
 };
 
 var AENDERUNGEN_ = [
+  ['V93', ['Wichtige Korrektur: Beim Noteneintragen wurden seit V89 vorhandene Noten in den Feldern nicht angezeigt. „Speichern“ speichert jetzt außerdem nur Felder, die du wirklich geändert hast.']],
+  ['V92', ['Papierkorb: eigene Kachel unter Mehr, zeigt pro Eintrag die verbleibenden Tage. Nach 30 Tagen werden gelöschte Inhalte jetzt wirklich geleert (vorher blieben sie als „gelöscht“ markiert gespeichert).', '„Alle leeren“ bei der Mitarbeit hat jetzt einen Rückgängig-Knopf.']],
   ['V91', ['Neue Animationen: Seiten gleiten beim Öffnen von rechts und beim Zurückgehen von links herein, Kacheln erscheinen gestaffelt, Fenster fahren federnd hoch und gleiten beim Schließen weg, das Plus dreht sich zum ×, Auswahl und Haken „ploppen“, gewischte Kacheln federn zurück. Bei „Bewegung reduzieren“ (iOS-Einstellung) ist alles aus.']],
   ['V90', ['iPhone/iPad: Beim Wischen vom linken Rand erscheint nicht mehr kurz das Logo. Die Zurück-Anbindung an den Browser-Verlauf gilt jetzt nur noch am Computer.']],
   ['V89', ['Gesprächsmappe pro Kind (statt „Übersicht als PDF“): Noten je Fach mit Mitarbeit-Trend, Arbeitsverhalten, Beobachtungen, Förderziele, Elternkontakte und Leitfaden – auch als PDF.', 'Noten schneller eintragen: „Automatisch weiter“ nach einer fertigen Note, Fortschrittsanzeige, ↑/↓ und „Weiter“-Taste.', 'Zufallsauswahl merkt sich, wer dran war.', 'Am Mac funktioniert jetzt die Zurück-Geste (Trackpad, Magic Mouse, Maus-Zurücktaste).']],
@@ -14021,6 +14060,7 @@ function notenNaechstes_(ni, richtung) {
 main.addEventListener('input', function (e) {
   var ni = e.target.closest('[data-note-input]');
   if (!ni) return;
+  ni.dataset.dirty = '1';
   notenFortschritt_();
   var schnell = main.querySelector('[data-noten-schnell]');
   if (schnell && schnell.checked) {
