@@ -3286,6 +3286,75 @@ input:focus,select:focus,textarea:focus{background:var(--surface)!important}
 .pk-kachel .pk-title{font-weight:600;font-size:14px}
 .pk-kachel .pk-sub{font-size:12px;color:var(--ink-2);margin-top:2px}
 .pk-bald{color:#c4443a;font-weight:600}
+
+/* V94: Punkte pro Aufgabe */
+.auf-row{display:block!important;padding:10px 4px!important}
+.auf-row .mit-name{display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:6px}
+.auf-summe{display:flex;align-items:center;gap:4px;font-size:12px;color:var(--ink-2)}
+.auf-summe .auf-gesamt{width:52px!important;text-align:center;background:transparent!important;font-weight:700}
+.auf-felder{display:grid;grid-template-columns:repeat(auto-fill,minmax(54px,1fr));gap:5px}
+.auf-felder label{display:flex;flex-direction:column;gap:2px}
+.auf-felder small{font-size:10.5px;color:var(--ink-3);padding-left:3px}
+.auf-felder input{width:100%!important;min-width:0;text-align:center;padding:6px 2px!important}
+.auf-felder input.zu-viel{border-color:#d65045!important;background:#fdebec!important}
+.auf-auswertung{display:flex;flex-direction:column;gap:7px;padding:12px 14px;border-radius:13px;background:var(--flaeche)}
+.auf-zeile{display:grid;grid-template-columns:44px minmax(0,1fr) 44px 74px;align-items:center;gap:8px;font-size:12.5px}
+.auf-n{font-weight:700}
+.auf-balken{height:8px;border-radius:4px;background:var(--surface);overflow:hidden}
+.auf-balken i{display:block;height:100%;border-radius:4px;background:#8c8b86}
+.auf-balken.gut i{background:#1f9d6b}.auf-balken.mittel i{background:#d98a2b}.auf-balken.schwach i{background:#d65045}
+.auf-p{font-weight:700;text-align:right}.auf-m{color:var(--ink-3);font-size:11.5px}
+.auf-tipp{font-size:11.5px;color:var(--ink-3)}
+/* V94: Notenkonferenz */
+.konf-zusammen{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin:0 0 14px}
+.kz-kachel{display:flex;flex-direction:column;gap:2px;padding:12px;border-radius:13px;background:var(--flaeche)}
+.kz-kachel b{font-size:22px}.kz-kachel span{font-size:11.5px;color:var(--ink-2)}
+.kz-kachel.rot{background:color-mix(in srgb,#d65045 12%,var(--surface))}.kz-kachel.gelb{background:color-mix(in srgb,#d98a2b 12%,var(--surface))}.kz-kachel.gruen{background:color-mix(in srgb,#1f9d6b 10%,var(--surface))}
+.konf-tab td{text-align:center}
+.konf-tab td b{display:block;font-size:14px}.konf-tab td small{font-size:10px;color:var(--ink-3)}
+.konf-tab td.konf-rot{background:color-mix(in srgb,#d65045 16%,var(--surface))!important}
+.konf-tab td.konf-gelb{background:color-mix(in srgb,#d98a2b 14%,var(--surface))!important}
+.konf-tab td.konf-leer{color:var(--ink-3)}
+.konf-tab td.konf-hinweis{text-align:left;font-size:11.5px;color:#c4443a;min-width:120px}
+/* V94: Abgleich */
+.sync-warn{display:flex;align-items:center;gap:12px;margin:0 0 var(--gap-sektion);padding:12px 14px;border-radius:14px;background:color-mix(in srgb,#d98a2b 13%,var(--surface));cursor:pointer}
+.sync-warn .sw-ico{display:flex;align-items:center;justify-content:center;flex:none;width:32px;height:32px;border-radius:10px;background:#d98a2b;color:#fff}
+.sync-warn b{display:block;font-size:14px}.sync-warn span{font-size:12px;color:var(--ink-2)}
+.sync-gross{display:flex;gap:12px;align-items:center;padding:14px;border-radius:14px;margin-bottom:12px}
+.sync-gross .sg-ico{display:flex;align-items:center;justify-content:center;flex:none;width:40px;height:40px;border-radius:12px;color:#fff;background:#8c8b86}
+.sync-gross b{display:block;font-size:15px}.sync-gross span{font-size:12.5px;color:var(--ink-2)}
+.sync-gross.gruen{background:color-mix(in srgb,#1f9d6b 12%,var(--surface))}.sync-gross.gruen .sg-ico{background:#1f9d6b}
+.sync-gross.gelb{background:color-mix(in srgb,#d98a2b 13%,var(--surface))}.sync-gross.gelb .sg-ico{background:#d98a2b}
+.sync-gross.rot{background:color-mix(in srgb,#d65045 12%,var(--surface))}.sync-gross.rot .sg-ico{background:#d65045}
+.sync-liste{display:flex;flex-direction:column;gap:4px;margin:0 0 12px;padding:10px 12px;border-radius:12px;background:var(--flaeche);font-size:13px}
+.sync-liste div{display:flex;justify-content:space-between}
+.sync-erkl{font-size:12.5px;color:var(--ink-2);line-height:1.45}
+.sync-erkl ul{margin:4px 0 10px;padding-left:18px}
+.kb-schritte{padding-left:20px;font-size:13.5px;line-height:1.5}
+.kb-schritte li{margin-bottom:8px}
+.kb-schritte code{background:var(--flaeche);padding:1px 5px;border-radius:5px;font-size:12px}
+
+/* V95: schnellere, ruhigere Übergänge */
+.main.nav-vor>*{animation-duration:.24s!important}
+.main.nav-zurueck>*{animation-duration:.2s!important}
+.main.nav-tab>*{animation-duration:.2s!important}
+.main.nav-zurueck .nkachel-grid>*,.main.nav-zurueck .lesson-grid>*{animation:none!important}
+.nkachel-grid>*,.lesson-grid>*,.task-list.kacheln>*{animation-duration:.28s!important}
+.nkachel-grid>*:nth-child(n+2),.lesson-grid>*:nth-child(n+2),.task-list.kacheln>*:nth-child(n+2){animation-delay:.02s!important}
+.nkachel-grid>*:nth-child(n+4),.lesson-grid>*:nth-child(n+4),.task-list.kacheln>*:nth-child(n+4){animation-delay:.04s!important}
+.nkachel-grid>*:nth-child(n+7),.lesson-grid>*:nth-child(n+7),.task-list.kacheln>*:nth-child(n+7){animation-delay:.06s!important}
+.main{transition:transform .22s var(--ease-out),opacity .22s ease}
+.main.wisch-zurueck{transition:none;box-shadow:-10px 0 24px rgba(0,0,0,.08)}
+.main.nav-schnell>*{animation:navTab .16s ease both}
+/* V96: Dunkelmodus-Durchgang */
+.main table.grades td.name,.main table.grades th{background:var(--flaeche)}
+.main table.grades tbody tr:nth-child(odd) td.name{background:color-mix(in srgb,var(--ink) 3%,var(--flaeche))}
+.main .card-body .btn:not(.primary),.main .tbl-wrap .btn:not(.primary){background:color-mix(in srgb,var(--ink) 7%,var(--flaeche))}
+.main .card-body .btn:not(.primary):hover{background:color-mix(in srgb,var(--ink) 11%,var(--flaeche))}
+@media(prefers-color-scheme:dark){
+.lk-nr{color:color-mix(in srgb,var(--kc) 55%,#fff)}
+.sync-gross.grau .sg-ico{background:#3a3a38;color:#e6e6e3}
+}
 </style>
 </head>
 <body>
@@ -3427,7 +3496,7 @@ var TABLES = ['Klassen', 'Kurse', 'SuS', 'Stundenplan', 'Stunden', 'Mitarbeit',
               'Leistungen', 'Noten', 'Checks', 'Settings'];
 
 /* Eine einzige Stelle für die Versionsangabe (Anzeige unter „Mehr“). */
-var APP_VERSION = 'V93';
+var APP_VERSION = 'V96';
 
 /* V15: Diese Adresse ist die verbindliche Login-Adresse. */
 /* V58: Keine feste Server-Adresse mehr in der App. Sie wird über den Einladungslink/-code oder Mehr → Server gesetzt. */
@@ -4620,7 +4689,8 @@ var SPLIT_KEYS = {
   elternVorgaenge: 'map', elternHinweise: 'map', strafHinweise: 'map', strafErledigt: 'map', strafFristen: 'map',
   mitarbeitNoten: 'map', sitzplaene: 'map', sitzregeln: 'map', weiterNotizen: 'map',
   unterrichtsreihen: 'map', susLastSeen: 'map', craftLinks: 'map', elternVorlagen: 'map',
-  listenSmartVorlagen: 'map', elternListenVorlagen: 'map', papierkorb: 'map', klassenGetrennt: 'map'
+  listenSmartVorlagen: 'map', elternListenVorlagen: 'map', papierkorb: 'map', klassenGetrennt: 'map',
+  leistungAufgaben: 'map', aufgabenPunkte: 'map'
 };
 
 var SX_VERSION = 0;
@@ -5323,6 +5393,8 @@ var Sync = {
   getConn: function () { return { url: Auth.serverUrl() }; },
 
   pendingCount: function () { return Object.keys(QUEUE).length; },
+  aeltesteWartende: function () { var m = ''; Object.keys(QUEUE).forEach(function (k) { var u = QUEUE[k] && QUEUE[k].updatedAt; if (u && (!m || u < m)) m = u; }); return m; },
+  wartendeListe: function () { return Object.keys(QUEUE).map(function (k) { return { tabelle: k.slice(0, k.indexOf(':')), rec: QUEUE[k] }; }); },
 
   update: function () {
     if (!this.configured()) this.status = 'off';
@@ -6573,12 +6645,42 @@ document.addEventListener('click', function (e) {
     if (route.tab === 'heute' && !route.stack.length) return;         /* dort wischt man Tage */
     if (z.closest('.topbar, .tabbar, .modal, input, textarea, select, [contenteditable], [draggable="true"], .grid-wrap, .sitz-scroll, .week-grid-wrap, .no-swipe')) return;
     if (waagerechtScrollbar(z)) return;
-    start = { x: t.clientX, y: t.clientY, zeit: Date.now() };
+    start = { x: t.clientX, y: t.clientY, zeit: Date.now(), zieht: false };
   }, { passive: true });
+  /* V95: Die Seite folgt beim Zurück-Wischen dem Finger (wie in iOS) – kein Warten bis zum Loslassen */
+  var mainEl = document.getElementById('main');
+  document.addEventListener('touchmove', function (e) {
+    if (!start || !e.touches || e.touches.length !== 1) return;
+    var t = e.touches[0], dx = t.clientX - start.x, dy = t.clientY - start.y;
+    if (!start.zieht) {
+      if (Math.abs(dy) > 12 && Math.abs(dy) > Math.abs(dx)) { start = null; return; }
+      if (dx < 14 || Math.abs(dx) < Math.abs(dy) * 1.5) return;
+      if (!(NAVH.past.length || route.stack.length)) return;
+      start.zieht = true; mainEl.classList.add('wisch-zurueck');
+    }
+    var x = Math.max(0, dx);
+    mainEl.style.transform = 'translateX(' + x + 'px)';
+    mainEl.style.opacity = String(Math.max(.35, 1 - x / (window.innerWidth * 1.4)));
+  }, { passive: true });
+  function wischZuruecksetzen_(sofort) {
+    mainEl.classList.remove('wisch-zurueck');
+    if (sofort) { mainEl.style.transition = 'none'; }
+    mainEl.style.transform = ''; mainEl.style.opacity = '';
+    if (sofort) { void mainEl.offsetWidth; mainEl.style.transition = ''; }
+  }
+  document.addEventListener('touchcancel', function () { if (start && start.zieht) wischZuruecksetzen_(false); start = null; }, { passive: true });
   document.addEventListener('touchend', function (e) {
     if (!start || !e.changedTouches || !e.changedTouches.length) return;
     var s = start, t = e.changedTouches[0]; start = null;
     var dx = t.clientX - s.x, dy = t.clientY - s.y;
+    if (s.zieht) {
+      if (dx > Math.min(110, window.innerWidth * 0.28) || (dx > 50 && Date.now() - s.zeit < 260)) {
+        wischZuruecksetzen_(true); NAV_OHNE_ANIM_ = true; try { navWischZurueck_(); } finally { NAV_OHNE_ANIM_ = false; } NAV_ANIM_ = '';
+        mainEl.classList.remove('nav-vor', 'nav-zurueck', 'nav-tab'); void mainEl.offsetWidth; mainEl.classList.add('nav-schnell');
+        setTimeout(function () { mainEl.classList.remove('nav-schnell'); }, 220);
+      } else wischZuruecksetzen_(false);
+      return;
+    }
     if (Date.now() - s.zeit > 900 || Math.abs(dx) < 60 || Math.abs(dx) < Math.abs(dy) * 1.5) return;
     if (dx > 0) navWischZurueck_(); else navVor();
   }, { passive: true });
@@ -8824,7 +8926,7 @@ function navVor() {
   return true;
 }
 function navReset_() { NAVH.past = []; NAVH.future = []; }
-var NAV_ANIM_ = '';
+var NAV_ANIM_ = '', NAV_OHNE_ANIM_ = false;
 function go(tab) { NAV_ANIM_ = route.tab === tab ? '' : 'tab'; navMerken_(); route.tab = tab; route.stack = []; window.scrollTo(0, 0); render(); }
 function push(view, p) { NAV_ANIM_ = 'vor'; navMerken_(); route.stack.push({ view: view, p: p || {} }); window.scrollTo(0, 0); render(); }
 function back() {
@@ -8891,12 +8993,52 @@ function syncDesktopSidebar_(){
 }
 
 btnSync.addEventListener('click', function () {
-  if (VORSCHAU_AKTIV) { window.toast('Vorschau: keine Server-Synchronisation'); return; }
+  if (VORSCHAU_AKTIV) { syncStatusOeffnen_(); return; }
   if (!A.Sync.configured()) { showAuth('login'); return; }
+  syncStatusOeffnen_(); return;
   window.__spinManuell = Date.now();
   A.Sync.pull().then(function () { window.toast('Daten aktualisiert'); render(); })
     .catch(function (e) { window.toast('Fehler: ' + e.message, true); });
 });
+
+/* V94: Abgleich-Status – was ist sicher auf dem Server, was wartet noch? */
+function syncStatusOeffnen_() {
+  var S = A.Sync, n = VORSCHAU_AKTIV ? 0 : S.pendingCount(), ae = S.aeltesteWartende ? S.aeltesteWartende() : '';
+  var ok = !n && !S.lastError, netz = S.netzFehler;
+  var lp = S.lastPull ? A.fmtDateShort(S.lastPull.slice(0, 10)) + ' ' + S.lastPull.slice(11, 16) : '–';
+  var namen = { Noten: 'Note', Mitarbeit: 'Mitarbeit', Checks: 'Abhaken', Leistungen: 'Leistung', SuS: 'Schüler:in', Settings: 'Einstellung/Liste', Stunden: 'Stunde', Kurse: 'Fach', Klassen: 'Klasse', Stundenplan: 'Stundenplan' };
+  var gruppen = {}; if (S.wartendeListe) S.wartendeListe().forEach(function (x) { var k = namen[x.tabelle] || x.tabelle; gruppen[k] = (gruppen[k] || 0) + 1; });
+  var body = '<div class="sync-gross ' + (VORSCHAU_AKTIV ? 'grau' : (ok ? 'gruen' : (netz ? 'gelb' : 'rot'))) + '"><span class="sg-ico">' + ICON_(ok ? 'haken' : 'sync') + '</span><div><b>' +
+    (VORSCHAU_AKTIV ? 'Vorschau – kein Server' : (ok ? 'Alles auf dem Server gesichert' : (n + ' Änderung' + (n === 1 ? '' : 'en') + ' warten'))) + '</b><span>' +
+    (VORSCHAU_AKTIV ? 'In der Vorschau wird nichts übertragen.' : (ok ? 'Zuletzt abgeglichen: ' + lp : (netz ? 'Der Server (dein Mac) ist gerade nicht erreichbar. Die Änderungen sind auf diesem Gerät gespeichert und werden automatisch gesendet.' : 'Fehler: ' + A.esc(S.lastError)))) + '</span></div></div>' +
+    (n ? '<div class="sync-liste">' + Object.keys(gruppen).map(function (k) { return '<div><span>' + A.esc(k) + '</span><b>' + gruppen[k] + '</b></div>'; }).join('') + (ae ? '<div><span>älteste seit</span><b>' + A.fmtDateShort(ae.slice(0, 10)) + ' ' + ae.slice(11, 16) + '</b></div>' : '') + '</div>' : '') +
+    '<div class="sync-erkl"><b>Was schützt deine Daten?</b><ul><li>Jede Änderung wird sofort auf diesem Gerät gespeichert und bleibt dort, bis der Server sie bestätigt hat.</li><li>Kommt vom Server etwas, gewinnt eine noch nicht gesendete Änderung von diesem Gerät.</li><li>Der Server legt jede Nacht eine Sicherung an und behält 14 Tage.</li><li>Gelöschtes liegt 30 Tage im Papierkorb.</li></ul><b>Einziges echtes Risiko:</b> Änderungen, die lange nur auf einem Gerät liegen (Mac zugeklappt), sind weg, wenn genau dieses Gerät verloren geht oder Safari die Daten löscht. Deshalb erscheint unter Heute ein Hinweis, wenn etwas länger als 30 Minuten wartet.</div>';
+  Modal.open({ title: 'Abgleich', body: body, foot: VORSCHAU_AKTIV ? '' : '<button class="btn primary" data-sync-jetzt>Jetzt abgleichen</button>', after: function (bg, close) {
+    var b = bg.querySelector('[data-sync-jetzt]'); if (!b) return;
+    b.addEventListener('click', function () { b.disabled = true; b.textContent = 'Gleiche ab …'; window.__spinManuell = Date.now();
+      A.Sync.flush().then(function () { return A.Sync.pull(); }).then(function () { close(); render(); window.toast(A.Sync.pendingCount() ? 'Noch nicht alles übertragen' : 'Alles gesichert ✓', !!A.Sync.pendingCount()); })
+        .catch(function (e) { close(); window.toast('Fehler: ' + e.message, true); }); });
+  } });
+}
+
+/* V94: iPhone-Kurzbefehl „To-do nach Craft“ – ohne die App zu öffnen */
+function kurzbefehlTodoOeffnen_() {
+  var c = craftApiConfig_(), url = craftApiUrlGueltig_(c.url) ? String(c.url).replace(/\/$/, '') + '/tasks' : '';
+  var schritte = [
+    'Öffne die App <b>Kurzbefehle</b> → <b>＋</b> → Namen „To-do nach Craft“ geben.',
+    'Aktion <b>„Nach Eingabe fragen“</b> hinzufügen · Frage: „To-do“.',
+    'Aktion <b>„Aktuelles Datum“</b> → danach <b>„Datum formatieren“</b> · Format: <i>Eigenes</i> · <code>yyyy-MM-dd</code>.',
+    'Aktion <b>„Inhalte von URL abrufen“</b> · URL: die kopierte Adresse unten einfügen · Methode: <b>POST</b> · Anfragetext: <b>JSON</b>.',
+    'Im JSON ein Feld <code>tasks</code> vom Typ <b>Array</b> anlegen, darin ein <b>Wörterbuch</b> mit: <code>markdown</code> = <i>Angegebene Eingabe</i> · <code>location</code> = Wörterbuch mit <code>type</code> = <code>dailyNote</code> und <code>date</code> = <i>Formatiertes Datum</i>.',
+    'Fertig. Tipp: In den iPhone-Einstellungen → Bedienungshilfen → Tippen → <b>Auf Rückseite tippen</b> den Kurzbefehl auf „Doppeltippen“ legen – oder per Siri: „To-do nach Craft“.'
+  ];
+  Modal.open({ title: 'Kurzbefehl: To-do nach Craft', body:
+    '<div class="hint-box">Damit legst du ein To-do in der heutigen Craft-Tagesnotiz an, ohne die Schulapp zu öffnen. Wichtig: Schreib dort keine Namen von Kindern hinein – der Kurzbefehl kann sie nicht wie die App entfernen. Über den Kurzbefehl wird es eine normale Aufgabe, nicht der lila Block.</div>' +
+    (url ? '<div class="field"><label>Adresse für Schritt 4</label><input type="password" readonly value="' + A.esc(url) + '" id="kbUrl"></div><button class="btn block" id="kbKopieren">Adresse kopieren</button>' : '<div class="warn-box">Richte zuerst unter Mehr → App → Craft-Verbindung die Verbindung ein.</div>') +
+    '<ol class="kb-schritte">' + schritte.map(function (t) { return '<li>' + t + '</li>'; }).join('') + '</ol>' +
+    '<div class="small muted">Die Adresse ist wie ein Schlüssel zu deinem Craft – nur in deinen eigenen Kurzbefehl einfügen, nicht weitergeben.</div>',
+    after: function (bg) { var k = bg.querySelector('#kbKopieren'); if (k) k.addEventListener('click', function () { kopieren(url).then(function () { window.toast('Adresse kopiert'); }); }); } });
+}
 
 /* ------------------------------------------------------------- Bausteine */
 
@@ -9124,7 +9266,7 @@ function tagesAnsichtHTML(datum) {
       '<h1>' + A.tagName(tag, true) + ', ' + Number(dd[2]) + '. ' + monate[Number(dd[1]) - 1] + '</h1></div>' +
     '<div class="tag-kopf-nav"><button class="tag-pfeil" data-act="tag-minus" aria-label="Vorheriger Tag">‹</button>' +
       (heute ? '' : '<button class="tag-heute-btn" data-act="tag-heute">Heute</button>') +
-      '<button class="tag-pfeil" data-act="tag-plus" aria-label="Nächster Tag">›</button></div></div>' + heuteModusHTML();
+      '<button class="tag-pfeil" data-act="tag-plus" aria-label="Nächster Tag">›</button></div></div>' + heuteModusHTML() + syncHinweisHTML_();
   var frei = A.freierTag(datum);
   if (frei) h += '<div class="frei-banner ' + frei.art + '"><b>' + A.esc(frei.name) + '</b><span>' + (frei.art === 'feiertag' ? 'Feiertag' : (frei.art === 'ferien' ? 'Ferien' : 'Freier Tag')) + ' – kein Unterricht laut Kalender</span></div>';
   var bloecke = A.bloeckeFuerDatum(datum);
@@ -9594,7 +9736,7 @@ function klassenAmpelDaten_(klasseId){var sus=A.susDerKlasse(klasseId),ls=listen
 function klassenAmpelHTML_(klasseId){var d=klassenAmpelDaten_(klasseId);return '<div class="ampel-grid">'+['ruecklauf','eltern','ziele'].concat(craftAn_()?['craft']:[]).map(function(key){var x=d[key];return '<button class="ampel-item" data-act="klasse-ampel-detail" data-klasse="'+klasseId+'" data-kind="'+key+'"><div class="ampel-top"><i class="ampel-dot '+x.state+'"></i><b>'+x.label+'</b></div><span>'+A.esc(x.text)+'</span></button>';}).join('')+'</div>';}
 
 VIEWS.klasse = {
-  title: function (p) { var k = A.byId('Klassen', p.id); var n = k ? k.name : 'Klasse'; var bn = { sus: 'Schüler:innen', listen: 'Listen & Abgaben', eltern: 'Eltern' }[p.b || '']; return bn ? n + ' · ' + bn : n; },
+  title: function (p) { var k = A.byId('Klassen', p.id); var n = k ? k.name : 'Klasse'; var bn = { sus: 'Schüler:innen', listen: 'Listen & Abgaben', eltern: 'Eltern', konferenz: 'Notenkonferenz' }[p.b || '']; return bn ? n + ' · ' + bn : n; },
   actions: function (p) { return '<button class="icon-btn" data-act="klasse-bearbeiten" data-klasse="' + p.id + '">···</button>'; },
   body: function (p) {
     var k = A.byId('Klassen', p.id);
@@ -9621,7 +9763,8 @@ VIEWS.klasse = {
         kachel_({ act: 'klasse-bereich', data: { klasse: k.id, b: 'eltern' }, icon: 'eltern', titel: 'Eltern',
           info: komm.length ? komm.length + ' Hinweis' + (komm.length === 1 ? '' : 'e') : 'nichts offen', badge: komm.length ? String(komm.length) : '' }) +
         kachel_({ act: 'open-sitzplan', data: { klasse: k.id }, icon: 'sitzplan', titel: 'Sitzplan', info: sitzI.tische + ' Tische · ' + sitzI.plaetze + ' Plätze' }) +
-        kachel_({ act: 'klasse-ampel-detail', data: { klasse: k.id, kind: 'ziele' }, icon: 'ziel', titel: 'Förderziele', info: A.esc(amp.ziele.text) })
+        kachel_({ act: 'klasse-ampel-detail', data: { klasse: k.id, kind: 'ziele' }, icon: 'ziel', titel: 'Förderziele', info: A.esc(amp.ziele.text) }) +
+        kachel_({ act: 'klasse-bereich', data: { klasse: k.id, b: 'konferenz' }, icon: 'chart', titel: 'Notenkonferenz', info: 'alle Fächer · Zeugnis-Tendenz · PDF' })
       );
       return h;
     }
@@ -9637,6 +9780,7 @@ VIEWS.klasse = {
       return h;
     }
     if (b === 'eltern') return kommunikationKlasseHTML(k.id);
+    if (b === 'konferenz') return konferenzHTML_(k.id);
 
     h += '<div class="hint-box">Die Schüler:innen gehören zur Klasse, nicht zum Fach. ' +
       'Jedes weitere Fach übernimmt sie automatisch.</div>';
@@ -9968,16 +10112,17 @@ function craftPlanAuffrischen_(datum,erzwingen,weitere){
   var cache=craftPlanCache_(),jetzt=Date.now(),alt=function(e){return !e||!e.ts||jetzt-e.ts>10*60*1000;};
   datum=datum||A.todayISO();
   var jobs=[];
-  if(pc.planId&&(erzwingen||(alt(cache.plan)&&!(cache.planFehlerTs&&jetzt-cache.planFehlerTs<10*60*1000))))jobs.push(craftLesenMd_('id='+encodeURIComponent(pc.planId)+'&maxDepth=-1').then(function(md){cache.plan={md:md,ts:Date.now(),zeit:new Date().toISOString()};}));
+  var geaendert=false;
+  if(pc.planId&&(erzwingen||(alt(cache.plan)&&!(cache.planFehlerTs&&jetzt-cache.planFehlerTs<10*60*1000))))jobs.push(craftLesenMd_('id='+encodeURIComponent(pc.planId)+'&maxDepth=-1').then(function(md){if(!cache.plan||cache.plan.md!==md)geaendert=true;cache.plan={md:md,ts:Date.now(),zeit:new Date().toISOString()};}));
   cache.tage=cache.tage||{};
   [datum].concat(weitere||[]).filter(function(d,i,a){return d&&a.indexOf(d)===i;}).forEach(function(d){
-    if(pc.tagesnotiz&&(erzwingen||alt(cache.tage[d])))jobs.push(craftLesenMd_('date='+encodeURIComponent(d)+'&maxDepth=-1').then(function(md){cache.tage[d]={md:md,ts:Date.now()};}).catch(function(e){cache.tage[d]={md:'',ts:Date.now(),fehler:e.message};}));
+    if(pc.tagesnotiz&&(erzwingen||alt(cache.tage[d])))jobs.push(craftLesenMd_('date='+encodeURIComponent(d)+'&maxDepth=-1').then(function(md){if(!cache.tage[d]||cache.tage[d].md!==md)geaendert=true;cache.tage[d]={md:md,ts:Date.now()};}).catch(function(e){cache.tage[d]={md:'',ts:Date.now(),fehler:e.message};}));
   });
   if(!jobs.length)return;
   craftPlanLaedt_=true;
   return Promise.all(jobs).then(function(){
     var k=Object.keys(cache.tage).sort();while(k.length>14){delete cache.tage[k.shift()];}
-    cache.fehler='';craftPlanCacheSet_(cache);craftPlanLaedt_=false;try{craftLeistungenAbgleichen_();}catch(e){}render();return true;
+    cache.fehler='';craftPlanCacheSet_(cache);craftPlanLaedt_=false;try{craftLeistungenAbgleichen_();}catch(e){}if(geaendert&&!document.querySelector('#modalHost .modal'))render();return true;
   }).catch(function(e){cache.fehler=e.message;cache.planFehlerTs=Date.now();craftPlanCacheSet_(cache);craftPlanLaedt_=false;if(erzwingen)throw e;});
 }
 
@@ -10049,6 +10194,80 @@ VIEWS.mappe = {
     return h;
   }
 };
+
+/* =====================================================================
+   V94: Punkte pro Aufgabe
+   ===================================================================== */
+function leistungAufgaben_(lid){var m=A.cfg('leistungAufgaben')||{},a=m[lid];return Array.isArray(a)?a:[];}
+function aufgabenParse_(t){
+  var out=[];String(t||'').split(/[;,\n]+/).forEach(function(teil,i){teil=teil.trim();if(!teil)return;var m=teil.match(/^(.*?)[:=\s]\s*([0-9]+(?:[.,][0-9]+)?)$/);
+    if(m){out.push({n:(m[1]||('A'+(i+1))).trim()||('A'+(i+1)),max:Number(m[2].replace(',','.'))});}else if(/^[0-9]+([.,][0-9]+)?$/.test(teil)){out.push({n:'A'+(out.length+1),max:Number(teil.replace(',','.'))});}});
+  return out.filter(function(a){return a.max>0;});
+}
+function aufgabenText_(arr){return arr.map(function(a){return a.n+': '+String(a.max).replace('.',',');}).join(', ');}
+function aufgabenSetzen_(lid,arr){var m=A.clone(A.cfg('leistungAufgaben')||{});if(arr&&arr.length)m[lid]=arr;else delete m[lid];A.setCfg('leistungAufgaben',m);}
+function aufgabenPunkte_(lid){var m=A.cfg('aufgabenPunkte')||{};return m[lid]&&typeof m[lid]==='object'?m[lid]:{};}
+function aufgabenPunkteSetzen_(lid,susId,werte){var m=A.clone(A.cfg('aufgabenPunkte')||{});var x=Object.assign({},m[lid]||{});x[susId]=werte;m[lid]=x;A.setCfg('aufgabenPunkte',m);}
+function aufgabenAuswertungHTML_(l,sus){
+  var auf=leistungAufgaben_(l.id);if(!auf.length)return '';var pk=aufgabenPunkte_(l.id);
+  var zeilen=auf.map(function(a,i){var summe=0,n=0;sus.forEach(function(s){var w=(pk[s.id]||[])[i];if(w!==''&&w!==undefined&&w!==null&&!isNaN(Number(w))){summe+=Number(w);n++;}});
+    var pct=n?Math.round(summe/n/a.max*100):null;var kl=pct===null?'':(pct>=75?'gut':(pct>=50?'mittel':'schwach'));
+    return '<div class="auf-zeile"><span class="auf-n">'+A.esc(a.n)+'</span><div class="auf-balken '+kl+'"><i style="width:'+(pct||0)+'%"></i></div><span class="auf-p">'+(pct===null?'–':pct+' %')+'</span><span class="auf-m">Ø '+(n?A.fmtNote(summe/n,1):'–')+' / '+String(a.max).replace('.',',')+'</span></div>';}).join('');
+  return card('Auswertung nach Aufgaben','<div class="auf-auswertung">'+zeilen+'<div class="auf-tipp">Rot = im Schnitt unter 50 % der Punkte – lohnt sich zum Besprechen.</div></div>');
+}
+
+/* =====================================================================
+   V94: Notenkonferenz-Ansicht je Klasse
+   ===================================================================== */
+function konferenzDaten_(klasseId){
+  var kurse=A.kurseDerKlasse(klasseId),sus=A.susDerKlasse(klasseId).filter(function(s){return String(s.aktiv)!=='0';});
+  var aktiv={};kurse.forEach(function(k){aktiv[k.id]=A.list('Leistungen',function(l){return l.kursId===k.id;}).some(function(l){return sus.some(function(x){var n=A.noteFuer(l,x.id,k);return n!==null&&n!==undefined;});});});
+  var zeilen=sus.map(function(s){var zellen=kurse.map(function(k){var g=A.gesamtnote(k,s.id),anz=A.list('Leistungen',function(l){return l.kursId===k.id;}).filter(function(l){var n=A.noteFuer(l,s.id,k);return n!==null&&n!==undefined;}).length;return {kurs:k,note:g.note,zeugnis:A.rundeNote(g.note),anzahl:anz};});
+    var fuenfer=zellen.filter(function(z){return z.zeugnis!==null&&z.zeugnis>=5;}).length,ohne=zellen.filter(function(z){return z.anzahl===0&&aktiv[z.kurs.id];}).length;
+    return {sus:s,zellen:zellen,fuenfer:fuenfer,ohne:ohne};});
+  return {kurse:kurse,zeilen:zeilen};
+}
+function konferenzHTML_(klasseId){
+  var d=konferenzDaten_(klasseId),kl=A.byId('Klassen',klasseId)||{};
+  if(!d.kurse.length)return card('',empty('📊','Für diese Klasse ist noch kein Fach angelegt.'));
+  var kritisch=d.zeilen.filter(function(z){return z.fuenfer>0;}),ohne=d.zeilen.filter(function(z){return z.ohne>0;});
+  var h='<div class="konf-zusammen"><div class="kz-kachel '+(kritisch.length?'rot':'gruen')+'"><b>'+kritisch.length+'</b><span>mit Fünf oder schlechter</span></div>'+
+    '<div class="kz-kachel '+(ohne.length?'gelb':'gruen')+'"><b>'+ohne.length+'</b><span>mit fehlenden Noten</span></div>'+
+    '<div class="kz-kachel"><b>'+d.zeilen.length+'</b><span>Schüler:innen</span></div></div>';
+  h+='<div class="tbl-wrap"><table class="grades konf-tab"><thead><tr><th class="name">Name</th>'+d.kurse.map(function(k){return '<th>'+A.esc(k.fach)+'</th>';}).join('')+'<th>Hinweis</th></tr></thead><tbody>'+
+    d.zeilen.map(function(z){return '<tr data-act="open-sus" data-sus="'+z.sus.id+'"><td class="name">'+A.esc(A.susKurz(z.sus))+'</td>'+z.zellen.map(function(c){
+      var cls=c.anzahl===0?'konf-leer':(c.zeugnis>=5?'konf-rot':(c.zeugnis===4&&c.note>=4.3?'konf-gelb':''));
+      return '<td class="'+cls+'">'+(c.anzahl===0?'–':'<b>'+c.zeugnis+'</b><small>'+A.fmtNote(c.note,1)+' · '+c.anzahl+'</small>')+'</td>';}).join('')+
+      '<td class="konf-hinweis">'+[z.fuenfer?(z.fuenfer+'× Fünf/Sechs'):'',z.ohne?('in '+z.ohne+' Fach ohne Noten'):''].filter(Boolean).join(' · ')+'</td></tr>';}).join('')+'</tbody></table></div>';
+  h+='<div class="small muted" style="margin:8px 2px 18px">Fett = Zeugnis-Tendenz, klein = Schnitt · Anzahl Noten. Gelb = knapp an der Grenze (4,3 bis 4,49). Nur deine Fächer.</div>';
+  h+='<button class="btn primary block" data-act="konferenz-pdf" data-klasse="'+klasseId+'">Als PDF für die Konferenz</button>';
+  return h;
+}
+function konferenzPdfBlob_(klasseId){
+  var d=konferenzDaten_(klasseId),kl=A.byId('Klassen',klasseId)||{},W=841.89,H=595.28,M=34,pages=[],cmd='',y=0;
+  var nameW=150,hinW=170,spW=Math.max(46,(W-2*M-nameW-hinW)/Math.max(1,d.kurse.length)),zh=18;
+  function kopf(){if(cmd)pages.push(cmd);cmd=pdfTextCmd_('Notenkonferenz · Klasse '+(kl.name||''),M,H-36,15,'left')+pdfTextCmd_('Vertraulich · Stand '+A.fmtDateShort(A.todayISO()),W-M,H-36,8,'right');y=H-64;
+    cmd+=pdfRectCmd_(M,y-4,W-2*M,zh,0.92,0.92,0.3)+pdfTextCmd_('Name',M+4,y+2,8.5,'left');d.kurse.forEach(function(k,i){cmd+=pdfTextCmd_(String(k.fach).slice(0,12),M+nameW+i*spW+spW/2,y+2,8.5,'center');});cmd+=pdfTextCmd_('Hinweis',M+nameW+d.kurse.length*spW+4,y+2,8.5,'left');y-=zh;}
+  kopf();
+  d.zeilen.forEach(function(z,ri){if(y<44)kopf();if(ri%2)cmd+=pdfRectCmd_(M,y-4,W-2*M,zh,0.97,0.97,0.1);
+    cmd+=pdfTextCmd_(A.susName(z.sus),M+4,y+2,8.5,'left');
+    z.zellen.forEach(function(c,i){var x=M+nameW+i*spW;if(c.anzahl&&c.zeugnis>=5)cmd+=pdfRectCmd_(x+2,y-3,spW-4,zh-2,0.85,0.85,0.1);cmd+=pdfTextCmd_(c.anzahl?(c.zeugnis+'  ('+A.fmtNote(c.note,1)+')'):'–',x+spW/2,y+2,8.5,'center');});
+    cmd+=pdfTextCmd_([z.fuenfer?(z.fuenfer+'x Fünf/Sechs'):'',z.ohne?('ohne Noten: '+z.ohne):''].filter(Boolean).join(' · '),M+nameW+d.kurse.length*spW+4,y+2,8,'left');y-=zh;});
+  pages.push(cmd);for(var i=0;i<pages.length;i++)pages[i]+=pdfTextCmd_('Schulapp · Seite '+(i+1)+'/'+pages.length,W-M,20,6.8,'right');
+  return new Blob([pdfBuildMultiPageFile_(pages.map(pdfWinAnsiBytes_),W,H)],{type:'application/pdf'});
+}
+
+/* =====================================================================
+   V94: Abgleich – klare Anzeige, was gesichert ist
+   ===================================================================== */
+function syncWarteAeltest_(){try{return A.Sync.aeltesteWartende?A.Sync.aeltesteWartende():'';}catch(e){return '';}}
+function syncHinweisHTML_(){
+  if(VORSCHAU_AKTIV||!A.Sync.configured())return '';
+  var n=A.Sync.pendingCount();if(!n)return '';
+  var ae=syncWarteAeltest_(),min=ae?Math.round((Date.now()-new Date(ae).getTime())/60000):0;
+  if(min<30&&!A.Sync.netzFehler)return '';
+  return '<div class="sync-warn" data-act="sync-status"><span class="sw-ico">'+ICON_('sync')+'</span><div><b>'+n+' Änderung'+(n===1?'':'en')+' nur auf diesem Gerät</b><span>'+(ae?'seit '+(min<60?min+' Min.':(min<1440?Math.round(min/60)+' Std.':Math.round(min/1440)+' Tagen'))+' · ':'')+'werden automatisch gesendet, sobald der Mac erreichbar ist. Tippen für Details.</span></div></div>';
+}
 
 var KURS_BEREICHE_ = { noten: 'Noten eintragen', uebersicht: 'Notenübersicht', listen: 'Einsammel-Listen', bewertung: 'Bewertung', reihe: 'Unterrichtsreihe' };
 VIEWS.kurs = {
@@ -10350,6 +10569,7 @@ VIEWS.leistung = {
         'automatische Mitzählen abschalten.</div>';
     }
 
+    var aufg = leistungAufgaben_(l.id), aufPk = aufgabenPunkte_(l.id);
     var rows = sus.map(function (s, i) {
       var rec = A.list('Noten', function (x) { return x.leistungId === l.id && x.susId === s.id; })[0] || {};
       var n = A.noteFuer(l, s.id, kurs);
@@ -10367,6 +10587,12 @@ VIEWS.leistung = {
           : '<span class="vorschlag leer"><span class="vs-k">Vorschlag</span><span class="vs-n">–</span></span>';
       }
 
+      if (aufg.length && mitPunkten) {
+        var pw = aufPk[s.id] || [];
+        return '<div class="mit-row auf-row"><div class="mit-name"><div class="nn">' + A.esc(A.susName(s)) + '</div>' +
+          '<div class="auf-summe"><input class="pkt auf-gesamt" data-note-input data-sus="' + s.id + '" data-idx="' + i + '" type="text" readonly tabindex="-1" value="' + A.esc(wert) + '"><span>/ ' + A.esc(l.maxPunkte) + '</span><div class="nums ' + noteKlasse(n) + '">' + A.fmtNote(n, 1) + '</div></div></div>' +
+          '<div class="auf-felder">' + aufg.map(function (a, j) { return '<label><small>' + A.esc(a.n) + '</small><input class="pkt" data-auf-input data-sus="' + s.id + '" data-j="' + j + '" data-max="' + a.max + '" type="text" inputmode="decimal" enterkeyhint="next" autocomplete="off" value="' + A.esc(pw[j] === undefined || pw[j] === null ? '' : String(pw[j]).replace('.', ',')) + '" placeholder="/' + String(a.max).replace('.', ',') + '"></label>'; }).join('') + '</div></div>';
+      }
       return '<div class="mit-row">' +
         '<div class="mit-name"><div class="nn">' + A.esc(A.susName(s)) + '</div></div>' +
         '<div class="eingabe">' + chip +
@@ -10380,8 +10606,9 @@ VIEWS.leistung = {
     h += '<div class="noten-schnell"><div class="ns-fortschritt" id="nsFortschritt"></div>' +
       (!mitPunkten ? '<label class="ns-toggle"><input type="checkbox" data-noten-schnell' + (schnellAn ? ' checked' : '') + '> Automatisch weiter</label>' : '') + '</div>' +
       '<div class="ns-tipp">' + (mitPunkten ? 'Enter oder „Weiter“ springt zum nächsten Kind. ↑ ↓ wechseln.' : 'Mit „Automatisch weiter“ springt die Eingabe nach einer fertigen Note (z. B. 2, 2,5, 2-, 2+) zum nächsten Kind. Für 1,5 o. Ä. einfach weitertippen – die App wartet kurz.') + '</div>';
-    h += card(mitPunkten ? 'Punkte eintragen' : 'Noten eintragen', rows);
+    h += card(mitPunkten ? (aufg.length ? 'Punkte pro Aufgabe eintragen' : 'Punkte eintragen') : 'Noten eintragen', rows);
     setTimeout(notenFortschritt_, 0);
+    h += aufgabenAuswertungHTML_(l, sus);
     h += '<button class="btn primary block" data-act="noten-fertig">Speichern</button>' +
       '<p class="small muted" style="margin:-4px 2px 14px">Jede Eingabe wird zusätzlich sofort gespeichert.</p>';
 
@@ -10551,6 +10778,7 @@ VIEWS.mehr = {
         '<div class="row-sub">' + (A.cfg('pin') ? 'aktiv' : 'aus') + '</div></div><div class="chev">›</div></button>' +
       '<button class="row" data-act="craft-api"><div class="row-main"><div class="row-title">Craft-Verbindung</div>' +
         '<div class="row-sub">' + (craftTodoVerbunden_() ? 'verbunden · To-dos gehen in die Tagesnotiz' : 'nötig für To-dos (landen in der Craft-Tagesnotiz)') + '</div></div><div class="chev">›</div></button>' +
+      '<button class="row" data-act="kurzbefehl-todo"><div class="row-main"><div class="row-title">iPhone-Kurzbefehl für To-dos</div><div class="row-sub">To-do nach Craft per Siri oder Rückseite-Tippen – ohne die App zu öffnen</div></div><div class="chev">›</div></button>' +
       '<button class="row" data-act="export"><div class="row-main"><div class="row-title">Daten exportieren</div>' +
         '<div class="row-sub">Sicherungsdatei (JSON)</div></div><div class="chev">›</div></button>' +
       '<button class="row" data-act="import"><div class="row-main"><div class="row-title">Daten importieren</div>' +
@@ -10669,7 +10897,7 @@ function render() {
   main.innerHTML = cur.def.body(cur.p) + '<button class="quick-fab" data-act="quick-actions" title="Schnellaktionen" aria-label="Schnellaktionen">＋</button>';
   renderScrollHerstellen_();
   /* V91: Seitenübergang nur bei echter Navigation, nicht bei Datenänderungen */
-  if (NAV_ANIM_ && !BEWEGUNG_REDUZIERT_) {
+  if (NAV_ANIM_ && !BEWEGUNG_REDUZIERT_ && !main.classList.contains('nav-schnell') && !NAV_OHNE_ANIM_) {
     var kl = 'nav-' + NAV_ANIM_;
     main.classList.remove('nav-vor', 'nav-zurueck', 'nav-tab'); void main.offsetWidth; main.classList.add(kl);
     clearTimeout(main._navT); main._navT = setTimeout(function () { main.classList.remove(kl); }, 420);
@@ -11556,6 +11784,9 @@ ACT['open-klasse'] = function (el) { push('klasse', { id: el.getAttribute('data-
 ACT['open-kurs'] = function (el) { push('kurs', { id: el.getAttribute('data-kurs') }); };
 ACT['plan-alle'] = function () { ui.planAlle = !ui.planAlle; render(); };
 ACT['mappe-open'] = function (el) { push('mappe', { id: el.getAttribute('data-sus') }); };
+ACT['konferenz-pdf'] = function (el) { var id = el.getAttribute('data-klasse'), kl = A.byId('Klassen', id); try { downloadPdfBlob_(konferenzPdfBlob_(id), 'Notenkonferenz_' + safePdfFilename_((kl && kl.name) || 'Klasse') + '.pdf'); window.toast('Konferenz-PDF erstellt'); } catch (e) { window.toast('PDF konnte nicht erstellt werden', true); } };
+ACT['sync-status'] = function () { syncStatusOeffnen_(); };
+ACT['kurzbefehl-todo'] = function () { kurzbefehlTodoOeffnen_(); };
 ACT['tag-heute'] = function () { ui.datum = A.todayISO(); render(); };
 ACT['noten-klasse'] = function (el) { push('noten', { klasse: el.getAttribute('data-klasse') }); };
 ACT['craft-stunde-oeffnen'] = function (el) { var u = craftBlockLink_(el.getAttribute('data-block')); if (u) window.location.href = u; };
@@ -12524,6 +12755,8 @@ ACT['leistung-neu'] = function (el) {
       { key: 'datum', label: 'Datum', type: 'date', value: A.todayISO() },
       { key: 'maxPunkte', label: 'Maximalpunkte', type: 'text', inputmode: 'decimal',
         hint: 'Leer lassen, um Noten direkt einzutragen.' },
+      { key: 'aufgaben', label: 'Punkte pro Aufgabe (optional)', placeholder: 'z. B. A1: 10, A2: 8, A3: 12', autocap: false,
+        hint: 'Dann trägst du je Aufgabe ein, die Summe und die Note rechnet die App. Maximalpunkte ergeben sich automatisch.' },
       { key: 'anteil', label: 'Anteil innerhalb der Art (%)', type: 'text', inputmode: 'decimal', value: String(anteilVorschlag_(k0.id, (A.kategorienVon(k0)[0] || {}).name)),
         hint: 'z. B. 50 = diese Leistung zählt die Hälfte der Note dieser Art. Die übrigen Leistungen der Art teilen sich den Rest im bisherigen Verhältnis.' }
     ],
@@ -12533,10 +12766,11 @@ ACT['leistung-neu'] = function (el) {
       var l = A.put('Leistungen', {
         id: A.uid('le'), kursId: v.kursId, klasseId: kurs ? kurs.klasseId : '',
         kategorie: v.kategorie, titel: v.titel.trim(), datum: v.datum,
-        maxPunkte: String(v.maxPunkte).replace(',', '.'),
+        maxPunkte: aufgabenParse_(v.aufgaben).length ? String(aufgabenParse_(v.aufgaben).reduce(function (s, a) { return s + a.max; }, 0)) : String(v.maxPunkte).replace(',', '.'),
         gewicht: gewichtAusAnteil_(v.kursId, v.kategorie, '', v.anteil),
         notenschluessel: ''
       });
+      if (aufgabenParse_(v.aufgaben).length) aufgabenSetzen_(l.id, aufgabenParse_(v.aufgaben));
       push('leistung', { id: l.id });
     },
     focus: false
@@ -12565,15 +12799,18 @@ ACT['leistung-bearbeiten'] = function (el) {
       { key: 'kategorie', label: 'Art', type: 'select', value: l.kategorie, options: A.kategorienVon(kurs).map(function (c) { return c.name; }) },
       { key: 'datum', label: 'Datum', type: 'date', value: l.datum },
       { key: 'maxPunkte', label: 'Maximalpunkte', type: 'text', inputmode: 'decimal', value: l.maxPunkte },
+      { key: 'aufgaben', label: 'Punkte pro Aufgabe (optional)', value: aufgabenText_(leistungAufgaben_(l.id)), placeholder: 'z. B. A1: 10, A2: 8, A3: 12', autocap: false, hint: 'Leer lassen = nur Gesamtpunkte.' },
       { key: 'anteil', label: 'Anteil innerhalb der Art (%)', type: 'text', inputmode: 'decimal', value: String(leistungAnteil_(l)),
         hint: 'Die übrigen Leistungen der Art teilen sich den Rest im bisherigen Verhältnis.' }
     ],
     validate: function (v) { return anteilFehler_(l.kursId, v.kategorie, l.id, v.anteil); },
     onSave: function (v) {
       l.titel = v.titel.trim(); l.kategorie = v.kategorie; l.datum = v.datum;
-      l.maxPunkte = String(v.maxPunkte).replace(',', '.');
+      var auf = aufgabenParse_(v.aufgaben);
+      l.maxPunkte = auf.length ? String(auf.reduce(function (s, a) { return s + a.max; }, 0)) : String(v.maxPunkte).replace(',', '.');
       l.gewicht = gewichtAusAnteil_(l.kursId, v.kategorie, l.id, v.anteil);
       A.put('Leistungen', l);
+      aufgabenSetzen_(l.id, auf);
     },
     onDelete: function () { A.delKaskade('Leistungen', l.id); window.toast('Gelöscht – unter Mehr → „Zuletzt gelöscht“ wiederherstellbar'); back(); },
     deleteHint: 'Diese Leistung samt aller eingetragenen Noten löschen?',
@@ -13223,6 +13460,9 @@ ACT['fehlerprotokoll'] = function () {
 };
 
 var AENDERUNGEN_ = [
+  ['V96', ['Dunkelmodus durchgesehen: Namensspalte in Notentabellen hat jetzt dieselbe Farbe wie die Zeile (vorher dunkle Blöcke).', 'Knöpfe in Karten (z. B. Gewichtung, Notenschlüssel) sind wieder als Knöpfe erkennbar – auch im hellen Modus.', 'Stundennummer in den Stunden-Kacheln im Dunkelmodus besser lesbar.']],
+  ['V95', ['Zurückwischen am iPhone: Die Seite folgt jetzt direkt dem Finger und springt beim Loslassen sofort zurück – vorher passierte bis zum Loslassen nichts.', 'Übergänge kürzer, beim Zurückgehen ohne gestaffeltes Einblenden.', 'Die Seite wird nicht mehr neu aufgebaut, wenn Craft im Hintergrund nachlädt und sich nichts geändert hat.']],
+  ['V94', ['Punkte pro Aufgabe: Bei Leistungen „A1: 10, A2: 8 …“ angeben, dann je Aufgabe eintragen; die App rechnet Summe und Note und zeigt, welche Aufgabe der Klasse schwerfiel.', 'Notenkonferenz pro Klasse: alle deine Fächer mit Zeugnis-Tendenz, Fünfer und fehlende Noten markiert, als PDF.', 'Abgleich: Tipp auf das Symbol oben zeigt klar, ob alles auf dem Server ist; unter Heute erscheint ein Hinweis, wenn Änderungen länger warten.', 'Anleitung für einen iPhone-Kurzbefehl „To-do nach Craft“ (Mehr → App).']],
   ['V93', ['Wichtige Korrektur: Beim Noteneintragen wurden seit V89 vorhandene Noten in den Feldern nicht angezeigt. „Speichern“ speichert jetzt außerdem nur Felder, die du wirklich geändert hast.']],
   ['V92', ['Papierkorb: eigene Kachel unter Mehr, zeigt pro Eintrag die verbleibenden Tage. Nach 30 Tagen werden gelöschte Inhalte jetzt wirklich geleert (vorher blieben sie als „gelöscht“ markiert gespeichert).', '„Alle leeren“ bei der Mitarbeit hat jetzt einen Rückgängig-Knopf.']],
   ['V91', ['Neue Animationen: Seiten gleiten beim Öffnen von rechts und beim Zurückgehen von links herein, Kacheln erscheinen gestaffelt, Fenster fahren federnd hoch und gleiten beim Schließen weg, das Plus dreht sich zum ×, Auswahl und Haken „ploppen“, gewischte Kacheln federn zurück. Bei „Bewegung reduzieren“ (iOS-Einstellung) ist alles aus.']],
@@ -14046,6 +14286,27 @@ function verzoegert(el, ms, fn) {
   el._saveTimer = setTimeout(fn, ms);
 }
 
+/* V94: Punkte pro Aufgabe – Summe ins Gesamtfeld, speichern, weiter */
+main.addEventListener('input', function (e) {
+  var ai = e.target.closest && e.target.closest('[data-auf-input]'); if (!ai) return;
+  var p = currentView().p, susId = ai.getAttribute('data-sus');
+  var felder = Array.prototype.slice.call(main.querySelectorAll('[data-auf-input][data-sus="' + susId + '"]'));
+  var werte = felder.map(function (f) { var v = String(f.value).trim().replace(',', '.'); return v === '' ? '' : Number(v); });
+  var max = Number(ai.getAttribute('data-max')), v0 = werte[Number(ai.getAttribute('data-j'))];
+  ai.classList.toggle('zu-viel', v0 !== '' && (isNaN(v0) || v0 > max || v0 < 0));
+  clearTimeout(ai._t);
+  ai._t = setTimeout(function () {
+    aufgabenPunkteSetzen_(p.id, susId, werte);
+    var gesamt = main.querySelector('[data-note-input][data-sus="' + susId + '"]');
+    var gueltig = werte.filter(function (w) { return w !== '' && !isNaN(w); });
+    if (gesamt) { gesamt.value = gueltig.length ? String(Math.round(gueltig.reduce(function (a, b) { return a + b; }, 0) * 100) / 100).replace('.', ',') : ''; gesamt.dataset.dirty = '1'; speichereNote(gesamt); notenFortschritt_(); }
+  }, 400);
+});
+main.addEventListener('keydown', function (e) {
+  var ai = e.target.closest && e.target.closest('[data-auf-input]'); if (!ai || e.key !== 'Enter') return;
+  e.preventDefault(); var alle = Array.prototype.slice.call(main.querySelectorAll('[data-auf-input]')), i = alle.indexOf(ai);
+  if (alle[i + 1]) { alle[i + 1].focus(); try { alle[i + 1].select(); } catch (x) {} } else ai.blur();
+});
 /* V89: schnellere Noteneingabe */
 function notenFortschritt_() {
   var alle = main.querySelectorAll('[data-note-input]'), n = 0;
