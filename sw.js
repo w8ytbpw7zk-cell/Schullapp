@@ -6,7 +6,7 @@
  *   Version; offline öffnet sich die zuletzt geladene.
  * - Es wird immer eine gültige Antwort geliefert (behebt „Failed to convert value to 'Response'“).
  */
-const CACHE = 'schulapp-v96';
+const CACHE = 'schulapp-v97';
 const START = ['./', './index.html'];
 
 self.addEventListener('install', (event) => {
