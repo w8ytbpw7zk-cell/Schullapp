@@ -3496,7 +3496,7 @@ var TABLES = ['Klassen', 'Kurse', 'SuS', 'Stundenplan', 'Stunden', 'Mitarbeit',
               'Leistungen', 'Noten', 'Checks', 'Settings'];
 
 /* Eine einzige Stelle für die Versionsangabe (Anzeige unter „Mehr“). */
-var APP_VERSION = 'V96';
+var APP_VERSION = 'V97';
 
 /* V15: Diese Adresse ist die verbindliche Login-Adresse. */
 /* V58: Keine feste Server-Adresse mehr in der App. Sie wird über den Einladungslink/-code oder Mehr → Server gesetzt. */
@@ -13460,6 +13460,7 @@ ACT['fehlerprotokoll'] = function () {
 };
 
 var AENDERUNGEN_ = [
+  ['V97', ['Abgleich läuft häufiger von selbst: Wartende Änderungen werden alle 15 Sekunden erneut gesendet, sobald der Server wieder erreichbar ist; neue Daten anderer Geräte kommen jede Minute und sofort beim Öffnen der App.', 'Am Mac läuft der Abgleich auch weiter, wenn das Fenster im Hintergrund ist.']],
   ['V96', ['Dunkelmodus durchgesehen: Namensspalte in Notentabellen hat jetzt dieselbe Farbe wie die Zeile (vorher dunkle Blöcke).', 'Knöpfe in Karten (z. B. Gewichtung, Notenschlüssel) sind wieder als Knöpfe erkennbar – auch im hellen Modus.', 'Stundennummer in den Stunden-Kacheln im Dunkelmodus besser lesbar.']],
   ['V95', ['Zurückwischen am iPhone: Die Seite folgt jetzt direkt dem Finger und springt beim Loslassen sofort zurück – vorher passierte bis zum Loslassen nichts.', 'Übergänge kürzer, beim Zurückgehen ohne gestaffeltes Einblenden.', 'Die Seite wird nicht mehr neu aufgebaut, wenn Craft im Hintergrund nachlädt und sich nichts geändert hat.']],
   ['V94', ['Punkte pro Aufgabe: Bei Leistungen „A1: 10, A2: 8 …“ angeben, dann je Aufgabe eintragen; die App rechnet Summe und Note und zeigt, welche Aufgabe der Klasse schwerfiel.', 'Notenkonferenz pro Klasse: alle deine Fächer mit Zeugnis-Tendenz, Fünfer und fehlende Noten markiert, als PDF.', 'Abgleich: Tipp auf das Symbol oben zeigt klar, ob alles auf dem Server ist; unter Heute erscheint ein Hinweis, wenn Änderungen länger warten.', 'Anleitung für einen iPhone-Kurzbefehl „To-do nach Craft“ (Mehr → App).']],
@@ -14533,8 +14534,10 @@ window.addEventListener('online', function () { if (A.Sync.configured()) A.Sync.
      wenn wirklich etwas Neues von einem anderen Gerät kam und gerade nichts bearbeitet wird. */
 (function () {
   var letzterPull = 0, laeuft = false;
+  /* V97: Am Mac/PC läuft der Abgleich auch weiter, wenn das Fenster im Hintergrund ist. */
+  var istDesktop = !(('ontouchstart' in window) || navigator.maxTouchPoints > 0);
   function bereit() {
-    return !document.hidden && !VORSCHAU_AKTIV && navigator.onLine !== false && A.Sync.configured() && A.Auth.isLoggedIn();
+    return (!document.hidden || istDesktop) && !VORSCHAU_AKTIV && navigator.onLine !== false && A.Sync.configured() && A.Auth.isLoggedIn();
   }
   function wirdBearbeitet() {
     var a = document.activeElement;
@@ -14547,7 +14550,7 @@ window.addEventListener('online', function () { if (A.Sync.configured()) A.Sync.
     laeuft = true;
     var p = A.Sync.pendingCount() ? A.Sync.flush(true) : Promise.resolve(true);
     p.then(function () {
-      if (!sofort && Date.now() - letzterPull < 150000) return null;
+      if (!sofort && Date.now() - letzterPull < 60000) return null;
       letzterPull = Date.now();
       A.Sync._fremd = false;
       return A.Sync.pull().then(function () {
@@ -14555,8 +14558,10 @@ window.addEventListener('online', function () { if (A.Sync.configured()) A.Sync.
       });
     }).catch(function () {}).then(function () { laeuft = false; });
   }
-  setInterval(function () { tick(false); }, 60000);
+  /* V97: alle 15 s prüfen; gesendet wird nur, wenn etwas wartet, neue Daten werden höchstens jede Minute geholt. */
+  setInterval(function () { tick(false); }, 15000);
   document.addEventListener('visibilitychange', function () { if (!document.hidden) setTimeout(function () { tick(true); }, 500); });
+  window.addEventListener('focus', function () { setTimeout(function () { tick(true); }, 300); });
   window.addEventListener('online', function () { setTimeout(function () { tick(true); }, 800); });
 })();
 
