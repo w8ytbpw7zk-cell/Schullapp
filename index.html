@@ -3516,7 +3516,7 @@ var TABLES = ['Klassen', 'Kurse', 'SuS', 'Stundenplan', 'Stunden', 'Mitarbeit',
               'Leistungen', 'Noten', 'Checks', 'Settings'];
 
 /* Eine einzige Stelle für die Versionsangabe (Anzeige unter „Mehr“). */
-var APP_VERSION = 'V99';
+var APP_VERSION = 'V100';
 
 /* V15: Diese Adresse ist die verbindliche Login-Adresse. */
 /* V58: Keine feste Server-Adresse mehr in der App. Sie wird über den Einladungslink/-code oder Mehr → Server gesetzt. */
@@ -12849,6 +12849,11 @@ function leistungAnteil_(l) {
   var g = A.num(l.gewicht, 1); if (g === null || g <= 0) g = 1;
   return Math.round(g / (g + o.sum) * 1000) / 10;
 }
+/* V100: Neue Leistungen zählen gleich viel wie die übrigen derselben Art (Durchschnitt ihrer Gewichte, sonst 1). */
+function gewichtGleich_(kursId, kat) {
+  var o = anteilAndere_(kursId, kat, '');
+  return o.n ? String(Math.round(o.sum / o.n * 10000) / 10000) : '1';
+}
 function anteilVorschlag_(kursId, kat) {
   var o = anteilAndere_(kursId, kat, '');
   return Math.round(100 / (o.n + 1) * 10) / 10;
@@ -12887,18 +12892,16 @@ ACT['leistung-neu'] = function (el) {
       { key: 'maxPunkte', label: 'Maximalpunkte', type: 'text', inputmode: 'decimal',
         hint: 'Leer lassen, um Noten direkt einzutragen.' },
       { key: 'aufgaben', label: 'Punkte pro Aufgabe (optional)', placeholder: 'z. B. A1: 10, A2: 8, A3: 12', autocap: false,
-        hint: 'Dann trägst du je Aufgabe ein, die Summe und die Note rechnet die App. Maximalpunkte ergeben sich automatisch.' },
-      { key: 'anteil', label: 'Anteil innerhalb der Art (%)', type: 'text', inputmode: 'decimal', value: String(anteilVorschlag_(k0.id, (A.kategorienVon(k0)[0] || {}).name)),
-        hint: 'z. B. 50 = diese Leistung zählt die Hälfte der Note dieser Art. Die übrigen Leistungen der Art teilen sich den Rest im bisherigen Verhältnis.' }
+        hint: 'Dann trägst du je Aufgabe ein, die Summe und die Note rechnet die App. Maximalpunkte ergeben sich automatisch.' }
     ],
-    validate: function (v) { return anteilFehler_(v.kursId, v.kategorie, '', v.anteil); },
+    hinweis: 'Alle Leistungen einer Art zählen gleich viel. Wie stark die Arten zählen, steht unter „Gewichtung“. Eine Ausnahme kannst du später über „Bearbeiten“ festlegen.',
     onSave: function (v) {
       var kurs = A.byId('Kurse', v.kursId);
       var l = A.put('Leistungen', {
         id: A.uid('le'), kursId: v.kursId, klasseId: kurs ? kurs.klasseId : '',
         kategorie: v.kategorie, titel: v.titel.trim(), datum: v.datum,
         maxPunkte: aufgabenParse_(v.aufgaben).length ? String(aufgabenParse_(v.aufgaben).reduce(function (s, a) { return s + a.max; }, 0)) : String(v.maxPunkte).replace(',', '.'),
-        gewicht: gewichtAusAnteil_(v.kursId, v.kategorie, '', v.anteil),
+        gewicht: gewichtGleich_(v.kursId, v.kategorie),
         notenschluessel: ''
       });
       if (aufgabenParse_(v.aufgaben).length) aufgabenSetzen_(l.id, aufgabenParse_(v.aufgaben));
@@ -12931,8 +12934,8 @@ ACT['leistung-bearbeiten'] = function (el) {
       { key: 'datum', label: 'Datum', type: 'date', value: l.datum },
       { key: 'maxPunkte', label: 'Maximalpunkte', type: 'text', inputmode: 'decimal', value: l.maxPunkte },
       { key: 'aufgaben', label: 'Punkte pro Aufgabe (optional)', value: aufgabenText_(leistungAufgaben_(l.id)), placeholder: 'z. B. A1: 10, A2: 8, A3: 12', autocap: false, hint: 'Leer lassen = nur Gesamtpunkte.' },
-      { key: 'anteil', label: 'Anteil innerhalb der Art (%)', type: 'text', inputmode: 'decimal', value: String(leistungAnteil_(l)),
-        hint: 'Die übrigen Leistungen der Art teilen sich den Rest im bisherigen Verhältnis.' }
+      { key: 'anteil', label: 'Anteil innerhalb der Art (%) – nur für Ausnahmen', type: 'text', inputmode: 'decimal', value: String(leistungAnteil_(l)),
+        hint: 'Normal zählen alle Leistungen einer Art gleich; der Wert ist schon passend ausgefüllt. Nur ändern, wenn diese Leistung mehr oder weniger zählen soll.' }
     ],
     validate: function (v) { return anteilFehler_(l.kursId, v.kategorie, l.id, v.anteil); },
     onSave: function (v) {
@@ -13591,6 +13594,7 @@ ACT['fehlerprotokoll'] = function () {
 };
 
 var AENDERUNGEN_ = [
+  ['V100', ['„Neue Leistung“ fragt nicht mehr nach dem Anteil: Alle Leistungen einer Art (z. B. alle mündlichen Noten) zählen automatisch gleich. Ausnahmen bleiben über „Bearbeiten“ möglich.']],
   ['V99', ['Noteneingabe: Am Computer stehen die Schüler:innen in zwei Spalten statt in einer langen Liste.', 'Neu „Daneben zeigen“: eine andere Leistung (z. B. die mündliche Note) erscheint direkt beim Namen – zum Dazuschreiben auf die Arbeit.', 'Neu „Entwicklung“: Noten der letzten Arbeiten derselben Art und ob sich das Kind verbessert oder verschlechtert hat – aktualisiert sich beim Eintippen.']],
   ['V98', ['Einsammel-Listen haben jetzt automatisch eine Frist von einer Woche.', 'Neu: Wer bis zur Frist nichts abgegeben hat, bekommt am Tag danach automatisch eine Strafarbeit (abzugeben in einer Woche). Sie erscheint in den Stunden unter „Offene Strafarbeiten“ und unter „Heute“, mit dem Hinweis, die Liste zusätzlich einzusammeln.', 'In der Liste markiert „SA“, wer eine Strafarbeit bekommen hat. Versehentlich vergeben? „Zurücknehmen“.']],
   ['V97', ['Abgleich läuft häufiger von selbst: Wartende Änderungen werden alle 15 Sekunden erneut gesendet, sobald der Server wieder erreichbar ist; neue Daten anderer Geräte kommen jede Minute und sofort beim Öffnen der App.', 'Am Mac läuft der Abgleich auch weiter, wenn das Fenster im Hintergrund ist.']],
