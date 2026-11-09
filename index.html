@@ -3360,6 +3360,21 @@ input:focus,select:focus,textarea:focus{background:var(--surface)!important}
 .ls-straf{position:absolute;top:4px;right:5px;padding:0 5px;border-radius:8px;font-size:9.5px;font-weight:700;background:#fdebec;color:#c0392f}
 @media(prefers-color-scheme:dark){.ls-straf{background:#3c2223;color:#f08b83}}
 .straf-offen-row .straf-zurueck{grid-column:1/-1;color:var(--ink-2)}
+/* V99: Noteneingabe mit Kontext und Spalten am Computer */
+.noten-kontext{display:flex;flex-wrap:wrap;align-items:center;gap:8px 16px;margin:0 0 10px;padding:10px 12px;border-radius:var(--r);background:var(--flaeche)}
+.nkx-feld{display:flex;align-items:center;gap:8px;font-size:13px;color:var(--ink-2);flex:1 1 260px;min-width:0}
+.nkx-feld select{flex:1;min-width:0;min-height:34px;font-size:14px}
+.ne-info{display:flex;flex-wrap:wrap;gap:3px 8px;margin-top:2px;font-size:12px;color:var(--ink-2);line-height:1.35}
+.ne-daneben{padding:0 7px;border-radius:20px;background:color-mix(in srgb,var(--accent) 10%,var(--surface));color:var(--ink)}
+.ne-daneben b{font-weight:700}
+.ne-trend.besser{color:var(--good,#1f8a53);font-weight:600}
+.ne-trend.schlechter{color:var(--bad,#c0392f);font-weight:600}
+.ne-trend.gleich{color:var(--ink-2);font-weight:600}
+@media(prefers-color-scheme:dark){.ne-trend.besser{color:#6fcf97}.ne-trend.schlechter{color:#f08b83}}
+@media(min-width:900px){
+  .noten-liste:not(.breit){columns:2 380px;column-gap:10px}
+  .noten-liste:not(.breit) .mit-row{break-inside:avoid}
+}
 </style>
 </head>
 <body>
@@ -3501,7 +3516,7 @@ var TABLES = ['Klassen', 'Kurse', 'SuS', 'Stundenplan', 'Stunden', 'Mitarbeit',
               'Leistungen', 'Noten', 'Checks', 'Settings'];
 
 /* Eine einzige Stelle für die Versionsangabe (Anzeige unter „Mehr“). */
-var APP_VERSION = 'V98';
+var APP_VERSION = 'V99';
 
 /* V15: Diese Adresse ist die verbindliche Login-Adresse. */
 /* V58: Keine feste Server-Adresse mehr in der App. Sie wird über den Einladungslink/-code oder Mehr → Server gesetzt. */
@@ -10587,6 +10602,61 @@ VIEWS.noten = {
 /*  Leistung – Punkte eintragen                                           */
 /* ====================================================================== */
 
+/* V99: Beim Eintragen daneben eine andere Leistung (z. B. mündlich) und die Entwicklung zu früheren Arbeiten zeigen. */
+function leistungenDesKurses_(kursId) {
+  return A.list('Leistungen', function (x) { return x.kursId === kursId && x.deleted !== '1'; })
+    .sort(function (a, b) { return String(a.datum || '').localeCompare(String(b.datum || '')); });
+}
+function leistungName_(x) { return (x.titel || x.kategorie || 'Leistung') + (x.datum ? ' (' + A.fmtDateShort(x.datum) + ')' : ''); }
+function notenKontext_(l, kurs) {
+  var alle = leistungenDesKurses_(kurs.id).filter(function (x) { return x.id !== l.id; });
+  var map = A.LS.get('notenDaneben', {}) || {}, danebenId = map[kurs.id] || '';
+  var daneben = alle.filter(function (x) { return x.id === danebenId; })[0] || null;
+  var vorher = alle.filter(function (x) {
+    if (x.kategorie !== l.kategorie) return false;
+    if (l.datum && x.datum) return x.datum < l.datum;
+    return !!x.datum && !l.datum;
+  }).slice(-3);
+  return { alle: alle, daneben: daneben, vorher: vorher, entwicklung: A.LS.get('notenEntwicklung', true) !== false, kursId: kurs.id };
+}
+function notenKontextLeiste_(nk) {
+  if (!nk.alle.length) return '';
+  var opts = '<option value="">– nichts –</option>' + nk.alle.slice().sort(function (a, b) {
+    var ma = /münd/i.test(a.kategorie || '') ? 0 : 1, mb = /münd/i.test(b.kategorie || '') ? 0 : 1;
+    return ma - mb || String(b.datum || '').localeCompare(String(a.datum || ''));
+  }).map(function (x) { return '<option value="' + x.id + '"' + (nk.daneben && nk.daneben.id === x.id ? ' selected' : '') + '>' + A.esc(leistungName_(x)) + '</option>'; }).join('');
+  return '<div class="noten-kontext"><label class="nkx-feld"><span>Daneben zeigen</span><select data-noten-daneben data-kurs="' + nk.kursId + '">' + opts + '</select></label>' +
+    (nk.vorher.length ? '<label class="ns-toggle"><input type="checkbox" data-noten-entw' + (nk.entwicklung ? ' checked' : '') + '> Entwicklung zu ' + (nk.vorher.length === 1 ? 'der letzten Arbeit' : 'den letzten ' + nk.vorher.length + ' Arbeiten') + '</label>' : '') + '</div>';
+}
+function notenTrendHTML_(ref, jetzt) {
+  if (ref === null || ref === undefined || isNaN(ref) || jetzt === null || jetzt === undefined || isNaN(jetzt)) return '<span class="ne-trend" data-trend data-ref="' + (ref === null || ref === undefined || isNaN(ref) ? '' : ref) + '"></span>';
+  var d = Math.round((ref - jetzt) * 100) / 100, a = Math.abs(d), t, c;
+  if (a < 0.25) { t = '→ gleich geblieben'; c = 'gleich'; }
+  else if (d > 0) { t = (a >= 0.75 ? '↑ deutlich verbessert' : '↑ verbessert') + ' (' + A.fmtNote(a, 1) + ')'; c = 'besser'; }
+  else { t = (a >= 0.75 ? '↓ deutlich verschlechtert' : '↓ verschlechtert') + ' (' + A.fmtNote(a, 1) + ')'; c = 'schlechter'; }
+  return '<span class="ne-trend ' + c + '" data-trend data-ref="' + ref + '">' + t + '</span>';
+}
+function notenKontextZeile_(nk, l, kurs, susId) {
+  var teile = [];
+  if (nk.daneben) {
+    var nd = A.noteFuer(nk.daneben, susId, kurs);
+    teile.push('<span class="ne-daneben" title="' + A.esc(leistungName_(nk.daneben)) + '">' + A.esc(nk.daneben.titel || nk.daneben.kategorie) + ' <b>' + (nd === null || nd === undefined || isNaN(nd) ? '–' : A.fmtNote(nd, 1)) + '</b></span>');
+  }
+  if (nk.entwicklung && nk.vorher.length) {
+    var werte = nk.vorher.map(function (x) { var n = A.noteFuer(x, susId, kurs); return { x: x, n: (n === null || n === undefined || isNaN(n)) ? null : n }; });
+    var mitNote = werte.filter(function (w) { return w.n !== null; });
+    teile.push('<span class="ne-vorher">' + werte.map(function (w) { return A.esc(w.x.titel || w.x.kategorie) + ' ' + (w.n === null ? '–' : A.fmtNote(w.n, 1)); }).join(' · ') + '</span>');
+    var ref = mitNote.length ? mitNote[mitNote.length - 1].n : null;
+    teile.push(notenTrendHTML_(ref, A.noteFuer(l, susId, kurs)));
+  }
+  return teile.length ? '<div class="ne-info">' + teile.join('') + '</div>' : '';
+}
+main.addEventListener('change', function (e) {
+  var t = e.target;
+  if (t.matches && t.matches('[data-noten-daneben]')) { var m = A.LS.get('notenDaneben', {}) || {}; m[t.getAttribute('data-kurs')] = t.value; A.LS.set('notenDaneben', m); render(); }
+  else if (t.matches && t.matches('[data-noten-entw]')) { A.LS.set('notenEntwicklung', !!t.checked); render(); }
+});
+
 VIEWS.leistung = {
   title: function (p) { var l = A.byId('Leistungen', p.id); return l ? (l.titel || l.kategorie) : 'Leistung'; },
   actions: function (p) { return '<button class="icon-btn" data-act="leistung-bearbeiten" data-leistung="' + p.id + '">···</button>'; },
@@ -10623,7 +10693,9 @@ VIEWS.leistung = {
     }
 
     var aufg = leistungAufgaben_(l.id), aufPk = aufgabenPunkte_(l.id);
+    var nk = notenKontext_(l, kurs);
     var rows = sus.map(function (s, i) {
+      var info = notenKontextZeile_(nk, l, kurs, s.id);
       var rec = A.list('Noten', function (x) { return x.leistungId === l.id && x.susId === s.id; })[0] || {};
       var n = A.noteFuer(l, s.id, kurs);
       var wert = mitPunkten
@@ -10644,10 +10716,10 @@ VIEWS.leistung = {
         var pw = aufPk[s.id] || [];
         return '<div class="mit-row auf-row"><div class="mit-name"><div class="nn">' + A.esc(A.susName(s)) + '</div>' +
           '<div class="auf-summe"><input class="pkt auf-gesamt" data-note-input data-sus="' + s.id + '" data-idx="' + i + '" type="text" readonly tabindex="-1" value="' + A.esc(wert) + '"><span>/ ' + A.esc(l.maxPunkte) + '</span><div class="nums ' + noteKlasse(n) + '">' + A.fmtNote(n, 1) + '</div></div></div>' +
-          '<div class="auf-felder">' + aufg.map(function (a, j) { return '<label><small>' + A.esc(a.n) + '</small><input class="pkt" data-auf-input data-sus="' + s.id + '" data-j="' + j + '" data-max="' + a.max + '" type="text" inputmode="decimal" enterkeyhint="next" autocomplete="off" value="' + A.esc(pw[j] === undefined || pw[j] === null ? '' : String(pw[j]).replace('.', ',')) + '" placeholder="/' + String(a.max).replace('.', ',') + '"></label>'; }).join('') + '</div></div>';
+          info + '<div class="auf-felder">' + aufg.map(function (a, j) { return '<label><small>' + A.esc(a.n) + '</small><input class="pkt" data-auf-input data-sus="' + s.id + '" data-j="' + j + '" data-max="' + a.max + '" type="text" inputmode="decimal" enterkeyhint="next" autocomplete="off" value="' + A.esc(pw[j] === undefined || pw[j] === null ? '' : String(pw[j]).replace('.', ',')) + '" placeholder="/' + String(a.max).replace('.', ',') + '"></label>'; }).join('') + '</div></div>';
       }
       return '<div class="mit-row">' +
-        '<div class="mit-name"><div class="nn">' + A.esc(A.susName(s)) + '</div></div>' +
+        '<div class="mit-name"><div class="nn">' + A.esc(A.susName(s)) + '</div>' + info + '</div>' +
         '<div class="eingabe">' + chip +
           '<input class="pkt" data-note-input data-sus="' + s.id + '" data-idx="' + i + '" type="text" enterkeyhint="next" autocomplete="off" ' +
           'inputmode="decimal" value="' + A.esc(wert) + '" placeholder="' + (mitPunkten ? 'P.' : 'Note') + '">' +
@@ -10659,7 +10731,8 @@ VIEWS.leistung = {
     h += '<div class="noten-schnell"><div class="ns-fortschritt" id="nsFortschritt"></div>' +
       (!mitPunkten ? '<label class="ns-toggle"><input type="checkbox" data-noten-schnell' + (schnellAn ? ' checked' : '') + '> Automatisch weiter</label>' : '') + '</div>' +
       '<div class="ns-tipp">' + (mitPunkten ? 'Enter oder „Weiter“ springt zum nächsten Kind. ↑ ↓ wechseln.' : 'Mit „Automatisch weiter“ springt die Eingabe nach einer fertigen Note (z. B. 2, 2,5, 2-, 2+) zum nächsten Kind. Für 1,5 o. Ä. einfach weitertippen – die App wartet kurz.') + '</div>';
-    h += card(mitPunkten ? (aufg.length ? 'Punkte pro Aufgabe eintragen' : 'Punkte eintragen') : 'Noten eintragen', rows);
+    h += notenKontextLeiste_(nk);
+    h += card(mitPunkten ? (aufg.length ? 'Punkte pro Aufgabe eintragen' : 'Punkte eintragen') : 'Noten eintragen', '<div class="noten-liste' + (aufg.length && mitPunkten ? ' breit' : '') + '">' + rows + '</div>');
     setTimeout(notenFortschritt_, 0);
     h += aufgabenAuswertungHTML_(l, sus);
     h += '<button class="btn primary block" data-act="noten-fertig">Speichern</button>' +
@@ -13518,6 +13591,7 @@ ACT['fehlerprotokoll'] = function () {
 };
 
 var AENDERUNGEN_ = [
+  ['V99', ['Noteneingabe: Am Computer stehen die Schüler:innen in zwei Spalten statt in einer langen Liste.', 'Neu „Daneben zeigen“: eine andere Leistung (z. B. die mündliche Note) erscheint direkt beim Namen – zum Dazuschreiben auf die Arbeit.', 'Neu „Entwicklung“: Noten der letzten Arbeiten derselben Art und ob sich das Kind verbessert oder verschlechtert hat – aktualisiert sich beim Eintippen.']],
   ['V98', ['Einsammel-Listen haben jetzt automatisch eine Frist von einer Woche.', 'Neu: Wer bis zur Frist nichts abgegeben hat, bekommt am Tag danach automatisch eine Strafarbeit (abzugeben in einer Woche). Sie erscheint in den Stunden unter „Offene Strafarbeiten“ und unter „Heute“, mit dem Hinweis, die Liste zusätzlich einzusammeln.', 'In der Liste markiert „SA“, wer eine Strafarbeit bekommen hat. Versehentlich vergeben? „Zurücknehmen“.']],
   ['V97', ['Abgleich läuft häufiger von selbst: Wartende Änderungen werden alle 15 Sekunden erneut gesendet, sobald der Server wieder erreichbar ist; neue Daten anderer Geräte kommen jede Minute und sofort beim Öffnen der App.', 'Am Mac läuft der Abgleich auch weiter, wenn das Fenster im Hintergrund ist.']],
   ['V96', ['Dunkelmodus durchgesehen: Namensspalte in Notentabellen hat jetzt dieselbe Farbe wie die Zeile (vorher dunkle Blöcke).', 'Knöpfe in Karten (z. B. Gewichtung, Notenschlüssel) sind wieder als Knöpfe erkennbar – auch im hellen Modus.', 'Stundennummer in den Stunden-Kacheln im Dunkelmodus besser lesbar.']],
@@ -14452,6 +14526,8 @@ function speichereNote(input) {
   var out = zeile.querySelector('.nums');
   out.textContent = A.fmtNote(note, 1);
   out.className = 'nums ' + noteKlasse(note);
+  var tr = zeile.querySelector('[data-trend]');
+  if (tr) tr.outerHTML = notenTrendHTML_(tr.getAttribute('data-ref') === '' ? null : Number(tr.getAttribute('data-ref')), note);
 }
 
 
