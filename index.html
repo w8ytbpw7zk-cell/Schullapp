@@ -3388,6 +3388,18 @@ input:focus,select:focus,textarea:focus{background:var(--surface)!important}
 .sa-link{display:flex;align-items:center;justify-content:center;gap:8px;color:var(--ink-2);margin-top:8px}
 .sa-gruppe{margin-bottom:14px}
 .sa-gruppe-k{font-size:13px;font-weight:650;color:var(--ink-2);margin:0 2px 6px}
+/* V102 Unterarten */
+.kat-gruppe{padding:8px 8px 6px;margin-bottom:8px;border-radius:12px;background:var(--flaeche)}
+.kat-gruppe .kat-zeile{margin-bottom:6px!important}
+#modalHost .kat-gruppe input{background:var(--surface)!important}
+.kat-unter{margin-left:22px}
+.kat-unter .kat-zeile.sub::before{content:"";flex:none;width:8px;height:8px;border-left:2px solid var(--ink-3);border-bottom:2px solid var(--ink-3);border-radius:0 0 0 4px;margin:-10px -2px 0 -14px}
+.kat-usumme{margin:0 0 4px 22px;font-size:12.5px;font-weight:600;color:var(--good,#1f8a53)}
+.kat-usumme:empty{display:none}
+.kat-usumme.falsch{color:var(--bad,#c0392f)}
+.kat-unter-add{border:0;background:none;color:var(--ink-2);font:inherit;font-size:13px;padding:2px 4px;cursor:pointer}
+.kv.kv-unter .k{padding-left:16px;color:var(--ink-2)}
+.kv.kv-unter small{color:var(--ink-3);font-size:11.5px}
 </style>
 </head>
 <body>
@@ -3529,7 +3541,7 @@ var TABLES = ['Klassen', 'Kurse', 'SuS', 'Stundenplan', 'Stunden', 'Mitarbeit',
               'Leistungen', 'Noten', 'Checks', 'Settings'];
 
 /* Eine einzige Stelle für die Versionsangabe (Anzeige unter „Mehr“). */
-var APP_VERSION = 'V101';
+var APP_VERSION = 'V102';
 
 /* V15: Diese Adresse ist die verbindliche Login-Adresse. */
 /* V58: Keine feste Server-Adresse mehr in der App. Sie wird über den Einladungslink/-code oder Mehr → Server gesetzt. */
@@ -5744,12 +5756,36 @@ function faecherListe() {
 
 /* ================================================================= Notenlogik */
 
-function kategorienVon(kurs) {
+function kategorienRoh_(kurs) {
   var eigen = parseJSON(kurs && kurs.kategorien, null);
   if (eigen && eigen.length) return eigen;
   var vg = kurs ? fachVorgabe(kurs.fach) : null;
   if (vg && vg.kategorien && vg.kategorien.length) return vg.kategorien;
-  return cfg('kategorien');
+  return cfg('kategorien') || [];
+}
+/* V102: Arten können Unterarten haben, z. B. Schriftlich 50 % → Arbeit 90 %, Test 10 %.
+   Baum: [{name, prozent, unter:[{name, prozent}]}] – Prozente jeweils auf 100 normiert. */
+function prozentNorm_(arr) {
+  var sum = 0; arr.forEach(function (c) { var g = num(c.gewicht, 1); if (g === null || g < 0) g = 0; sum += g; });
+  return arr.map(function (c) { var g = num(c.gewicht, 1); if (g === null || g < 0) g = 0; return sum ? g / sum * 100 : 0; });
+}
+function kategorienBaum(kurs) {
+  var roh = (kategorienRoh_(kurs) || []).filter(function (c) { return c && c.name; });
+  var tp = prozentNorm_(roh);
+  return roh.map(function (c, i) {
+    var u = Array.isArray(c.unter) ? c.unter.filter(function (x) { return x && x.name; }) : [];
+    var up = prozentNorm_(u);
+    return { name: c.name, prozent: tp[i], unter: u.map(function (x, j) { return { name: x.name, prozent: up[j] }; }) };
+  });
+}
+/* Flache Liste der Arten, denen Leistungen zugeordnet werden (Blätter des Baums); gewicht = Anteil an der Gesamtnote in %. */
+function kategorienVon(kurs) {
+  var out = [];
+  kategorienBaum(kurs).forEach(function (t) {
+    if (t.unter.length) t.unter.forEach(function (u) { out.push({ name: u.name, gewicht: Math.round(t.prozent * u.prozent / 100 * 1000) / 1000, gruppe: t.name, anteilGruppe: u.prozent }); });
+    else out.push({ name: t.name, gewicht: Math.round(t.prozent * 1000) / 1000 });
+  });
+  return out;
 }
 
 /** Liefert 'linear' oder eine Stufentabelle. */
@@ -5948,16 +5984,26 @@ function kategorieSchnitt(kurs, susId, katName) {
 }
 
 function gesamtnote(kurs, susId) {
-  var kats = kategorienVon(kurs);
-  var sumG = 0, sumGN = 0;
-  var detail = [];
-  kats.forEach(function (k) {
-    var r = kategorieSchnitt(kurs, susId, k.name);
-    var g = num(k.gewicht, 1);
-    if (g === null || g < 0) g = 1;
-    detail.push({ name: k.name, gewicht: g, note: r ? r.note : null, anzahl: r ? r.anzahl : 0 });
-    if (!r || g === 0) return;
-    sumG += g; sumGN += g * r.note;
+  var sumG = 0, sumGN = 0, detail = [];
+  /* V102: erst je Art mit Unterarten mitteln, dann die Arten. Fehlt eine Unterart noch, zählt die andere für die ganze Art. */
+  kategorienBaum(kurs).forEach(function (t) {
+    var tg = t.prozent;
+    if (t.unter.length) {
+      var sg = 0, sgn = 0;
+      t.unter.forEach(function (u) {
+        var r = kategorieSchnitt(kurs, susId, u.name);
+        detail.push({ name: u.name, gruppe: t.name, gewicht: Math.round(tg * u.prozent / 100 * 1000) / 1000, note: r ? r.note : null, anzahl: r ? r.anzahl : 0 });
+        if (!r || u.prozent === 0) return;
+        sg += u.prozent; sgn += u.prozent * r.note;
+      });
+      if (!sg || tg === 0) return;
+      sumG += tg; sumGN += tg * (sgn / sg);
+    } else {
+      var r = kategorieSchnitt(kurs, susId, t.name);
+      detail.push({ name: t.name, gewicht: Math.round(tg * 1000) / 1000, note: r ? r.note : null, anzahl: r ? r.anzahl : 0 });
+      if (!r || tg === 0) return;
+      sumG += tg; sumGN += tg * r.note;
+    }
   });
   return { note: sumG ? sumGN / sumG : null, detail: detail };
 }
@@ -6540,7 +6586,7 @@ global.A = {
   susDerKlasse: susDerKlasse, susDesKurses: susDesKurses, susName: susName, susKurz: susKurz,
   standardKlasseId: standardKlasseId_, standardKlasse: standardKlasse_,
   fachVorgabe: fachVorgabe, setFachVorgabe: setFachVorgabe, faecherListe: faecherListe,
-  kategorienVon: kategorienVon, schluesselVon: schluesselVon,
+  kategorienVon: kategorienVon, kategorienBaum: kategorienBaum, schluesselVon: schluesselVon,
   noteLinear: noteLinear, noteAusPunkten: noteAusPunkten, punkteFuerNote: punkteFuerNote,
   linearerSchluessel: linearerSchluessel, rundeNote: rundeNote, normNote: normNote,
   noteFuer: noteFuer, kategorieSchnitt: kategorieSchnitt, gesamtnote: gesamtnote,
@@ -10449,8 +10495,10 @@ VIEWS.kurs = {
 
     var sch = A.schluesselVon(kurs, null);
     h += card('Bewertung', '<div class="card-body">' +
-      kats.map(function (c) {
-        return '<div class="kv"><span class="k">' + A.esc(c.name) + '</span><span class="v">' + katProzentText_(kats, kats.indexOf(c)) + '</span></div>';
+      A.kategorienBaum(kurs).map(function (t) {
+        var pz = function (x) { return String(Math.round(x * 10) / 10).replace('.', ',') + ' %'; };
+        return '<div class="kv"><span class="k">' + A.esc(t.name) + '</span><span class="v">' + pz(t.prozent) + '</span></div>' +
+          t.unter.map(function (u) { return '<div class="kv kv-unter"><span class="k">' + A.esc(u.name) + ' <small>' + pz(u.prozent) + ' der Art</small></span><span class="v">' + pz(t.prozent * u.prozent / 100) + '</span></div>'; }).join('');
       }).join('') +
       (A.cfg('mitarbeitAktiv') ? '<div class="kv"><span class="k small muted">Mitarbeits-Vorschlag zählt in „' +
         A.esc(A.cfg('mitarbeitKategorie')) + '“ und kann pro Schüler:in geändert werden</span><span class="v small">×' + A.cfg('mitarbeitGewicht') + '</span></div>' : '') +
@@ -12981,7 +13029,7 @@ ACT['leistung-neu'] = function (el) {
       { key: 'kursId', label: 'Kurs', type: 'select', value: k0.id,
         options: kurse.map(function (k) { return { value: k.id, label: A.kursLabel(k) }; }) },
       { key: 'kategorie', label: 'Art', type: 'select',
-        options: A.kategorienVon(k0).map(function (c) { return c.name; }) },
+        options: katOptionen_(k0) },
       { key: 'titel', label: 'Bezeichnung', placeholder: 'z. B. KA 1 – Inhaltsangabe' },
       { key: 'datum', label: 'Datum', type: 'date', value: A.todayISO() },
       { key: 'maxPunkte', label: 'Maximalpunkte', type: 'text', inputmode: 'decimal',
@@ -13025,7 +13073,7 @@ ACT['leistung-bearbeiten'] = function (el) {
     title: 'Leistung bearbeiten',
     fields: [
       { key: 'titel', label: 'Bezeichnung', value: l.titel },
-      { key: 'kategorie', label: 'Art', type: 'select', value: l.kategorie, options: A.kategorienVon(kurs).map(function (c) { return c.name; }) },
+      { key: 'kategorie', label: 'Art', type: 'select', value: l.kategorie, options: katOptionen_(kurs, l.kategorie) },
       { key: 'datum', label: 'Datum', type: 'date', value: l.datum },
       { key: 'maxPunkte', label: 'Maximalpunkte', type: 'text', inputmode: 'decimal', value: l.maxPunkte },
       { key: 'aufgaben', label: 'Punkte pro Aufgabe (optional)', value: aufgabenText_(leistungAufgaben_(l.id)), placeholder: 'z. B. A1: 10, A2: 8, A3: 12', autocap: false, hint: 'Leer lassen = nur Gesamtpunkte.' },
@@ -13052,14 +13100,16 @@ ACT['leistung-bearbeiten'] = function (el) {
 ACT['kats-bearbeiten'] = function (el) {
   var kursId = el.getAttribute('data-kurs');
   var kurs = kursId ? A.byId('Kurse', kursId) : null;
-  var kats = kurs ? A.kategorienVon(kurs) : A.cfg('kategorien');
+  var baum = kurs ? A.kategorienBaum(kurs) : A.kategorienBaum(null);
+  var r1 = function (x) { return String(Math.round(x * 10) / 10).replace('.', ','); };
 
   var body = '<div class="hint-box">' + (kurs
-    ? 'Gilt für <b>' + A.esc(A.kursLabel(kurs)) + '</b>. Die Gesamtnote ist das gewichtete Mittel der Arten.'
-    : 'Allgemeine Vorgabe. Fachspezifische Vorgaben stehen unter „Fächer &amp; Gewichtung“.') + '</div>' +
-    '<div id="katList">' + (function () { var pz = katProzente_(kats); return kats.map(function (c, i) { return katZeileHTML({ name: c.name, prozent: pz[i] }); }).join(''); })() + '</div>' +
+    ? 'Gilt für <b>' + A.esc(A.kursLabel(kurs)) + '</b>.'
+    : 'Allgemeine Vorgabe. Fachspezifische Vorgaben stehen unter „Fächer &amp; Gewichtung“.') +
+    ' Arten zusammen 100 %. Eine Art kann Unterarten haben (z. B. Schriftlich → Arbeit 90 %, Test 10 %); diese ergeben zusammen 100 % der Art.</div>' +
+    '<div id="katList">' + baum.map(function (t) { return katGruppeHTML_({ name: t.name, prozent: r1(t.prozent), unter: t.unter.map(function (u) { return { name: u.name, prozent: r1(u.prozent) }; }) }); }).join('') + '</div>' +
     '<div class="kat-summe" id="katSumme"></div>' +
-    '<p class="small muted" style="margin:4px 2px 10px">Innerhalb einer Art zählen alle Leistungen gleich: 2 mündliche Noten je 50 %, 5 je 20 %.</p>' +
+    '<p class="small muted" style="margin:4px 2px 10px">Innerhalb einer (Unter-)Art zählen alle Leistungen gleich: 2 Noten je 50 %, 5 je 20 %.</p>' +
     '<div class="btn-row"><button class="btn" id="katAdd">Art hinzufügen</button></div>';
 
   Modal.open({
@@ -13068,20 +13118,38 @@ ACT['kats-bearbeiten'] = function (el) {
     foot: (kurs ? '<button class="btn" id="katReset">Vorgabe</button>' : '') + '<button class="btn primary" id="katSave">Speichern</button>',
     after: function (bg, close) {
       var listEl = bg.querySelector('#katList');
+      var zahl = function (i) { var g = A.num(String(i.value).replace(',', '.'), 0); return g === null ? 0 : g; };
       function katSumme_() {
-        var sum = 0; listEl.querySelectorAll('.kat-gew').forEach(function (i) { var g = A.num(String(i.value).replace(',', '.'), 0); sum += g === null ? 0 : g; });
+        var ok = true, sum = 0;
+        listEl.querySelectorAll(':scope > .kat-gruppe').forEach(function (g) {
+          sum += zahl(g.querySelector(':scope > .kat-zeile .kat-gew'));
+          var subs = g.querySelectorAll('.kat-unter .kat-gew'), us = 0;
+          subs.forEach(function (i) { us += zahl(i); });
+          us = Math.round(us * 10) / 10;
+          var se = g.querySelector('.kat-usumme');
+          if (se) { se.textContent = subs.length ? 'Unterarten: ' + String(us).replace('.', ',') + ' %' + (us === 100 ? '' : ' – müssen 100 % ergeben') : ''; se.classList.toggle('falsch', !!subs.length && us !== 100); }
+          if (subs.length && us !== 100) ok = false;
+        });
         sum = Math.round(sum * 10) / 10;
-        var el = bg.querySelector('#katSumme'); if (el) { el.textContent = 'Summe: ' + String(sum).replace('.', ',') + ' %' + (sum === 100 ? '' : ' – muss 100 % ergeben'); el.classList.toggle('falsch', sum !== 100); }
-        return sum;
+        var el = bg.querySelector('#katSumme'); if (el) { el.textContent = 'Arten zusammen: ' + String(sum).replace('.', ',') + ' %' + (sum === 100 ? '' : ' – muss 100 % ergeben'); el.classList.toggle('falsch', sum !== 100); }
+        return ok && sum === 100;
       }
       listEl.addEventListener('input', katSumme_);
       katSumme_();
       listEl.addEventListener('click', function (e) {
-        var b = e.target.closest('[data-kat-del]');
-        if (b) { b.closest('.kat-zeile').remove(); katSumme_(); }
+        var d = e.target.closest('[data-kat-del]');
+        if (d) { var z = d.closest('.kat-zeile'); if (z.classList.contains('sub')) z.remove(); else z.closest('.kat-gruppe').remove(); katSumme_(); return; }
+        var u = e.target.closest('[data-kat-unter]');
+        if (u) {
+          var box = u.closest('.kat-gruppe').querySelector('.kat-unter');
+          var leer = !box.querySelector('.kat-zeile');
+          box.insertAdjacentHTML('beforeend', katZeileHTML({ name: '', prozent: leer ? '100' : '', sub: true }));
+          var neu = box.querySelectorAll('.kat-name'); neu[neu.length - 1].focus();
+          katSumme_();
+        }
       });
       bg.querySelector('#katAdd').addEventListener('click', function () {
-        listEl.insertAdjacentHTML('beforeend', katZeileHTML({ name: '', prozent: '' }));
+        listEl.insertAdjacentHTML('beforeend', katGruppeHTML_({ name: '', prozent: '', unter: [] }));
         katSumme_();
       });
       var r = bg.querySelector('#katReset');
@@ -13089,21 +13157,54 @@ ACT['kats-bearbeiten'] = function (el) {
         kurs.kategorien = ''; A.put('Kurse', kurs); close(); render();
       });
       bg.querySelector('#katSave').addEventListener('click', function () {
-        var out = [];
-        listEl.querySelectorAll('.kat-zeile').forEach(function (z) {
-          var name = z.querySelector('.kat-name').value.trim();
-          var g = A.num(String(z.querySelector('.kat-gew').value).replace(',', '.'), 0);
-          if (name) out.push({ name: name, gewicht: g === null ? 0 : g });
+        var out = [], umbenennen = {}, alleBlaetter = {};
+        listEl.querySelectorAll(':scope > .kat-gruppe').forEach(function (g) {
+          var tz = g.querySelector(':scope > .kat-zeile');
+          var name = tz.querySelector('.kat-name').value.trim(); if (!name) return;
+          var alt = tz.getAttribute('data-alt') || '';
+          var unter = [];
+          g.querySelectorAll('.kat-unter .kat-zeile').forEach(function (z) {
+            var n = z.querySelector('.kat-name').value.trim(); if (!n) return;
+            var a = z.getAttribute('data-alt') || '';
+            unter.push({ name: n, gewicht: zahl(z.querySelector('.kat-gew')) });
+            alleBlaetter[n] = 1;
+            if (a && a !== n) umbenennen[a] = n;
+          });
+          if (unter.length) { if (alt && !umbenennen[alt] && alleBlaetter[alt] !== 1) umbenennen[alt] = unter[0].name; }
+          else { alleBlaetter[name] = 1; if (alt && alt !== name) umbenennen[alt] = name; }
+          var o = { name: name, gewicht: zahl(tz.querySelector('.kat-gew')) }; if (unter.length) o.unter = unter;
+          out.push(o);
         });
         if (!out.length) { window.toast('Mindestens eine Art angeben.', true); return; }
-        if (katSumme_() !== 100) { window.toast('Die Anteile müssen zusammen 100 % ergeben.', true); return; }
+        if (!katSumme_()) { window.toast('Die Anteile müssen jeweils zusammen 100 % ergeben.', true); return; }
+        /* Leistungen mitnehmen: umbenannte Arten und Arten, die jetzt Unterarten haben. */
+        var kursIds = kurs ? [kurs.id] : A.alleKurse().filter(function (k) { return !A.parseJSON(k.kategorien, null); }).map(function (k) { return k.id; });
+        var betroffen = A.list('Leistungen', function (l) { return kursIds.indexOf(l.kursId) >= 0; });
+        var verwaist = betroffen.filter(function (l) { var neuN = umbenennen[l.kategorie] || l.kategorie; return !alleBlaetter[neuN]; });
+        if (verwaist.length) { window.toast('„' + verwaist[0].kategorie + '“ hat noch ' + verwaist.length + ' Leistung(en). Bitte die Art behalten oder umbenennen statt löschen.', true); return; }
+        var verschoben = 0;
+        betroffen.forEach(function (l) { var n = umbenennen[l.kategorie]; if (n && n !== l.kategorie) { l.kategorie = n; A.put('Leistungen', l); verschoben++; } });
+        if (umbenennen[A.cfg('mitarbeitKategorie')]) A.setCfg('mitarbeitKategorie', umbenennen[A.cfg('mitarbeitKategorie')]);
         if (kurs) { kurs.kategorien = JSON.stringify(out); A.put('Kurse', kurs); }
         else A.setCfg('kategorien', out);
         close(); render();
+        if (verschoben) window.toast(verschoben + ' Leistung(en) der neuen Art zugeordnet – änderbar über „Bearbeiten“ der Leistung.');
       });
     }
   });
 };
+
+function katGruppeHTML_(t) {
+  return '<div class="kat-gruppe">' + katZeileHTML({ name: t.name, prozent: t.prozent }) +
+    '<div class="kat-unter">' + (t.unter || []).map(function (u) { return katZeileHTML({ name: u.name, prozent: u.prozent, sub: true }); }).join('') + '</div>' +
+    '<div class="kat-usumme"></div>' +
+    '<button type="button" class="kat-unter-add" data-kat-unter>＋ Unterart</button></div>';
+}
+function katOptionen_(kurs, aktuell) {
+  var o = A.kategorienVon(kurs).map(function (c) { return { value: c.name, label: c.gruppe ? c.gruppe + ' › ' + c.name : c.name }; });
+  if (aktuell && !o.some(function (x) { return x.value === aktuell; })) o.push({ value: aktuell, label: aktuell + ' (nicht mehr in der Gewichtung)' });
+  return o;
+}
 
 /* V101: Gewichte der Arten als Prozent anzeigen (intern bleibt es ein gewichtetes Mittel). */
 function katProzente_(kats) {
@@ -13112,8 +13213,8 @@ function katProzente_(kats) {
 }
 function katProzentText_(kats, i) { return A.fmtNote(katProzente_(kats)[i], 0).replace(/,0$/, '') + ' %'; }
 function katZeileHTML(c) {
-  return '<div class="kat-zeile" style="display:flex;gap:8px;align-items:center;margin-bottom:8px">' +
-    '<input class="kat-name" value="' + A.esc(c.name) + '" placeholder="Art" style="flex:1;min-width:0;min-height:40px;padding:6px 10px;border:1px solid var(--line);border-radius:8px;background:var(--surface)">' +
+  return '<div class="kat-zeile' + (c.sub ? ' sub' : '') + '" data-alt="' + A.esc(c.name || '') + '" style="display:flex;gap:8px;align-items:center;margin-bottom:8px">' +
+    '<input class="kat-name" value="' + A.esc(c.name) + '" placeholder="' + (c.sub ? 'Unterart' : 'Art') + '" style="flex:1;min-width:0;min-height:40px;padding:6px 10px;border:1px solid var(--line);border-radius:8px;background:var(--surface)">' +
     '<input class="kat-gew" value="' + A.esc(c.prozent !== undefined ? String(c.prozent).replace('.', ',') : c.gewicht) + '" inputmode="decimal" style="width:64px;text-align:center;min-height:40px;padding:6px;border:1px solid var(--line);border-radius:8px;background:var(--surface)"><span class="kat-proz">%</span>' +
     '<button class="icon-btn" data-kat-del style="color:var(--bad);min-width:36px">✕</button></div>';
 }
@@ -13707,6 +13808,7 @@ ACT['fehlerprotokoll'] = function () {
 };
 
 var AENDERUNGEN_ = [
+  ['V102', ['Gewichtung mit Unterarten: z. B. Schriftlich 50 % mit Arbeit 90 % und Test 10 %, Mündlich 50 % mit Mitarbeit und Referat. Unterarten ergeben zusammen 100 % ihrer Art. Fehlt in einer Unterart noch jede Note, zählt die andere für die ganze Art.']],
   ['V101', ['Gewichtung der Arten jetzt in Prozent (z. B. Schriftlich 60 %, Mündlich 40 %); die Summe wird angezeigt und muss 100 % ergeben.', 'Neu: „Stunde anpassen“ je Klasse und Fach – Abhakpunkte (HA, Material, Sportsachen …) an/aus sowie Mitarbeit, Unterrichtsreihe, Strafarbeiten, Listen und Werkzeuge ein- oder ausblenden. Auf Wunsch für alle Fächer einer Klasse. Zu finden unten in jeder Stunde und unter Mehr → Unterricht.']],
   ['V100', ['„Neue Leistung“ fragt nicht mehr nach dem Anteil: Alle Leistungen einer Art (z. B. alle mündlichen Noten) zählen automatisch gleich. Ausnahmen bleiben über „Bearbeiten“ möglich.']],
   ['V99', ['Noteneingabe: Am Computer stehen die Schüler:innen in zwei Spalten statt in einer langen Liste.', 'Neu „Daneben zeigen“: eine andere Leistung (z. B. die mündliche Note) erscheint direkt beim Namen – zum Dazuschreiben auf die Arbeit.', 'Neu „Entwicklung“: Noten der letzten Arbeiten derselben Art und ob sich das Kind verbessert oder verschlechtert hat – aktualisiert sich beim Eintippen.']],
