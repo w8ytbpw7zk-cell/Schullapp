@@ -3400,6 +3400,11 @@ input:focus,select:focus,textarea:focus{background:var(--surface)!important}
 .kat-unter-add{border:0;background:none;color:var(--ink-2);font:inherit;font-size:13px;padding:2px 4px;cursor:pointer}
 .kv.kv-unter .k{padding-left:16px;color:var(--ink-2)}
 .kv.kv-unter small{color:var(--ink-3);font-size:11.5px}
+/* V103 */
+#modalHost .sa-neu{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px;align-items:center}
+#modalHost .sa-neu input:not([type=checkbox]){flex:1 1 180px;min-width:0;min-height:38px}
+#modalHost .sa-neu #saNeuKurz{flex:0 0 76px}
+#modalHost select.sa-neu-e{flex:1 1 140px;min-height:38px;font-size:14px}
 </style>
 </head>
 <body>
@@ -3541,7 +3546,7 @@ var TABLES = ['Klassen', 'Kurse', 'SuS', 'Stundenplan', 'Stunden', 'Mitarbeit',
               'Leistungen', 'Noten', 'Checks', 'Settings'];
 
 /* Eine einzige Stelle für die Versionsangabe (Anzeige unter „Mehr“). */
-var APP_VERSION = 'V102';
+var APP_VERSION = 'V103';
 
 /* V15: Diese Adresse ist die verbindliche Login-Adresse. */
 /* V58: Keine feste Server-Adresse mehr in der App. Sie wird über den Einladungslink/-code oder Mehr → Server gesetzt. */
@@ -9623,7 +9628,7 @@ VIEWS.stunde = {
         '<button class="btn primary block" data-act="open-klasse" data-klasse="' + kurs.klasseId + '">Klasse öffnen</button>');
     }
 
-    h += '<div class="btn-row stunde-schnell"><button class="btn" data-act="kurs-bereich" data-kurs="' + kurs.id + '" data-b="noten">Noten eintragen</button>' +
+    if (kursMitNoten_(kurs)) h += '<div class="btn-row stunde-schnell"><button class="btn" data-act="kurs-bereich" data-kurs="' + kurs.id + '" data-b="noten">Noten eintragen</button>' +
       '<button class="btn" data-act="open-kurs" data-kurs="' + kurs.id + '">Kurs öffnen</button></div>';
     var ansicht = stundeAnsicht_(kurs.id);
     setTimeout(function () { craftPlanAuffrischen_(p.datum, false, [vorigeStundeDatum_(kurs, p.datum)]); }, 0);
@@ -9724,8 +9729,8 @@ VIEWS.stunde = {
       '<button class="btn" data-act="aufgabe-neu" data-kurs="' + kurs.id + '">' + ICON_('liste') + '<span>Liste</span></button>' +
       '</div>';
 
-    h += '<button class="btn block" data-act="open-kurs" data-kurs="' + kurs.id + '">Noten von ' +
-      A.esc(A.kursLabel(kurs)) + '</button>';
+    h += '<button class="btn block" data-act="open-kurs" data-kurs="' + kurs.id + '">' + (kursMitNoten_(kurs) ? 'Noten von ' : 'Kurs ') +
+      A.esc(A.kursLabel(kurs)) + (kursMitNoten_(kurs) ? '' : ' öffnen') + '</button>';
     h += '<button class="btn block sa-link" data-act="stunde-ansicht" data-kurs="' + kurs.id + '">' + ICON_('regler') + '<span>Stunde für ' + A.esc(A.kursLabel(kurs)) + ' anpassen</span></button>';
     return h;
   }
@@ -10351,7 +10356,7 @@ function aufgabenAuswertungHTML_(l,sus){
    V94: Notenkonferenz-Ansicht je Klasse
    ===================================================================== */
 function konferenzDaten_(klasseId){
-  var kurse=A.kurseDerKlasse(klasseId),sus=A.susDerKlasse(klasseId).filter(function(s){return String(s.aktiv)!=='0';});
+  var kurse=A.kurseDerKlasse(klasseId).filter(kursMitNoten_),sus=A.susDerKlasse(klasseId).filter(function(s){return String(s.aktiv)!=='0';});
   var aktiv={};kurse.forEach(function(k){aktiv[k.id]=A.list('Leistungen',function(l){return l.kursId===k.id;}).some(function(l){return sus.some(function(x){var n=A.noteFuer(l,x.id,k);return n!==null&&n!==undefined;});});});
   var zeilen=sus.map(function(s){var zellen=kurse.map(function(k){var g=A.gesamtnote(k,s.id),anz=A.list('Leistungen',function(l){return l.kursId===k.id;}).filter(function(l){var n=A.noteFuer(l,s.id,k);return n!==null&&n!==undefined;}).length;return {kurs:k,note:g.note,zeugnis:A.rundeNote(g.note),anzahl:anz};});
     var fuenfer=zellen.filter(function(z){return z.zeugnis!==null&&z.zeugnis>=5;}).length,ohne=zellen.filter(function(z){return z.anzahl===0&&aktiv[z.kurs.id];}).length;
@@ -10417,12 +10422,14 @@ VIEWS.kurs = {
     if (!b) {
       var st = kursNotenStat_(kurs);
       var aufg = aufgabenOffen(kurs.id).length;
-      return kachelGrid_('', kachel_({ act: 'kurs-bereich', data: { kurs: kurs.id, b: 'noten' }, icon: 'noten', titel: 'Noten eintragen', gross: true, farbe: A.kursFarbe(kurs),
+      var mitN = kursMitNoten_(kurs);
+      return kachelGrid_('', (!mitN ? '' : kachel_({ act: 'kurs-bereich', data: { kurs: kurs.id, b: 'noten' }, icon: 'noten', titel: 'Noten eintragen', gross: true, farbe: A.kursFarbe(kurs),
           info: st.leistungen ? st.leistungen + ' Leistung' + (st.leistungen === 1 ? '' : 'en') + (st.offen ? ' · ' + st.offen + ' Noten fehlen noch' : ' · alles eingetragen') : 'Noch keine Leistung – hier anlegen',
           badge: st.offen ? String(st.offen) : '' }) +
-        kachel_({ act: 'kurs-bereich', data: { kurs: kurs.id, b: 'uebersicht' }, icon: 'chart', titel: 'Notenübersicht', info: st.schnitt === null ? 'noch kein Schnitt' : 'Ø ' + A.fmtNote(st.schnitt) + ' · Notenspiegel · PDF' }) +
+        kachel_({ act: 'kurs-bereich', data: { kurs: kurs.id, b: 'uebersicht' }, icon: 'chart', titel: 'Notenübersicht', info: st.schnitt === null ? 'noch kein Schnitt' : 'Ø ' + A.fmtNote(st.schnitt) + ' · Notenspiegel · PDF' })) +
         kachel_({ act: 'kurs-bereich', data: { kurs: kurs.id, b: 'listen' }, icon: 'liste', titel: 'Einsammel-Listen', info: aufg ? aufg + ' offen' : 'nichts offen' }) +
-        kachel_({ act: 'kurs-bereich', data: { kurs: kurs.id, b: 'bewertung' }, icon: 'regler', titel: 'Bewertung', info: 'Gewichtung · Notenschlüssel' }) +
+        (mitN ? kachel_({ act: 'kurs-bereich', data: { kurs: kurs.id, b: 'bewertung' }, icon: 'regler', titel: 'Bewertung', info: 'Gewichtung · Notenschlüssel' }) : '') +
+        kachel_({ act: 'stunde-ansicht', data: { kurs: kurs.id }, icon: 'regler', titel: 'Stunde anpassen', info: mitN ? 'Abhaken, Bereiche' : 'ohne Noten · Abhaken, Bereiche' }) +
         kachel_({ act: 'kurs-bereich', data: { kurs: kurs.id, b: 'reihe' }, icon: 'reihe', titel: 'Unterrichtsreihe', info: 'Themen und Stundenfolge' }) +
         kachel_({ act: 'open-klasse', data: { klasse: kurs.klasseId }, icon: 'users', titel: 'Klasse ' + ((A.klasseVonKurs(kurs) || {}).name || ''), info: sus.length + ' Schüler:innen · Sitzplan' }));
     }
@@ -10644,7 +10651,7 @@ VIEWS.noten = {
     /* V84: erst die Klasse, dann das Fach */
     var kl = p && p.klasse ? A.byId('Klassen', p.klasse) : null;
     if (kl) {
-      return kachelGrid_('', A.kurseDerKlasse(kl.id).map(function (kurs) {
+      return kachelGrid_('', A.kurseDerKlasse(kl.id).filter(kursMitNoten_).map(function (kurs) {
         var st = kursNotenStat_(kurs);
         return kachel_({ act: 'kurs-bereich', data: { kurs: kurs.id, b: 'noten' }, icon: 'noten', titel: kurs.fach || 'ohne Fach', farbe: A.kursFarbe(kurs),
           info: (st.schnitt === null ? 'noch keine Noten' : 'Ø ' + A.fmtNote(st.schnitt)) + ' · ' + st.leistungen + ' Leistung' + (st.leistungen === 1 ? '' : 'en'),
@@ -10654,8 +10661,8 @@ VIEWS.noten = {
     var std = A.standardKlasseId();
     var ks = A.klassen().slice().sort(function (a, b) { return (b.id === std) - (a.id === std); });
     return '<div class="small muted noten-hinweis">Klasse → Fach → Leistung wählen oder neu anlegen.</div>' +
-      kachelGrid_('', ks.filter(function (k) { return A.kurseDerKlasse(k.id).length; }).map(function (k) {
-        var kk = A.kurseDerKlasse(k.id), offen = 0;
+      kachelGrid_('', ks.filter(function (k) { return A.kurseDerKlasse(k.id).filter(kursMitNoten_).length; }).map(function (k) {
+        var kk = A.kurseDerKlasse(k.id).filter(kursMitNoten_), offen = 0;
         kk.forEach(function (ku) { offen += kursNotenStat_(ku).offen; });
         return kachel_({ act: 'noten-klasse', data: { klasse: k.id }, icon: 'users', titel: k.name, farbe: A.kursFarbe(kk[0]),
           info: kk.map(function (ku) { return ku.fach; }).join(' · '), badge: offen ? offen + ' Noten offen' : '' });
@@ -11768,17 +11775,21 @@ ACT['mitarbeit-leeren'] = function () {
 
 /* V101: Was in der Stunde zu sehen ist – je Kurs (Klasse + Fach) einstellbar. */
 var STUNDE_TEILE_ = [
+  ['noten', 'Noten', 'Noten eintragen, Notenübersicht, Konferenz – aus z. B. für die Klassenlehrerstunde'],
   ['reihe', 'Unterrichtsreihe', 'Thema aus dem Stoffverteilungsplan'],
   ['strafen', 'Offene Strafarbeiten', 'Erinnerung zum Einsammeln'],
   ['listen', 'Offene Listen', 'Einsammel-Listen des Kurses'],
   ['mitarbeit', 'Mitarbeit', 'Bewertung pro Stunde'],
   ['werkzeuge', 'Werkzeuge', 'Zufall, Gruppen, Puzzle, Liste']
 ];
+/* V103: Fächer ohne Noten (Klassenlehrerstunde, Klassenrat …) erkennt die App am Namen; einstellbar je Kurs. */
+function fachOhneNoten_(fach) { return /klassenlehrer|klassenrat|^\s*kl(s|-?stunde)?\s*$|^\s*kls\s*$|soziales lernen/i.test(String(fach || '')); }
 function stundeAnsicht_(kursId) {
-  var m = (A.cfg('stundenAnsicht') || {})[kursId] || {}, out = {};
-  STUNDE_TEILE_.forEach(function (t) { out[t[0]] = m[t[0]] !== false; });
+  var m = (A.cfg('stundenAnsicht') || {})[kursId] || {}, out = {}, k = A.byId('Kurse', kursId);
+  STUNDE_TEILE_.forEach(function (t) { out[t[0]] = m[t[0]] !== undefined ? m[t[0]] !== false : !(t[0] === 'noten' && k && fachOhneNoten_(k.fach)); });
   return out;
 }
+function kursMitNoten_(k) { return !!k && stundeAnsicht_(k.id).noten; }
 function abhakPunkteAuswahl_(aktuell) {
   var alle = [], gesehen = {};
   function add(pt) { var k = String(pt.name || '').toLowerCase(); if (!k || gesehen[k]) return; gesehen[k] = 1; alle.push({ name: pt.name, kurz: pt.kurz || pt.name.slice(0, 4), modus: pt.modus || 2 }); }
@@ -11808,7 +11819,9 @@ ACT['stunde-ansicht'] = function (el) {
   var body = '<div class="hint-box">Gilt für alle Stunden von <b>' + A.esc(A.kursLabel(kurs)) + '</b>.</div>' +
     '<div class="field"><label>Abhaken</label><div class="chiplist sa-punkte">' + punkte.map(function (p, i) {
       return '<button type="button" class="chip' + (aktNamen[String(p.name).toLowerCase()] ? ' on' : '') + '" data-sa-punkt="' + i + '">' + A.esc(p.name) + '</button>'; }).join('') + '</div>' +
-      '<p class="small muted" style="margin:6px 2px 0">Antippen = an/aus. Keiner aktiv = kein Abhaken in dieser Klasse. Eigene Punkte: in der Stunde unter „Punkte anpassen“.</p></div>' +
+      '<div class="sa-neu"><input id="saNeuName" placeholder="Eigener Punkt, z. B. Entschuldigungen" autocomplete="off"><input id="saNeuKurz" placeholder="Kürzel" maxlength="6" autocomplete="off">' +
+      '<select id="saNeuE" class="sa-neu-e"><option value="2">dabei / fehlt</option><option value="3">+ entschuldigt</option></select><button type="button" class="btn small" id="saNeuAdd">Hinzufügen</button></div>' +
+      '<p class="small muted" style="margin:6px 2px 0">Antippen = an/aus. Keiner aktiv = kein Abhaken. „entschuldigt“ ergibt drei Stufen: dabei / fehlt / entschuldigt.</p></div>' +
     '<div class="field"><label>Bereiche</label><div class="sa-teile">' + STUNDE_TEILE_.map(function (t) {
       return '<div class="field check sa-teil"><input type="checkbox" id="saT_' + t[0] + '" data-sa-teil="' + t[0] + '"' + (an[t[0]] ? ' checked' : '') + '><label for="saT_' + t[0] + '"><b>' + A.esc(t[1]) + '</b><small>' + A.esc(t[2]) + '</small></label></div>'; }).join('') + '</div></div>' +
     (geschw.length ? '<div class="field check"><input type="checkbox" id="saAlle"><label for="saAlle">Auch für die anderen Fächer der ' + A.esc(kl.name || 'Klasse') + ' (' + geschw.map(function (k) { return A.esc(k.fach); }).join(', ') + ')</label></div>' : '');
@@ -11818,6 +11831,17 @@ ACT['stunde-ansicht'] = function (el) {
     foot: '<button class="btn primary" id="saSave">Speichern</button>',
     after: function (bg, close) {
       bg.querySelector('.sa-punkte').addEventListener('click', function (e) { var b = e.target.closest('[data-sa-punkt]'); if (b) b.classList.toggle('on'); });
+      bg.querySelector('#saNeuAdd').addEventListener('click', function () {
+        var n = bg.querySelector('#saNeuName').value.trim(); if (!n) { bg.querySelector('#saNeuName').focus(); return; }
+        var kz = bg.querySelector('#saNeuKurz').value.trim() || n.slice(0, 4);
+        var vorh = punkte.filter(function (x) { return String(x.name).toLowerCase() === n.toLowerCase(); })[0];
+        var idx;
+        if (vorh) idx = punkte.indexOf(vorh);
+        else { punkte.push({ name: n, kurz: kz, modus: bg.querySelector('#saNeuE').value === '3' ? 3 : 2 }); idx = punkte.length - 1;
+          bg.querySelector('.sa-punkte').insertAdjacentHTML('beforeend', '<button type="button" class="chip" data-sa-punkt="' + idx + '">' + A.esc(n) + '</button>'); }
+        var chip = bg.querySelector('[data-sa-punkt="' + idx + '"]'); if (chip) chip.classList.add('on');
+        bg.querySelector('#saNeuName').value = ''; bg.querySelector('#saNeuKurz').value = ''; bg.querySelector('#saNeuE').value = '2';
+      });
       bg.querySelector('#saSave').addEventListener('click', function () {
         var teile = {}; bg.querySelectorAll('[data-sa-teil]').forEach(function (c) { teile[c.getAttribute('data-sa-teil')] = !!c.checked; });
         var gew = []; bg.querySelectorAll('[data-sa-punkt].on').forEach(function (b) { gew.push(punkte[A.num(b.getAttribute('data-sa-punkt'), 0)]); });
@@ -13018,7 +13042,7 @@ function gewichtAusAnteil_(kursId, kat, ohneId, wert) {
 }
 
 ACT['leistung-neu'] = function (el) {
-  var kurse = A.alleKurse();
+  var kurse = A.alleKurse().filter(kursMitNoten_);
   if (!kurse.length) { window.toast('Zuerst eine Klasse mit Fach anlegen.', true); return; }
   var vorgabe = (el && el.getAttribute('data-kurs')) || (currentView().p && currentView().p.id) || kurse[0].id;
   var k0 = A.byId('Kurse', vorgabe) || kurse[0];
@@ -13808,6 +13832,7 @@ ACT['fehlerprotokoll'] = function () {
 };
 
 var AENDERUNGEN_ = [
+  ['V103', ['Fächer ohne Noten: Unter „Stunde anpassen“ lässt sich „Noten“ ausschalten (z. B. für die Klassenlehrerstunde). Das Fach taucht dann nicht unter Noten, Notenkonferenz und „Neue Leistung“ auf. Klassenlehrerstunde/Klassenrat erkennt die App am Namen und schaltet Noten dort von selbst aus.', 'Eigene Abhakpunkte (z. B. Entschuldigungen, Unterschrift) direkt in „Stunde anpassen“ anlegen, wahlweise mit Stufe „entschuldigt“.']],
   ['V102', ['Gewichtung mit Unterarten: z. B. Schriftlich 50 % mit Arbeit 90 % und Test 10 %, Mündlich 50 % mit Mitarbeit und Referat. Unterarten ergeben zusammen 100 % ihrer Art. Fehlt in einer Unterart noch jede Note, zählt die andere für die ganze Art.']],
   ['V101', ['Gewichtung der Arten jetzt in Prozent (z. B. Schriftlich 60 %, Mündlich 40 %); die Summe wird angezeigt und muss 100 % ergeben.', 'Neu: „Stunde anpassen“ je Klasse und Fach – Abhakpunkte (HA, Material, Sportsachen …) an/aus sowie Mitarbeit, Unterrichtsreihe, Strafarbeiten, Listen und Werkzeuge ein- oder ausblenden. Auf Wunsch für alle Fächer einer Klasse. Zu finden unten in jeder Stunde und unter Mehr → Unterricht.']],
   ['V100', ['„Neue Leistung“ fragt nicht mehr nach dem Anteil: Alle Leistungen einer Art (z. B. alle mündlichen Noten) zählen automatisch gleich. Ausnahmen bleiben über „Bearbeiten“ möglich.']],
