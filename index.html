@@ -3375,6 +3375,19 @@ input:focus,select:focus,textarea:focus{background:var(--surface)!important}
   .noten-liste:not(.breit){columns:2 380px;column-gap:10px}
   .noten-liste:not(.breit) .mit-row{break-inside:avoid}
 }
+/* V101 */
+.kat-proz{font-size:13px;color:var(--ink-2);margin-left:-4px}
+.kat-summe{font-size:13px;font-weight:600;color:var(--good,#1f8a53);margin:2px 2px 0}
+.kat-summe.falsch{color:var(--bad,#c0392f)}
+#modalHost .sa-teile{display:grid;gap:6px}
+#modalHost .field.check.sa-teil{margin:0;padding:10px 12px;border-radius:12px;background:var(--flaeche)}
+#modalHost .sa-teil label{display:flex;flex-direction:column;gap:1px}
+#modalHost .sa-teil label b{font-size:14.5px;font-weight:600;color:var(--ink)}
+#modalHost .sa-teil label small{font-size:12px;font-weight:400;color:var(--ink-2)}
+.sa-punkte .chip.on{background:var(--ink);color:var(--surface)}
+.sa-link{display:flex;align-items:center;justify-content:center;gap:8px;color:var(--ink-2);margin-top:8px}
+.sa-gruppe{margin-bottom:14px}
+.sa-gruppe-k{font-size:13px;font-weight:650;color:var(--ink-2);margin:0 2px 6px}
 </style>
 </head>
 <body>
@@ -3516,7 +3529,7 @@ var TABLES = ['Klassen', 'Kurse', 'SuS', 'Stundenplan', 'Stunden', 'Mitarbeit',
               'Leistungen', 'Noten', 'Checks', 'Settings'];
 
 /* Eine einzige Stelle für die Versionsangabe (Anzeige unter „Mehr“). */
-var APP_VERSION = 'V100';
+var APP_VERSION = 'V101';
 
 /* V15: Diese Adresse ist die verbindliche Login-Adresse. */
 /* V58: Keine feste Server-Adresse mehr in der App. Sie wird über den Einladungslink/-code oder Mehr → Server gesetzt. */
@@ -4710,7 +4723,7 @@ var SPLIT_KEYS = {
   mitarbeitNoten: 'map', sitzplaene: 'map', sitzregeln: 'map', weiterNotizen: 'map',
   unterrichtsreihen: 'map', susLastSeen: 'map', craftLinks: 'map', elternVorlagen: 'map',
   listenSmartVorlagen: 'map', elternListenVorlagen: 'map', papierkorb: 'map', klassenGetrennt: 'map',
-  leistungAufgaben: 'map', aufgabenPunkte: 'map', listenStrafen: 'map'
+  leistungAufgaben: 'map', aufgabenPunkte: 'map', listenStrafen: 'map', stundenAnsicht: 'map'
 };
 
 var SX_VERSION = 0;
@@ -9566,10 +9579,11 @@ VIEWS.stunde = {
 
     h += '<div class="btn-row stunde-schnell"><button class="btn" data-act="kurs-bereich" data-kurs="' + kurs.id + '" data-b="noten">Noten eintragen</button>' +
       '<button class="btn" data-act="open-kurs" data-kurs="' + kurs.id + '">Kurs öffnen</button></div>';
+    var ansicht = stundeAnsicht_(kurs.id);
     setTimeout(function () { craftPlanAuffrischen_(p.datum, false, [vorigeStundeDatum_(kurs, p.datum)]); }, 0);
-    h += card('Unterrichtsreihe', unterrichtsreiheHTML_(kurs.id,true,p.datum));
+    if (ansicht.reihe) h += card('Unterrichtsreihe', unterrichtsreiheHTML_(kurs.id,true,p.datum));
 
-    var offeneStrafen = A.offeneStrafarbeiten(kurs.id);
+    var offeneStrafen = ansicht.strafen ? A.offeneStrafarbeiten(kurs.id) : [];
     if (offeneStrafen.length) {
       h += card('Offene Strafarbeiten', offeneStrafen.map(function (x) {
         var grund = x.stand.teile.map(function (p) { return p.anzahl + '× ' + A.esc(p.name); }).join(' · ');
@@ -9587,7 +9601,7 @@ VIEWS.stunde = {
       }).join(''), 'straf-offen');
     }
 
-    var offeneAufgaben = aufgabenOffen(kurs.id);
+    var offeneAufgaben = ansicht.listen ? aufgabenOffen(kurs.id) : [];
     if (offeneAufgaben.length) {
       var aufgabenLageStunde = aufgabenStatusKurs(kurs.id, p.datum);
       var aufgabenCardKlasse = aufgabenLageStunde.ueberfaellig
@@ -9630,6 +9644,7 @@ VIEWS.stunde = {
 
     /* --- Mitarbeit, ebenfalls als Kachelraster --- */
     var smileys = A.cfg('smileys');
+    if (ansicht.mitarbeit) {
     var mkacheln = sus.map(function (s) {
       var m = A.mitarbeitFuer(p.datum, p.stunde, s.id);
       var wert = m ? String(m.wert) : '';
@@ -9654,8 +9669,9 @@ VIEWS.stunde = {
           (smileys[2] ? (mitSmileys_() ? smileys[2].emoji : '„' + A.esc(smileys[2].label) + '“') : '😐') + '</button>' +
         '<button class="btn small" data-act="mitarbeit-leeren">Alle leeren</button>' +
       '</div>');
+    }
 
-    h += '<div class="stunden-tools">' +
+    if (ansicht.werkzeuge) h += '<div class="stunden-tools">' +
       '<button class="btn" data-act="zufall-sus">' + ICON_('wuerfel') + '<span>Zufall</span></button>' +
       '<button class="btn" data-act="gruppen">' + ICON_('users') + '<span>Gruppen</span></button>' +
       '<button class="btn" data-act="gruppenpuzzle">' + ICON_('puzzle') + '<span>Puzzle</span></button>' +
@@ -9664,6 +9680,7 @@ VIEWS.stunde = {
 
     h += '<button class="btn block" data-act="open-kurs" data-kurs="' + kurs.id + '">Noten von ' +
       A.esc(A.kursLabel(kurs)) + '</button>';
+    h += '<button class="btn block sa-link" data-act="stunde-ansicht" data-kurs="' + kurs.id + '">' + ICON_('regler') + '<span>Stunde für ' + A.esc(A.kursLabel(kurs)) + ' anpassen</span></button>';
     return h;
   }
 };
@@ -10398,7 +10415,7 @@ VIEWS.kurs = {
     if (sus.length) {
       var th = '<tr><th class="name">Name</th>' + kats.map(function (c) {
         var istMa = A.cfg('mitarbeitAktiv') && A.cfg('mitarbeitKategorie') === c.name;
-        return '<th>' + A.esc(c.name) + '<br><span style="font-weight:500">×' + c.gewicht + '</span>' +
+        return '<th>' + A.esc(c.name) + '<br><span style="font-weight:500">' + katProzentText_(kats, kats.indexOf(c)) + '</span>' +
           (istMa ? '<span class="th-hint">Mitarbeits-Vorschlag · änderbar</span>' : '') + '</th>';
       }).join('') + '<th>Ges.</th></tr>';
 
@@ -10433,7 +10450,7 @@ VIEWS.kurs = {
     var sch = A.schluesselVon(kurs, null);
     h += card('Bewertung', '<div class="card-body">' +
       kats.map(function (c) {
-        return '<div class="kv"><span class="k">' + A.esc(c.name) + '</span><span class="v">×' + c.gewicht + '</span></div>';
+        return '<div class="kv"><span class="k">' + A.esc(c.name) + '</span><span class="v">' + katProzentText_(kats, kats.indexOf(c)) + '</span></div>';
       }).join('') +
       (A.cfg('mitarbeitAktiv') ? '<div class="kv"><span class="k small muted">Mitarbeits-Vorschlag zählt in „' +
         A.esc(A.cfg('mitarbeitKategorie')) + '“ und kann pro Schüler:in geändert werden</span><span class="v small">×' + A.cfg('mitarbeitGewicht') + '</span></div>' : '') +
@@ -10839,6 +10856,8 @@ VIEWS.mehr = {
       '<button class="row" data-act="doppelstunden"><div class="row-main"><div class="row-title">Doppelstunden</div>' +
         '<div class="row-sub">' + (A.cfg('doppelstunden') !== false ? 'werden zusammengefasst' : 'einzeln behandeln') +
         '</div></div><div class="chev">›</div></button>' +
+      '<button class="row" data-act="stunde-ansicht-liste"><div class="row-main"><div class="row-title">Stunde je Klasse &amp; Fach</div>' +
+        '<div class="row-sub">Was in den Stunden zu sehen ist: Abhaken (HA, Material …), Mitarbeit, Unterrichtsreihe …</div></div><div class="chev">›</div></button>' +
       '<button class="row" data-act="check-punkte"><div class="row-main"><div class="row-title">Abhakliste (Vorgabe)</div>' +
         '<div class="row-sub">' + ((A.cfg('checkpunkte') || []).map(function (x) { return A.esc(x.name); }).join(', ') || 'keine') +
         '</div></div><div class="chev">›</div></button>' +
@@ -10856,7 +10875,7 @@ VIEWS.mehr = {
       '<button class="row" data-act="faecher"><div class="row-main"><div class="row-title">Fächer &amp; Gewichtung</div>' +
         '<div class="row-sub">' + (A.faecherListe().join(', ') || 'noch keine') + '</div></div><div class="chev">›</div></button>' +
       '<button class="row" data-act="kats-bearbeiten"><div class="row-main"><div class="row-title">Gewichtung (allgemeine Vorgabe)</div>' +
-        '<div class="row-sub">' + A.cfg('kategorien').map(function (c) { return A.esc(c.name) + ' ×' + c.gewicht; }).join(' · ') +
+        '<div class="row-sub">' + A.cfg('kategorien').map(function (c, i) { return A.esc(c.name) + ' ' + katProzentText_(A.cfg('kategorien'), i); }).join(' · ') +
         '</div></div><div class="chev">›</div></button>' +
       '<button class="row" data-act="schluessel-bearbeiten"><div class="row-main"><div class="row-title">Notenschlüssel</div>' +
         '<div class="row-sub">' + (sch === 'linear' ? 'stufenlos – halbe Punktzahl ergibt 3,5' : 'Stufentabelle') +
@@ -11697,6 +11716,82 @@ ACT['mitarbeit-leeren'] = function () {
   if (vorher.length) window.toast(vorher.length + ' Einträge geleert', false, { label: 'Rückgängig', fn: function () {
     vorher.forEach(function (v) { A.setMitarbeit(p.datum, p.stunde, p.kursId, v.id, v.wert, v.bem); }); render(); window.toast('Wiederhergestellt');
   } });
+};
+
+/* V101: Was in der Stunde zu sehen ist – je Kurs (Klasse + Fach) einstellbar. */
+var STUNDE_TEILE_ = [
+  ['reihe', 'Unterrichtsreihe', 'Thema aus dem Stoffverteilungsplan'],
+  ['strafen', 'Offene Strafarbeiten', 'Erinnerung zum Einsammeln'],
+  ['listen', 'Offene Listen', 'Einsammel-Listen des Kurses'],
+  ['mitarbeit', 'Mitarbeit', 'Bewertung pro Stunde'],
+  ['werkzeuge', 'Werkzeuge', 'Zufall, Gruppen, Puzzle, Liste']
+];
+function stundeAnsicht_(kursId) {
+  var m = (A.cfg('stundenAnsicht') || {})[kursId] || {}, out = {};
+  STUNDE_TEILE_.forEach(function (t) { out[t[0]] = m[t[0]] !== false; });
+  return out;
+}
+function abhakPunkteAuswahl_(aktuell) {
+  var alle = [], gesehen = {};
+  function add(pt) { var k = String(pt.name || '').toLowerCase(); if (!k || gesehen[k]) return; gesehen[k] = 1; alle.push({ name: pt.name, kurz: pt.kurz || pt.name.slice(0, 4), modus: pt.modus || 2 }); }
+  (aktuell || []).forEach(add);
+  A.CHECK_VORLAGEN.forEach(function (v) { v.punkte.forEach(add); });
+  A.alleKurse().forEach(function (k) { (A.parseJSON(k.checkpunkte, null) || []).forEach(add); });
+  return alle;
+}
+function stundeAnsichtSpeichern_(kursIds, teile, punkte) {
+  var m = A.clone(A.cfg('stundenAnsicht') || {});
+  kursIds.forEach(function (id) {
+    m[id] = teile;
+    var k = A.byId('Kurse', id); if (!k) return;
+    k.checkpunkte = JSON.stringify(punkte); A.put('Kurse', k);
+    /* Eigene Listen einzelner Wochenplan-Stunden würden die Kurs-Einstellung überdecken – deshalb zurücksetzen. */
+    A.list('Stundenplan', function (x) { return x.kursId === id && x.checkpunkte; }).forEach(function (x) { x.checkpunkte = ''; A.put('Stundenplan', x); });
+  });
+  A.setCfg('stundenAnsicht', m);
+}
+ACT['stunde-ansicht'] = function (el) {
+  var kurs = A.byId('Kurse', el.getAttribute('data-kurs')); if (!kurs) return;
+  var kl = A.klasseVonKurs(kurs) || {};
+  var an = stundeAnsicht_(kurs.id), akt = A.checkpunkteFuer(kurs.id, 0, '') || [];
+  var aktNamen = {}; akt.forEach(function (p) { aktNamen[String(p.name).toLowerCase()] = 1; });
+  var punkte = abhakPunkteAuswahl_(akt);
+  var geschw = A.kurseDerKlasse(kurs.klasseId).filter(function (k) { return k.id !== kurs.id; });
+  var body = '<div class="hint-box">Gilt für alle Stunden von <b>' + A.esc(A.kursLabel(kurs)) + '</b>.</div>' +
+    '<div class="field"><label>Abhaken</label><div class="chiplist sa-punkte">' + punkte.map(function (p, i) {
+      return '<button type="button" class="chip' + (aktNamen[String(p.name).toLowerCase()] ? ' on' : '') + '" data-sa-punkt="' + i + '">' + A.esc(p.name) + '</button>'; }).join('') + '</div>' +
+      '<p class="small muted" style="margin:6px 2px 0">Antippen = an/aus. Keiner aktiv = kein Abhaken in dieser Klasse. Eigene Punkte: in der Stunde unter „Punkte anpassen“.</p></div>' +
+    '<div class="field"><label>Bereiche</label><div class="sa-teile">' + STUNDE_TEILE_.map(function (t) {
+      return '<div class="field check sa-teil"><input type="checkbox" id="saT_' + t[0] + '" data-sa-teil="' + t[0] + '"' + (an[t[0]] ? ' checked' : '') + '><label for="saT_' + t[0] + '"><b>' + A.esc(t[1]) + '</b><small>' + A.esc(t[2]) + '</small></label></div>'; }).join('') + '</div></div>' +
+    (geschw.length ? '<div class="field check"><input type="checkbox" id="saAlle"><label for="saAlle">Auch für die anderen Fächer der ' + A.esc(kl.name || 'Klasse') + ' (' + geschw.map(function (k) { return A.esc(k.fach); }).join(', ') + ')</label></div>' : '');
+  Modal.open({
+    title: 'Stunde anpassen',
+    body: body,
+    foot: '<button class="btn primary" id="saSave">Speichern</button>',
+    after: function (bg, close) {
+      bg.querySelector('.sa-punkte').addEventListener('click', function (e) { var b = e.target.closest('[data-sa-punkt]'); if (b) b.classList.toggle('on'); });
+      bg.querySelector('#saSave').addEventListener('click', function () {
+        var teile = {}; bg.querySelectorAll('[data-sa-teil]').forEach(function (c) { teile[c.getAttribute('data-sa-teil')] = !!c.checked; });
+        var gew = []; bg.querySelectorAll('[data-sa-punkt].on').forEach(function (b) { gew.push(punkte[A.num(b.getAttribute('data-sa-punkt'), 0)]); });
+        var ids = [kurs.id]; var alle = bg.querySelector('#saAlle'); if (alle && alle.checked) geschw.forEach(function (k) { ids.push(k.id); });
+        stundeAnsichtSpeichern_(ids, teile, gew);
+        close(); window.toast(ids.length > 1 ? 'Für ' + ids.length + ' Fächer gespeichert' : 'Gespeichert'); render();
+      });
+    }
+  });
+};
+
+ACT['stunde-ansicht-liste'] = function () {
+  var body = A.klassen().map(function (kl) {
+    var kk = A.kurseDerKlasse(kl.id); if (!kk.length) return '';
+    return '<div class="sa-gruppe"><div class="sa-gruppe-k">' + A.esc(kl.name) + '</div>' + kk.map(function (k) {
+      var an = stundeAnsicht_(k.id), pt = (A.checkpunkteFuer(k.id, 0, '') || []).map(function (x) { return x.kurz || x.name; });
+      var aus = STUNDE_TEILE_.filter(function (t) { return !an[t[0]]; }).map(function (t) { return t[1]; });
+      return '<button class="row" data-act="stunde-ansicht" data-kurs="' + k.id + '"><div class="row-main"><div class="row-title">' + A.esc(k.fach) + '</div>' +
+        '<div class="row-sub">Abhaken: ' + (pt.length ? A.esc(pt.join(', ')) : 'nichts') + (aus.length ? ' · aus: ' + A.esc(aus.join(', ')) : '') + '</div></div><div class="chev">›</div></button>';
+    }).join('') + '</div>';
+  }).join('');
+  Modal.open({ title: 'Stunde je Klasse & Fach', body: body || '<div class="card-body small muted">Noch keine Klassen mit Fächern.</div>' });
 };
 
 ACT['stunde-menu'] = function () {
@@ -12962,7 +13057,9 @@ ACT['kats-bearbeiten'] = function (el) {
   var body = '<div class="hint-box">' + (kurs
     ? 'Gilt für <b>' + A.esc(A.kursLabel(kurs)) + '</b>. Die Gesamtnote ist das gewichtete Mittel der Arten.'
     : 'Allgemeine Vorgabe. Fachspezifische Vorgaben stehen unter „Fächer &amp; Gewichtung“.') + '</div>' +
-    '<div id="katList">' + kats.map(katZeileHTML).join('') + '</div>' +
+    '<div id="katList">' + (function () { var pz = katProzente_(kats); return kats.map(function (c, i) { return katZeileHTML({ name: c.name, prozent: pz[i] }); }).join(''); })() + '</div>' +
+    '<div class="kat-summe" id="katSumme"></div>' +
+    '<p class="small muted" style="margin:4px 2px 10px">Innerhalb einer Art zählen alle Leistungen gleich: 2 mündliche Noten je 50 %, 5 je 20 %.</p>' +
     '<div class="btn-row"><button class="btn" id="katAdd">Art hinzufügen</button></div>';
 
   Modal.open({
@@ -12971,12 +13068,21 @@ ACT['kats-bearbeiten'] = function (el) {
     foot: (kurs ? '<button class="btn" id="katReset">Vorgabe</button>' : '') + '<button class="btn primary" id="katSave">Speichern</button>',
     after: function (bg, close) {
       var listEl = bg.querySelector('#katList');
+      function katSumme_() {
+        var sum = 0; listEl.querySelectorAll('.kat-gew').forEach(function (i) { var g = A.num(String(i.value).replace(',', '.'), 0); sum += g === null ? 0 : g; });
+        sum = Math.round(sum * 10) / 10;
+        var el = bg.querySelector('#katSumme'); if (el) { el.textContent = 'Summe: ' + String(sum).replace('.', ',') + ' %' + (sum === 100 ? '' : ' – muss 100 % ergeben'); el.classList.toggle('falsch', sum !== 100); }
+        return sum;
+      }
+      listEl.addEventListener('input', katSumme_);
+      katSumme_();
       listEl.addEventListener('click', function (e) {
         var b = e.target.closest('[data-kat-del]');
-        if (b) b.closest('.kat-zeile').remove();
+        if (b) { b.closest('.kat-zeile').remove(); katSumme_(); }
       });
       bg.querySelector('#katAdd').addEventListener('click', function () {
-        listEl.insertAdjacentHTML('beforeend', katZeileHTML({ name: '', gewicht: 1 }));
+        listEl.insertAdjacentHTML('beforeend', katZeileHTML({ name: '', prozent: '' }));
+        katSumme_();
       });
       var r = bg.querySelector('#katReset');
       if (r) r.addEventListener('click', function () {
@@ -12986,10 +13092,11 @@ ACT['kats-bearbeiten'] = function (el) {
         var out = [];
         listEl.querySelectorAll('.kat-zeile').forEach(function (z) {
           var name = z.querySelector('.kat-name').value.trim();
-          var g = A.num(z.querySelector('.kat-gew').value, 1);
-          if (name) out.push({ name: name, gewicht: g === null ? 1 : g });
+          var g = A.num(String(z.querySelector('.kat-gew').value).replace(',', '.'), 0);
+          if (name) out.push({ name: name, gewicht: g === null ? 0 : g });
         });
         if (!out.length) { window.toast('Mindestens eine Art angeben.', true); return; }
+        if (katSumme_() !== 100) { window.toast('Die Anteile müssen zusammen 100 % ergeben.', true); return; }
         if (kurs) { kurs.kategorien = JSON.stringify(out); A.put('Kurse', kurs); }
         else A.setCfg('kategorien', out);
         close(); render();
@@ -12998,10 +13105,16 @@ ACT['kats-bearbeiten'] = function (el) {
   });
 };
 
+/* V101: Gewichte der Arten als Prozent anzeigen (intern bleibt es ein gewichtetes Mittel). */
+function katProzente_(kats) {
+  var sum = (kats || []).reduce(function (a, c) { var g = A.num(c.gewicht, 1); return a + (g === null || g < 0 ? 0 : g); }, 0);
+  return (kats || []).map(function (c) { var g = A.num(c.gewicht, 1); if (g === null || g < 0) g = 0; return sum ? Math.round(g / sum * 1000) / 10 : 0; });
+}
+function katProzentText_(kats, i) { return A.fmtNote(katProzente_(kats)[i], 0).replace(/,0$/, '') + ' %'; }
 function katZeileHTML(c) {
   return '<div class="kat-zeile" style="display:flex;gap:8px;align-items:center;margin-bottom:8px">' +
     '<input class="kat-name" value="' + A.esc(c.name) + '" placeholder="Art" style="flex:1;min-width:0;min-height:40px;padding:6px 10px;border:1px solid var(--line);border-radius:8px;background:var(--surface)">' +
-    '<input class="kat-gew" value="' + A.esc(c.gewicht) + '" inputmode="decimal" style="width:64px;text-align:center;min-height:40px;padding:6px;border:1px solid var(--line);border-radius:8px;background:var(--surface)">' +
+    '<input class="kat-gew" value="' + A.esc(c.prozent !== undefined ? String(c.prozent).replace('.', ',') : c.gewicht) + '" inputmode="decimal" style="width:64px;text-align:center;min-height:40px;padding:6px;border:1px solid var(--line);border-radius:8px;background:var(--surface)"><span class="kat-proz">%</span>' +
     '<button class="icon-btn" data-kat-del style="color:var(--bad);min-width:36px">✕</button></div>';
 }
 
@@ -13110,7 +13223,7 @@ ACT['faecher'] = function () {
     var vg = vorgaben[f];
     return '<div class="row static"><div class="row-main"><div class="row-title">' + A.esc(f) + '</div>' +
       '<div class="row-sub">' + (vg && vg.kategorien
-        ? vg.kategorien.map(function (c) { return A.esc(c.name) + ' ×' + c.gewicht; }).join(' · ')
+        ? vg.kategorien.map(function (c, i) { return A.esc(c.name) + ' ' + katProzentText_(vg.kategorien, i); }).join(' · ')
         : 'keine eigene Vorgabe') + '</div></div>' +
       (vg ? '<button class="btn small" data-fach-del="' + A.esc(f) + '">Entfernen</button>' : '') +
       '</div>';
@@ -13594,6 +13707,7 @@ ACT['fehlerprotokoll'] = function () {
 };
 
 var AENDERUNGEN_ = [
+  ['V101', ['Gewichtung der Arten jetzt in Prozent (z. B. Schriftlich 60 %, Mündlich 40 %); die Summe wird angezeigt und muss 100 % ergeben.', 'Neu: „Stunde anpassen“ je Klasse und Fach – Abhakpunkte (HA, Material, Sportsachen …) an/aus sowie Mitarbeit, Unterrichtsreihe, Strafarbeiten, Listen und Werkzeuge ein- oder ausblenden. Auf Wunsch für alle Fächer einer Klasse. Zu finden unten in jeder Stunde und unter Mehr → Unterricht.']],
   ['V100', ['„Neue Leistung“ fragt nicht mehr nach dem Anteil: Alle Leistungen einer Art (z. B. alle mündlichen Noten) zählen automatisch gleich. Ausnahmen bleiben über „Bearbeiten“ möglich.']],
   ['V99', ['Noteneingabe: Am Computer stehen die Schüler:innen in zwei Spalten statt in einer langen Liste.', 'Neu „Daneben zeigen“: eine andere Leistung (z. B. die mündliche Note) erscheint direkt beim Namen – zum Dazuschreiben auf die Arbeit.', 'Neu „Entwicklung“: Noten der letzten Arbeiten derselben Art und ob sich das Kind verbessert oder verschlechtert hat – aktualisiert sich beim Eintippen.']],
   ['V98', ['Einsammel-Listen haben jetzt automatisch eine Frist von einer Woche.', 'Neu: Wer bis zur Frist nichts abgegeben hat, bekommt am Tag danach automatisch eine Strafarbeit (abzugeben in einer Woche). Sie erscheint in den Stunden unter „Offene Strafarbeiten“ und unter „Heute“, mit dem Hinweis, die Liste zusätzlich einzusammeln.', 'In der Liste markiert „SA“, wer eine Strafarbeit bekommen hat. Versehentlich vergeben? „Zurücknehmen“.']],
