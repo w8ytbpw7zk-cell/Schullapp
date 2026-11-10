@@ -3412,6 +3412,9 @@ input:focus,select:focus,textarea:focus{background:var(--surface)!important}
 #modalHost .sn-person:active{transform:scale(.96)}
 #modalHost .sn-person.on{background:#c0392f;color:#fff}
 #modalHost #snGruende .chip.on{background:var(--ink);color:var(--surface)}
+/* V105 */
+.straf-anz{color:var(--bad,#c0392f);font-weight:700}
+#modalHost #snAnzahl .chip.on{background:var(--ink);color:var(--surface)}
 </style>
 </head>
 <body>
@@ -3553,7 +3556,7 @@ var TABLES = ['Klassen', 'Kurse', 'SuS', 'Stundenplan', 'Stunden', 'Mitarbeit',
               'Leistungen', 'Noten', 'Checks', 'Settings'];
 
 /* Eine einzige Stelle für die Versionsangabe (Anzeige unter „Mehr“). */
-var APP_VERSION = 'V104';
+var APP_VERSION = 'V105';
 
 /* V15: Diese Adresse ist die verbindliche Login-Adresse. */
 /* V58: Keine feste Server-Adresse mehr in der App. Sie wird über den Einladungslink/-code oder Mehr → Server gesetzt. */
@@ -6383,6 +6386,7 @@ function strafAufgaben(kursId, susId) {
       erledigt: !!erledigt[id],
       erledigtAm: erledigt[id] && erledigt[id].datum ? erledigt[id].datum : '',
       frist: (fristen[id] || {}).frist || '',
+      anzahl: Math.max(1, num((fristen[id] || {}).anzahl, 1) || 1),
       nachsitzen: (fristen[id] || {}).nachsitzen || null
     });
   }
@@ -6394,6 +6398,11 @@ function strafFristen() { var x = cfg('strafFristen'); return x && typeof x === 
 function strafFristSetzen(id, frist) {
   var alle = strafFristen(), r = alle[id] || {};
   r.frist = String(frist || ''); if (!r.vergeben) r.vergeben = todayISO();
+  alle[id] = r; setCfg('strafFristen', alle);
+}
+function strafAnzahlSetzen(id, n) {
+  var alle = strafFristen(), r = alle[id] || {};
+  r.anzahl = Math.max(1, Math.round(num(n, 1) || 1)); if (!r.vergeben) r.vergeben = todayISO();
   alle[id] = r; setCfg('strafFristen', alle);
 }
 function strafNachsitzenSetzen(id, datum, zeit) {
@@ -6423,7 +6432,7 @@ function listenStrafAufgaben(kursId, susId) {
     var f = fr[id] || {};
     out.push({ id: id, quelle: 'liste', aufgabeId: r.aufgabeId, listeTitel: r.titel || 'Liste', listeFrist: r.listeFrist || '',
       vergeben: r.vergeben || '', nr: 0, schwelle: 0, erledigt: !!erl[id], erledigtAm: erl[id] && erl[id].datum ? erl[id].datum : '',
-      frist: f.frist || r.frist || '', nachsitzen: f.nachsitzen || null });
+      frist: f.frist || r.frist || '', anzahl: Math.max(1, num(f.anzahl, 1) || 1), nachsitzen: f.nachsitzen || null });
   });
   /* V104: direkt eingetragene Strafarbeiten (cfg 'manuelleStrafen') */
   var mm = cfg('manuelleStrafen') || {};
@@ -6433,7 +6442,7 @@ function listenStrafAufgaben(kursId, susId) {
     var id = kursId + '|' + susId + '|M-' + key;
     var f = fr[id] || {};
     out.push({ id: id, quelle: 'manuell', grund: r.grund || '', vergeben: r.vergeben || '', nr: 0, schwelle: 0,
-      erledigt: !!erl[id], erledigtAm: erl[id] && erl[id].datum ? erl[id].datum : '', frist: f.frist || r.frist || '', nachsitzen: f.nachsitzen || null });
+      erledigt: !!erl[id], erledigtAm: erl[id] && erl[id].datum ? erl[id].datum : '', frist: f.frist || r.frist || '', anzahl: Math.max(1, num(f.anzahl !== undefined ? f.anzahl : r.anzahl, 1) || 1), nachsitzen: f.nachsitzen || null });
   });
   return out;
 }
@@ -6622,7 +6631,7 @@ global.A = {
   checkBilanzStunde: checkBilanzStunde, checkBilanzSus: checkBilanzSus,
   vergessen: vergessen, vergessenGesamt: vergessenGesamt, strafGrenze: strafGrenze,
   strafStand: strafStand, strafFaellig: strafFaellig, strafGemeldet: strafGemeldet,
-  strafAufgaben: strafAufgaben, listenStrafAufgaben: listenStrafAufgaben, strafAufgabeErledigen: strafAufgabeErledigen, offeneStrafarbeiten: offeneStrafarbeiten, strafFristSetzen: strafFristSetzen, strafNachsitzenSetzen: strafNachsitzenSetzen,
+  strafAufgaben: strafAufgaben, listenStrafAufgaben: listenStrafAufgaben, strafAufgabeErledigen: strafAufgabeErledigen, offeneStrafarbeiten: offeneStrafarbeiten, strafFristSetzen: strafFristSetzen, strafAnzahlSetzen: strafAnzahlSetzen, strafNachsitzenSetzen: strafNachsitzenSetzen,
   sitzplanFuerKlasse: sitzplanFuerKlasse, setSitzplan: setSitzplan,
   exportJSON: exportJSON, importJSON: importJSON, neuesPasswort: neuesPasswort
 };
@@ -8608,7 +8617,7 @@ function inboxDaten_(datum){
     elternInbox_().forEach(function(h){var sus=A.byId('SuS',h.susId),k=A.byId('Kurse',h.kursId);if(k&&!inboxKursAmDatum_(k.id,datum))return;items.push({key:'eltern|'+elternVorgangKey_(h),typ:h.typ,h:h,sus:sus,kurs:k,titel:h.typ==='positiv'?'Positive Rückmeldung möglich':(sus?A.susName(sus):''),sub:h.typ==='positiv'?((h.signal==='mitarbeit_verbessert'?'Mitarbeit deutlich verbessert':'Mitarbeit zuletzt besonders stark')+(k&&k.fach?' · '+k.fach:'')):(h.punkt+' · '+h.anzahl+'×'+(k&&k.fach?' · '+k.fach:''))});});
   }
   aufgabenAlle().filter(function(a){if(!a||a.erledigt||a.typ==='todo')return false;if(a.typ==='liste')return aufgabeErinnerungAmDatum_(a,datum);return !!a.frist&&a.frist<=datum&&inboxKursAmDatum_(a.kursId,datum);}).slice(0,12).forEach(function(a){var k=a.typ==='liste'?aufgabeErinnerKursAmDatum_(a,datum):A.byId('Kurse',a.kursId),st=a.typ==='liste'?listenStand(a,k):null,off=st?Math.max(0,st.gesamt-st.erledigt):undefined,fristText='offen';if(a.frist){fristText=a.frist<datum?'seit '+A.fmtDateShort(a.frist)+' fällig':(a.frist===datum?'heute fällig':'bis '+A.fmtDateShort(a.frist));}items.push({key:'liste|'+a.id+'|'+(a.frist||''),typ:'liste',a:a,kurs:k,offen:off,titel:a.titel,sub:fristText+(k?' · '+A.kursLabel(k):'')});});
-  var strafGesehen_={};A.alleKurse().forEach(function(k){var heuteKurs=inboxKursAmDatum_(k.id,datum);A.offeneStrafarbeiten(k.id).filter(function(x){var f=x.aufgabe.frist;if(strafGesehen_[x.aufgabe.id])return false;var ok=heuteKurs||(f&&f<=datum);if(ok)strafGesehen_[x.aufgabe.id]=1;return ok;}).slice(0,6).forEach(function(x){var f=x.aufgabe.frist,ns=x.aufgabe.nachsitzen,faellig=!!(f&&f<=datum);var sub=ns?('Nachsitzen am '+A.fmtDateShort(ns.datum)+(ns.zeit?' · '+ns.zeit:'')):(faellig?(f===datum?'Strafarbeit heute fällig – abgegeben?':'Strafarbeit seit '+A.fmtDateShort(f)+' fällig – abgegeben?'):('offene Strafarbeit'+(f?' · abgeben bis '+A.fmtDateShort(f):'')));if(x.aufgabe.quelle==='manuell')sub=(faellig||ns?sub:'Strafarbeit'+(f?' · abgeben bis '+A.fmtDateShort(f):''))+(x.aufgabe.grund?' · '+x.aufgabe.grund:'');else if(x.aufgabe.quelle==='liste')sub=(faellig||ns?sub:'Strafarbeit'+(f?' · abgeben bis '+A.fmtDateShort(f):''))+' · „'+x.aufgabe.listeTitel+'“ fehlt noch';items.push({key:'straf|'+(x.aufgabe&&x.aufgabe.id||k.id+'|'+x.sus.id),typ:'straf',sus:x.sus,kurs:k,x:x,faellig:faellig,titel:A.susName(x.sus),sub:sub+' · '+(k.fach||'')});});});
+  var strafGesehen_={};A.alleKurse().forEach(function(k){var heuteKurs=inboxKursAmDatum_(k.id,datum);A.offeneStrafarbeiten(k.id).filter(function(x){var f=x.aufgabe.frist;if(strafGesehen_[x.aufgabe.id])return false;var ok=heuteKurs||(f&&f<=datum);if(ok)strafGesehen_[x.aufgabe.id]=1;return ok;}).slice(0,6).forEach(function(x){var f=x.aufgabe.frist,ns=x.aufgabe.nachsitzen,faellig=!!(f&&f<=datum);var sub=ns?('Nachsitzen am '+A.fmtDateShort(ns.datum)+(ns.zeit?' · '+ns.zeit:'')):(faellig?(f===datum?'Strafarbeit heute fällig – abgegeben?':'Strafarbeit seit '+A.fmtDateShort(f)+' fällig – abgegeben?'):('offene Strafarbeit'+(f?' · abgeben bis '+A.fmtDateShort(f):'')));if(x.aufgabe.quelle==='manuell')sub=(faellig||ns?sub:'Strafarbeit'+(f?' · abgeben bis '+A.fmtDateShort(f):''))+(x.aufgabe.grund?' · '+x.aufgabe.grund:'');else if(x.aufgabe.quelle==='liste')sub=(faellig||ns?sub:'Strafarbeit'+(f?' · abgeben bis '+A.fmtDateShort(f):''))+' · „'+x.aufgabe.listeTitel+'“ fehlt noch';if(x.aufgabe.anzahl>1)sub=x.aufgabe.anzahl+'× · '+sub;items.push({key:'straf|'+(x.aufgabe&&x.aufgabe.id||k.id+'|'+x.sus.id),typ:'straf',sus:x.sus,kurs:k,x:x,faellig:faellig,titel:A.susName(x.sus),sub:sub+' · '+(k.fach||'')});});});
   return items;
 }
 /* V77: je mehr Kacheln, desto kleiner */
@@ -9657,12 +9666,12 @@ VIEWS.stunde = {
         var grund = x.stand.teile.map(function (p) { return p.anzahl + '× ' + A.esc(p.name); }).join(' · ');
         return '<div class="straf-offen-row">' +
           '<div class="straf-offen-main"><div class="straf-offen-name">' + A.esc(A.susName(x.sus)) + '</div>' +
-          '<div class="straf-offen-sub">' + (x.aufgabe.quelle === 'manuell' ? 'Strafarbeit' + (x.aufgabe.grund ? ': ' + A.esc(x.aufgabe.grund) : '') + ' · eingetragen ' + A.fmtDateShort(x.aufgabe.vergeben) : x.aufgabe.quelle === 'liste'
+          '<div class="straf-offen-sub">' + (x.aufgabe.anzahl > 1 ? '<b class="straf-anz">' + x.aufgabe.anzahl + '× Strafarbeit</b> · ' : '') + (x.aufgabe.quelle === 'manuell' ? (x.aufgabe.grund ? (x.aufgabe.anzahl > 1 ? '' : 'Strafarbeit: ') + A.esc(x.aufgabe.grund) + ' · ' : (x.aufgabe.anzahl > 1 ? '' : 'Strafarbeit · ')) + 'eingetragen ' + A.fmtDateShort(x.aufgabe.vergeben) : x.aufgabe.quelle === 'liste'
             ? 'Liste „' + A.esc(x.aufgabe.listeTitel) + '“ nicht abgegeben' + (x.aufgabe.listeFrist ? ' (Frist ' + A.fmtDateShort(x.aufgabe.listeFrist) + ')' : '') + ' · Liste zusätzlich einsammeln'
             : 'seit dem ' + x.aufgabe.schwelle + '. Vergessen fällig' + (grund ? ' · ' + grund : '')) +
           (x.aufgabe.frist ? ' · abgeben bis ' + A.fmtDateShort(x.aufgabe.frist) : '') +
           (x.aufgabe.nachsitzen ? ' · Nachsitzen ' + A.fmtDateShort(x.aufgabe.nachsitzen.datum) : '') + '</div></div>' +
-          '<button class="btn small" data-act="straf-frist" data-straf-id="' + A.esc(x.aufgabe.id) + '">Frist</button>' +
+          '<button class="btn small" data-act="straf-frist" data-straf-id="' + A.esc(x.aufgabe.id) + '">Frist · Umfang</button>' +
           '<button class="btn small" data-act="straf-erledigt" data-straf-id="' + A.esc(x.aufgabe.id) + '">Abgegeben ✓</button>' +
           (x.aufgabe.quelle === 'liste' || x.aufgabe.quelle === 'manuell' ? '<button class="btn small straf-zurueck" data-act="lstraf-zurueck" data-straf-id="' + A.esc(x.aufgabe.id) + '">Zurücknehmen</button>' : '') +
           '</div>';
@@ -11598,6 +11607,8 @@ function chkPunktZeileHTML(pt) {
 /* --- Strafarbeit ------------------------------------------------------- */
 
 /* V104: Strafarbeit direkt eintragen – unabhängig vom Vergessen-Zähler. */
+var STRAF_ANZAHL_OPT_ = [{ value: '1', label: '1× (einfach)' }, { value: '2', label: '2× (doppelt)' }, { value: '3', label: '3× (dreifach)' }, { value: '4', label: '4×' }, { value: '5', label: '5×' }, { value: '6', label: '6×' }];
+function strafAnzahlText_(n) { n = Number(n) || 1; return n > 1 ? n + '× ' : ''; }
 var STRAF_GRUENDE_ = ['Störung', 'Hausaufgaben', 'Material', 'Arbeitsverweigerung', 'Respektlos', 'Handy'];
 function strafeNeuOeffnen_(kursId, susId) {
   var kurse = A.alleKurse(); if (!kurse.length) { window.toast('Noch kein Fach angelegt.', true); return; }
@@ -11609,6 +11620,7 @@ function strafeNeuOeffnen_(kursId, susId) {
     '<div class="field"><label>Wer? <span class="small muted" id="snAnz"></span></label><div class="sn-sus" id="snSus"></div></div>' +
     '<div class="field"><label>Grund</label><div class="chiplist" id="snGruende">' + STRAF_GRUENDE_.map(function (g) { return '<button type="button" class="chip" data-sn-grund="' + A.esc(g) + '">' + A.esc(g) + '</button>'; }).join('') + '</div>' +
     '<input id="snGrund" placeholder="oder eigener Grund / Aufgabe, z. B. Text abschreiben S. 34" style="margin-top:8px"></div>' +
+    '<div class="field"><label>Umfang</label><div class="chiplist" id="snAnzahl">' + [1, 2, 3, 4, 5].map(function (n) { return '<button type="button" class="chip' + (n === 1 ? ' on' : '') + '" data-sn-anzahl="' + n + '">' + (n === 1 ? 'einfach' : n === 2 ? 'doppelt' : n === 3 ? 'dreifach' : n + '×') + '</button>'; }).join('') + '</div></div>' +
     '<div class="field"><label>Abgeben bis</label><input type="date" id="snFrist" value="' + A.addDays(A.todayISO(), 7) + '"></div>';
   Modal.open({
     title: 'Strafarbeit eintragen', body: body,
@@ -11624,6 +11636,7 @@ function strafeNeuOeffnen_(kursId, susId) {
       selK.addEventListener('change', zeichnen);
       box.addEventListener('click', function (e) { var b = e.target.closest('[data-sn-sus]'); if (!b) return; var id = b.getAttribute('data-sn-sus'); if (gewaehlt[id]) delete gewaehlt[id]; else gewaehlt[id] = 1; zeichnen(); });
       bg.querySelector('#snGruende').addEventListener('click', function (e) { var b = e.target.closest('[data-sn-grund]'); if (!b) return; var on = !b.classList.contains('on'); bg.querySelectorAll('[data-sn-grund]').forEach(function (x) { x.classList.remove('on'); }); if (on) b.classList.add('on'); });
+      bg.querySelector('#snAnzahl').addEventListener('click', function (e) { var b = e.target.closest('[data-sn-anzahl]'); if (!b) return; bg.querySelectorAll('[data-sn-anzahl]').forEach(function (x) { x.classList.remove('on'); }); b.classList.add('on'); });
       zeichnen();
       bg.querySelector('#snSave').addEventListener('click', function () {
         var kid = selK.value, sus = A.susDesKurses(kid).filter(function (s) { return gewaehlt[s.id]; });
@@ -11631,8 +11644,9 @@ function strafeNeuOeffnen_(kursId, susId) {
         var chip = bg.querySelector('[data-sn-grund].on'), frei = bg.querySelector('#snGrund').value.trim();
         var grund = [chip ? chip.getAttribute('data-sn-grund') : '', frei].filter(Boolean).join(' – ');
         var frist = bg.querySelector('#snFrist').value || A.addDays(A.todayISO(), 7);
+        var anzB = bg.querySelector('[data-sn-anzahl].on'), anz = anzB ? Number(anzB.getAttribute('data-sn-anzahl')) : 1;
         var mm = A.clone(A.cfg('manuelleStrafen') || {});
-        sus.forEach(function (s) { var key = 'm' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6); mm[key] = { kursId: kid, susId: s.id, grund: grund, vergeben: A.todayISO(), frist: frist }; });
+        sus.forEach(function (s) { var key = 'm' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6); mm[key] = { kursId: kid, susId: s.id, grund: grund, vergeben: A.todayISO(), frist: frist, anzahl: anz }; });
         A.setCfg('manuelleStrafen', mm);
         close(); render(); window.toast(sus.length === 1 ? 'Strafarbeit eingetragen' : sus.length + ' Strafarbeiten eingetragen');
       });
@@ -11658,9 +11672,12 @@ ACT['straf-erledigt'] = function (el) {
 function strafAusId_(id) { var t = String(id || '').split('|'); return { kurs: A.byId('Kurse', t[0]), sus: A.byId('SuS', t[1]) }; }
 ACT['straf-frist'] = function (el) {
   var id = el.getAttribute('data-straf-id'), x = strafAusId_(id); if (!x.sus) return;
-  var akt = (A.strafAufgaben(x.kurs.id, x.sus.id).concat(A.listenStrafAufgaben(x.kurs.id, x.sus.id)).filter(function (a) { return a.id === id; })[0] || {}).frist || A.addDays(A.todayISO(), 7);
-  Modal.form({ title: 'Strafarbeit · ' + A.susName(x.sus), fields: [{ key: 'frist', label: 'Abgeben bis', type: 'date', value: akt, hint: 'An diesem Tag fragt die App unter „Heute“, ob abgegeben wurde.' }],
-    onSave: function (v) { A.strafFristSetzen(id, v.frist); window.toast('Frist gespeichert'); }, focus: false });
+  var aa = A.strafAufgaben(x.kurs.id, x.sus.id).concat(A.listenStrafAufgaben(x.kurs.id, x.sus.id)).filter(function (a) { return a.id === id; })[0] || {};
+  var akt = aa.frist || A.addDays(A.todayISO(), 7);
+  Modal.form({ title: 'Strafarbeit · ' + A.susName(x.sus), fields: [
+      { key: 'anzahl', label: 'Umfang', type: 'select', value: String(aa.anzahl || 1), options: STRAF_ANZAHL_OPT_ },
+      { key: 'frist', label: 'Abgeben bis', type: 'date', value: akt, hint: 'An diesem Tag fragt die App unter „Heute“, ob abgegeben wurde.' }],
+    onSave: function (v) { A.strafFristSetzen(id, v.frist); A.strafAnzahlSetzen(id, v.anzahl); window.toast('Gespeichert'); }, focus: false });
 };
 ACT['straf-nachsitzen'] = function (el) {
   var id = el.getAttribute('data-straf-id'), x = strafAusId_(id); if (!x.sus) return;
@@ -13896,6 +13913,7 @@ ACT['fehlerprotokoll'] = function () {
 };
 
 var AENDERUNGEN_ = [
+  ['V105', ['Strafarbeiten mit Umfang: einfach, doppelt, dreifach … – beim Eintragen wählbar und bei jeder offenen Strafarbeit über „Frist · Umfang“ änderbar (auch für automatisch vergebene).']],
   ['V104', ['Strafarbeit direkt eintragen – jederzeit, unabhängig vom Vergessen-Zähler: in jeder Stunde „＋ Strafarbeit eintragen“, über ＋ → Strafarbeit und im Profil der Schüler:in. Mehrere Kinder auf einmal, mit Grund und Abgabedatum (voreingestellt 1 Woche).']],
   ['V103', ['Fächer ohne Noten: Unter „Stunde anpassen“ lässt sich „Noten“ ausschalten (z. B. für die Klassenlehrerstunde). Das Fach taucht dann nicht unter Noten, Notenkonferenz und „Neue Leistung“ auf. Klassenlehrerstunde/Klassenrat erkennt die App am Namen und schaltet Noten dort von selbst aus.', 'Eigene Abhakpunkte (z. B. Entschuldigungen, Unterschrift) direkt in „Stunde anpassen“ anlegen, wahlweise mit Stufe „entschuldigt“.']],
   ['V102', ['Gewichtung mit Unterarten: z. B. Schriftlich 50 % mit Arbeit 90 % und Test 10 %, Mündlich 50 % mit Mitarbeit und Referat. Unterarten ergeben zusammen 100 % ihrer Art. Fehlt in einer Unterart noch jede Note, zählt die andere für die ganze Art.']],
