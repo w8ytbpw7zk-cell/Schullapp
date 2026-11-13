@@ -3488,6 +3488,20 @@ input:focus,select:focus,textarea:focus{background:var(--surface)!important}
 #modalHost .tn-zeile{display:grid;grid-template-columns:minmax(90px,1fr) 2fr;align-items:center;gap:10px;margin-bottom:8px}
 #modalHost .tn-zeile label{margin:0}
 .vkl-badge{display:inline-block;margin-left:6px;padding:0 6px;border-radius:20px;font-size:10.5px;font-weight:700;background:color-mix(in srgb,var(--accent) 12%,var(--surface));color:var(--ink-2);vertical-align:1px}
+/* V111 Startseite anpassen */
+.heute-anpassen{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;margin:18px 0 6px;padding:10px;border:0;border-radius:12px;background:none;color:var(--ink-3);font:inherit;font-size:13px;cursor:pointer}
+.heute-anpassen:hover{background:var(--flaeche);color:var(--ink-2)}
+#modalHost .ha-zeile{display:flex;align-items:center;gap:8px;padding:8px 10px 8px 4px;margin-bottom:6px;border-radius:12px;background:var(--flaeche);user-select:none;-webkit-user-select:none}
+#modalHost .ha-zeile.aus .ha-text{opacity:.45}
+#modalHost .ha-zeile.zieht{background:var(--flaeche-hover,#efefec);box-shadow:0 6px 18px rgba(0,0,0,.14);transform:scale(1.02);position:relative;z-index:2}
+#modalHost .ha-griff{flex:none;display:flex;align-items:center;justify-content:center;width:36px;height:44px;color:var(--ink-3);cursor:grab;touch-action:none}
+#modalHost .ha-text{flex:1;min-width:0;display:flex;flex-direction:column;line-height:1.25}
+#modalHost .ha-text b{font-size:14.5px;font-weight:600}
+#modalHost .ha-text small{font-size:12px;color:var(--ink-2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#modalHost .ha-btn{flex:none;width:34px;height:34px;border:0;border-radius:9px;background:color-mix(in srgb,var(--ink) 7%,var(--flaeche));color:var(--ink);font-size:15px;cursor:pointer}
+#modalHost .ha-sicht{flex:none;display:flex;align-items:center;gap:5px;margin:0 0 0 2px;font-size:12px;color:var(--ink-2)}
+#modalHost .ha-sicht input{width:18px;height:18px;min-height:0;margin:0}
+@media(max-width:420px){#modalHost .ha-sicht span{display:none}}
 </style>
 </head>
 <body>
@@ -3630,7 +3644,7 @@ var TABLES = ['Klassen', 'Kurse', 'SuS', 'Stundenplan', 'Stunden', 'Mitarbeit',
               'Leistungen', 'Noten', 'Checks', 'Settings'];
 
 /* Eine einzige Stelle für die Versionsangabe (Anzeige unter „Mehr“). */
-var APP_VERSION = 'V110';
+var APP_VERSION = 'V111';
 
 /* V15: Diese Adresse ist die verbindliche Login-Adresse. */
 /* V58: Keine feste Server-Adresse mehr in der App. Sie wird über den Einladungslink/-code oder Mehr → Server gesetzt. */
@@ -4825,7 +4839,7 @@ var SPLIT_KEYS = {
   unterrichtsreihen: 'map', susLastSeen: 'map', craftLinks: 'map', elternVorlagen: 'map',
   listenSmartVorlagen: 'map', elternListenVorlagen: 'map', papierkorb: 'map', klassenGetrennt: 'map',
   leistungAufgaben: 'map', aufgabenPunkte: 'map', listenStrafen: 'map', stundenAnsicht: 'map', manuelleStrafen: 'map', teilnahme: 'map'
-};
+};  /* heuteLayout bleibt ein kleiner Einzelwert */
 
 var SX_VERSION = 0;
 var SX = { ver: -1, byId: {}, parts: {}, json: {} };
@@ -8759,7 +8773,7 @@ function inboxDaten_(datum){
 }
 /* V77: je mehr Kacheln, desto kleiner */
 function kachelDichte_(n){return n<=3?'d1':(n<=8?'d2':'d3');}
-function inboxHTML(datum){
+function inboxHTML(datum,teile,mitKopf){
   var items=inboxDaten_(datum),sync=craftSyncMap_();
   /* V51: Elternhinweise pro Kind gruppieren; die ersten 5 Kinder offen, der Rest eingeklappt */
   function elternGruppiert(liste){
@@ -8812,7 +8826,11 @@ function inboxHTML(datum){
   var taskKopf='<div class="today-section-head"><div class="today-section-title"><h3>Aufgaben & Rückläufe</h3><span class="today-count">'+aufgaben.length+'</span></div></div>';
   var taskSection=zuWrap_('heute.aufgaben',true,taskKopf,aufgaben.length?'<div class="task-list kacheln '+kachelDichte_(aufgaben.length)+'">'+aufgaben.map(taskRow).join('')+'</div>':'<div class="inbox-empty">Für heute sind keine Rückläufe oder offenen Aufgaben fällig.</div>','today-section');
   var cleanN=inboxAufraeumItems_().length;
-  return '<section class="workspace-section today-inbox"><div class="today-inbox-head"><div><h2>Für heute</h2><p>'+(items.length?items.length+' offene'+(items.length===1?'r Punkt':' Punkte'):'Alles erledigt')+'</p></div><div class="today-inbox-actions">'+(cleanN?'<button class="btn small" data-act="inbox-cleanup">Inbox aufräumen · '+cleanN+'</button>':'')+'<button class="btn small" data-act="craft-quick-note">Beobachtung festhalten</button></div></div>'+elternSection+taskSection+'</section>';
+  var kopfH_='<div class="today-inbox-head"><div><h2>Für heute</h2><p>'+(items.length?items.length+' offene'+(items.length===1?'r Punkt':' Punkte'):'Alles erledigt')+'</p></div><div class="today-inbox-actions">'+(cleanN?'<button class="btn small" data-act="inbox-cleanup">Inbox aufräumen · '+cleanN+'</button>':'')+'<button class="btn small" data-act="craft-quick-note">Beobachtung festhalten</button></div></div>';
+  var teilH_={eltern:elternSection,aufgaben:taskSection};
+  return '<section class="workspace-section today-inbox">'+(mitKopf===false?'':kopfH_)+(teile||['eltern','aufgaben']).map(function(t){return teilH_[t]||'';}).join('')+'</section>';
+
+  /* V111: Reihenfolge/Auswahl der Teile frei wählbar (Startseite anpassen). */
 }
 function craftHeuteHTML(datum){
   if(!craftAn_())return '';
@@ -9596,23 +9614,44 @@ function tagesAnsichtHTML(datum) {
   var frei = A.freierTag(datum);
   if (frei) h += '<div class="frei-banner ' + frei.art + '"><b>' + A.esc(frei.name) + '</b><span>' + (frei.art === 'feiertag' ? 'Feiertag' : (frei.art === 'ferien' ? 'Ferien' : 'Freier Tag')) + ' – kein Unterricht laut Kalender</span></div>';
   var bloecke = A.bloeckeFuerDatum(datum);
-  if (!bloecke.length) {
-    if (!frei) h += card('', empty(tag > 5 ? '🌤️' : '☕', tag > 5
-      ? 'Wochenende – kein Unterricht eingetragen.'
-      : 'Für diesen Tag steht nichts im Stundenplan.<br><span class="small">Unter <b>Plan</b> lässt sich der Stundenplan anlegen.</span>'));
-  } else {
-    h += '<section class="kachel-sektion"><div class="kachel-sektion-titel">Stunden · ' + bloecke.length + '</div><div class="lesson-grid">' +
-      bloecke.map(function (b) { return lessonKachelHTML_(b, datum); }).join('') + '</div></section>';
-  }
   setTimeout(function () { try { if (!VORSCHAU_AKTIV && A.Sync && A.Sync.lastPull) A.papierkorbEndgueltig(); } catch (e) {} }, 1500);
-  var pruef = craftPruefungsHinweiseHTML_(datum);
-  if (pruef) h += '<section class="kachel-sektion"><div class="kachel-sektion-titel">Bald: Lernnachweise</div>' + pruef + '</section>';
   setTimeout(function () { craftPlanAuffrischen_(datum, false, bloecke.map(function (b) { var k = A.byId('Kurse', b.kursId); return k ? vorigeStundeDatum_(k, datum) : ''; })); if (VORSCHAU_AKTIV) craftLeistungenAbgleichen_(); }, 0);
-  h += cockpitHTML(datum);
-  h += craftHeuteHTML(datum);
+  /* V111: Blöcke der Startseite in der eingestellten Reihenfolge; ausgeblendete fehlen. */
+  var lay = heuteLayout_(), kopfDa = false;
+  for (var li = 0; li < lay.length; li++) {
+    var id = lay[li];
+    if (id === 'stunden') {
+      if (!bloecke.length) {
+        if (!frei) h += card('', empty(tag > 5 ? '🌤️' : '☕', tag > 5
+          ? 'Wochenende – kein Unterricht eingetragen.'
+          : 'Für diesen Tag steht nichts im Stundenplan.<br><span class="small">Unter <b>Plan</b> lässt sich der Stundenplan anlegen.</span>'));
+      } else {
+        h += '<section class="kachel-sektion"><div class="kachel-sektion-titel">Stunden · ' + bloecke.length + '</div><div class="lesson-grid">' +
+          bloecke.map(function (b) { return lessonKachelHTML_(b, datum); }).join('') + '</div></section>';
+      }
+    } else if (id === 'lern') {
+      var pruef = craftPruefungsHinweiseHTML_(datum);
+      if (pruef) h += '<section class="kachel-sektion"><div class="kachel-sektion-titel">Bald: Lernnachweise</div>' + pruef + '</section>';
+    } else if (id === 'eltern' || id === 'aufgaben') {
+      var gruppe = [id];
+      while (li + 1 < lay.length && (lay[li + 1] === 'eltern' || lay[li + 1] === 'aufgaben')) gruppe.push(lay[++li]);
+      h += inboxHTML(datum, gruppe, !kopfDa); kopfDa = true;
+    } else if (id === 'craft') h += craftHeuteHTML(datum);
+  }
   h += sicherungsHinweisHTML_();
+  h += '<button class="heute-anpassen" data-act="heute-anpassen">' + ICON_('regler') + '<span>Startseite anpassen</span></button>';
   return h;
 }
+var HEUTE_BLOECKE_ = [['stunden', 'Stunden', 'Stunden des Tages als Kacheln'], ['lern', 'Bald: Lernnachweise', 'anstehende Arbeiten aus dem Stoffverteilungsplan'],
+  ['eltern', 'Elternkommunikation', 'Hinweise und Lob-Vorschläge'], ['aufgaben', 'Aufgaben & Rückläufe', 'Listen, Strafarbeiten, Wiedervorlagen'], ['craft', 'Craft', 'Übertragung in die Tagesnotiz']];
+function heuteLayoutRoh_() {
+  var c = A.cfg('heuteLayout') || {}, ord = Array.isArray(c.order) ? c.order.slice() : [], aus = c.aus || {};
+  var gueltig = HEUTE_BLOECKE_.map(function (b) { return b[0]; });
+  ord = ord.filter(function (x, i) { return gueltig.indexOf(x) >= 0 && ord.indexOf(x) === i; });
+  gueltig.forEach(function (g) { if (ord.indexOf(g) < 0) ord.push(g); });
+  return { order: ord, aus: aus };
+}
+function heuteLayout_() { var l = heuteLayoutRoh_(); return l.order.filter(function (x) { return !l.aus[x]; }); }
 
 /* V51: Hinweise zur Datensicherheit: Home-Bildschirm (iOS) und Dateisicherung */
 function sicherungsHinweisHTML_() {
@@ -11212,6 +11251,7 @@ VIEWS.mehr = {
       '<button class="row" data-act="sus-sortierung"><div class="row-main"><div class="row-title">Sortierung der Schüler:innen</div>' +
         '<div class="row-sub">' + ({ nachname: 'Nachname (A–Z)', vorname: 'Vorname (A–Z)', eingabe: 'Reihenfolge der Eingabe' }[A.cfg('susSortierung') || 'nachname'] || '') +
         '</div></div><div class="chev">›</div></button>' +
+      '<button class="row" data-act="heute-anpassen"><div class="row-main"><div class="row-title">Startseite anpassen</div><div class="row-sub">Blöcke unter „Heute“ verschieben oder ausblenden</div></div><div class="chev">›</div></button>' +
       '<button class="row" data-act="startseite"><div class="row-main"><div class="row-title">Startseite</div><div class="row-sub">' + ({heute:'Heute',plan:'Stundenplan',klassen:'Klassen',noten:'Noten'}[A.cfg('startseite')||'heute']) + '</div></div><div class="chev">›</div></button>' +
       '<button class="row" data-act="auto-lock"><div class="row-main"><div class="row-title">Automatisch sperren</div><div class="row-sub">' + (A.cfg('autoLockMin') ? 'nach ' + A.cfg('autoLockMin') + ' Minute(n) im Hintergrund' : 'aus') + '</div></div><div class="chev">›</div></button>' +
       '<button class="row" data-act="daily-login"><div class="row-main"><div class="row-title">Anmeldung</div><div class="row-sub">' + (taeglicheAnmeldungAktiv_() ? 'einmal pro Tag bestätigen' : 'gespeicherte Sitzung direkt öffnen') + '</div></div><div class="chev">›</div></button>' +
@@ -12036,6 +12076,44 @@ ACT['gewichte-gleich'] = function (el) {
   window.toast(n + ' Leistung(en) angepasst – alle zählen jetzt gleich.'); render();
 };
 
+ACT['heute-anpassen'] = function () {
+  var l = heuteLayoutRoh_(), name = {}; HEUTE_BLOECKE_.forEach(function (b) { name[b[0]] = b; });
+  var zeile = function (id) { return '<div class="ha-zeile' + (l.aus[id] ? ' aus' : '') + '" data-ha="' + id + '"><span class="ha-griff" aria-hidden="true">' + '<svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><circle cx="9" cy="6" r="1.6"/><circle cx="15" cy="6" r="1.6"/><circle cx="9" cy="12" r="1.6"/><circle cx="15" cy="12" r="1.6"/><circle cx="9" cy="18" r="1.6"/><circle cx="15" cy="18" r="1.6"/></svg></span>' +
+    '<div class="ha-text"><b>' + A.esc(name[id][1]) + '</b><small>' + A.esc(name[id][2]) + '</small></div>' +
+    '<button type="button" class="ha-btn" data-ha-hoch aria-label="nach oben">↑</button><button type="button" class="ha-btn" data-ha-runter aria-label="nach unten">↓</button>' +
+    '<label class="ha-sicht"><input type="checkbox" data-ha-an' + (l.aus[id] ? '' : ' checked') + '><span>zeigen</span></label></div>'; };
+  Modal.open({
+    title: 'Startseite anpassen',
+    body: '<p class="small muted" style="margin:0 2px 10px">Am Griff ziehen oder mit den Pfeilen verschieben. Ohne Häkchen wird der Block ausgeblendet.</p><div id="haListe">' + l.order.map(zeile).join('') + '</div>',
+    foot: '<button class="btn" id="haReset">Standard</button><button class="btn primary" id="haSave">Speichern</button>',
+    after: function (bg, close) {
+      var liste = bg.querySelector('#haListe');
+      liste.addEventListener('click', function (e) {
+        var z = e.target.closest('.ha-zeile'); if (!z) return;
+        if (e.target.closest('[data-ha-hoch]') && z.previousElementSibling) liste.insertBefore(z, z.previousElementSibling);
+        else if (e.target.closest('[data-ha-runter]') && z.nextElementSibling) liste.insertBefore(z.nextElementSibling, z);
+      });
+      liste.addEventListener('change', function (e) { var c = e.target.closest('[data-ha-an]'); if (c) c.closest('.ha-zeile').classList.toggle('aus', !c.checked); });
+      /* Ziehen am Griff (Maus und Finger): Zeile tauscht den Platz, sobald sie die Mitte der Nachbarzeile überquert. */
+      var zieh = null;
+      liste.addEventListener('pointerdown', function (e) { var g = e.target.closest('.ha-griff'); if (!g) return; zieh = g.closest('.ha-zeile'); zieh.classList.add('zieht'); try { g.setPointerCapture(e.pointerId); } catch (x) {} e.preventDefault(); });
+      liste.addEventListener('pointermove', function (e) {
+        if (!zieh) return; e.preventDefault();
+        var v = zieh.previousElementSibling, n = zieh.nextElementSibling, r;
+        if (v) { r = v.getBoundingClientRect(); if (e.clientY < r.top + r.height / 2) { liste.insertBefore(zieh, v); return; } }
+        if (n) { r = n.getBoundingClientRect(); if (e.clientY > r.top + r.height / 2) liste.insertBefore(n, zieh); }
+      });
+      var ende = function () { if (zieh) zieh.classList.remove('zieht'); zieh = null; };
+      liste.addEventListener('pointerup', ende); liste.addEventListener('pointercancel', ende);
+      bg.querySelector('#haReset').addEventListener('click', function () { A.setCfg('heuteLayout', {}); close(); render(); window.toast('Standard wiederhergestellt'); });
+      bg.querySelector('#haSave').addEventListener('click', function () {
+        var order = [], aus = {};
+        liste.querySelectorAll('.ha-zeile').forEach(function (z) { var id = z.getAttribute('data-ha'); order.push(id); if (!z.querySelector('[data-ha-an]').checked) aus[id] = true; });
+        A.setCfg('heuteLayout', { order: order, aus: aus }); close(); render(); window.toast('Startseite gespeichert');
+      });
+    }
+  });
+};
 ACT['lstraf-zurueck'] = function (el) {
   var id = el.getAttribute('data-straf-id') || '', t = id.split('|'); if (t.length < 3) return;
   if (/^M-/.test(t[2])) { var mm = A.clone(A.cfg('manuelleStrafen') || {}), key = t[2].slice(2); if (mm[key]) { mm[key].zurueck = A.todayISO(); A.setCfg('manuelleStrafen', mm); } render(); }
@@ -14299,6 +14377,7 @@ ACT['fehlerprotokoll'] = function () {
 };
 
 var AENDERUNGEN_ = [
+  ['V111', ['Startseite anpassen: Die Blöcke unter „Heute“ (Stunden, Lernnachweise, Elternkommunikation, Aufgaben & Rückläufe, Craft) lassen sich verschieben – per Ziehen oder Pfeil – und ausblenden. Knopf ganz unten auf der Heute-Seite und unter Mehr → App.']],
   ['V110', ['Kommentar-Satz beschreibt jetzt die Entwicklung über die letzten Arbeiten: stetig bergauf/bergab, großer Sprung, Einbruch, wieder bergauf nach einem Dämpfer, konstant.', 'Behoben: Leistungen, deren Art inzwischen Unterarten hat (z. B. „Schriftlich“), fehlten in der Notenübersicht. Sie zählen jetzt zur ersten Unterart; die Notenübersicht warnt außerdem, wenn eine Leistung nicht mitzählt, doppelt angelegt ist oder Leistungen ungleich gewichtet sind.', 'Neu im Profil: „Teilnahme“ – Kind kommt aus der VKL, und je Fach: mit Noten, ohne Noten oder nimmt nicht teil.']],
   ['V109', ['Noteneingabe: Eine Kaffeetasse füllt sich mit jeder eingetragenen Note – mit Zähler, Prozent und kurzem Zuspruch. Ist alles eingetragen, dampft sie.']],
   ['V108', ['Aufgeräumt: Unter Mehr gibt es „Einrichtung“ (Server, Craft-Verbindung, iPhone-Kurzbefehl, Export/Import); „Meine Klasse“ steht jetzt unter Unterricht.', 'Alle Strafarbeit-Regeln in einem Fenster (Vergessen-Zähler, Listen-Frist, Abgabefrist) – erreichbar in jeder Klasse unter „Strafarbeiten“ und unter Mehr → Unterricht.', 'Suche jetzt auf jeder Seite (Lupe oben, am Computer Strg/⌘+K): findet auch Leistungen, Bereiche wie „Strafarbeiten 6f“, Aktionen und Einstellungen.', 'Neu im Profil: „Was brauche ich für …?“ – zeigt, welche Note in der nächsten Leistung für eine 1, 2, 3 … im Zeugnis nötig ist.', 'Abhakliste: nur noch ein Weg – „Stunde anpassen“. Die Vorgabe für neue Fächer steht unter Mehr → Unterricht → „Stunde je Klasse & Fach“.']],
