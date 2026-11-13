@@ -3481,6 +3481,13 @@ input:focus,select:focus,textarea:focus{background:var(--surface)!important}
 @keyframes nsHuepf{0%{transform:scale(1)}40%{transform:scale(1.25) rotate(-6deg)}100%{transform:scale(1)}}
 @media(prefers-color-scheme:dark){.ns-tasse .ns-kaffee{fill:#b07a4a}}
 @media(prefers-reduced-motion:reduce){.ns-tasse .ns-kaffee{transition:none}.ns-fortschritt.fertig .ns-dampf path,.ns-fortschritt.feier .ns-tasse{animation:none}}
+/* V110 */
+.ohne-note-hinweis{margin:-4px 2px 14px;font-size:12.5px;color:var(--ink-2)}
+.noten-warn{margin:0 0 10px;font-size:13px;line-height:1.45}
+.link-btn{border:0;background:none;padding:0;font:inherit;color:var(--accent);text-decoration:underline;cursor:pointer}
+#modalHost .tn-zeile{display:grid;grid-template-columns:minmax(90px,1fr) 2fr;align-items:center;gap:10px;margin-bottom:8px}
+#modalHost .tn-zeile label{margin:0}
+.vkl-badge{display:inline-block;margin-left:6px;padding:0 6px;border-radius:20px;font-size:10.5px;font-weight:700;background:color-mix(in srgb,var(--accent) 12%,var(--surface));color:var(--ink-2);vertical-align:1px}
 </style>
 </head>
 <body>
@@ -3623,7 +3630,7 @@ var TABLES = ['Klassen', 'Kurse', 'SuS', 'Stundenplan', 'Stunden', 'Mitarbeit',
               'Leistungen', 'Noten', 'Checks', 'Settings'];
 
 /* Eine einzige Stelle für die Versionsangabe (Anzeige unter „Mehr“). */
-var APP_VERSION = 'V109';
+var APP_VERSION = 'V110';
 
 /* V15: Diese Adresse ist die verbindliche Login-Adresse. */
 /* V58: Keine feste Server-Adresse mehr in der App. Sie wird über den Einladungslink/-code oder Mehr → Server gesetzt. */
@@ -4817,7 +4824,7 @@ var SPLIT_KEYS = {
   mitarbeitNoten: 'map', sitzplaene: 'map', sitzregeln: 'map', weiterNotizen: 'map',
   unterrichtsreihen: 'map', susLastSeen: 'map', craftLinks: 'map', elternVorlagen: 'map',
   listenSmartVorlagen: 'map', elternListenVorlagen: 'map', papierkorb: 'map', klassenGetrennt: 'map',
-  leistungAufgaben: 'map', aufgabenPunkte: 'map', listenStrafen: 'map', stundenAnsicht: 'map', manuelleStrafen: 'map'
+  leistungAufgaben: 'map', aufgabenPunkte: 'map', listenStrafen: 'map', stundenAnsicht: 'map', manuelleStrafen: 'map', teilnahme: 'map'
 };
 
 var SX_VERSION = 0;
@@ -5783,10 +5790,18 @@ function susDerKlasse(klasseId) {
   });
 }
 
+/* V110: Teilnahme je Fach (z. B. Kinder aus der VKL): 'voll' | 'ohne' (nimmt teil, bekommt keine Noten) | 'nicht' (nimmt nicht teil). */
+function teilnahme(kursId, susId) {
+  var r = (cfg('teilnahme') || {})[susId];
+  var v = r && r.k ? r.k[kursId] : '';
+  return v === 'nicht' || v === 'ohne' ? v : 'voll';
+}
+function istVkl(susId) { var r = (cfg('teilnahme') || {})[susId]; return !!(r && r.vkl); }
 function susDesKurses(kursId) {
   var kurs = byId('Kurse', kursId);
-  return kurs ? susDerKlasse(kurs.klasseId) : [];
+  return kurs ? susDerKlasse(kurs.klasseId).filter(function (s) { return teilnahme(kursId, s.id) !== 'nicht'; }) : [];
 }
+function susMitNoten(kursId) { return susDesKurses(kursId).filter(function (s) { return teilnahme(kursId, s.id) === 'voll'; }); }
 
 function susName(s, format) {
   var f = format || cfg('namensformat');
@@ -6042,10 +6057,24 @@ function setMitarbeitBewertung(kursId, susId, wert) {
   setCfg('mitarbeitNoten', alle);
 }
 
+/* V110: Wohin zählt eine Leistung? Eigene Art, sonst – wenn ihre Art inzwischen Unterarten hat – die erste Unterart.
+   null = Art steht nicht (mehr) in der Gewichtung, die Leistung zählt nicht mit. */
+function katZiel(kurs, kat) {
+  var b = kategorienBaum(kurs), i, j;
+  for (i = 0; i < b.length; i++) {
+    if (b[i].unter.length) { for (j = 0; j < b[i].unter.length; j++) if (b[i].unter[j].name === kat) return kat; }
+    else if (b[i].name === kat) return kat;
+  }
+  for (i = 0; i < b.length; i++) if (b[i].name === kat && b[i].unter.length) return b[i].unter[0].name;
+  return null;
+}
 function kategorieSchnitt(kurs, susId, katName, extra) {
-  var sumG = 0, sumGN = 0, anzahl = 0;
+  var sumG = 0, sumGN = 0, anzahl = 0, zielCache = {};
   list('Leistungen', function (l) {
-    return l.kursId === kurs.id && l.kategorie === katName && inZeitraum(l.datum);
+    if (l.kursId !== kurs.id || !inZeitraum(l.datum)) return false;
+    if (l.kategorie === katName) return true;
+    if (!(l.kategorie in zielCache)) zielCache[l.kategorie] = katZiel(kurs, l.kategorie);
+    return zielCache[l.kategorie] === katName;
   }).forEach(function (l) {
     var n = noteFuer(l, susId, kurs);
     if (n === null) return;
@@ -6686,7 +6715,7 @@ global.A = {
   susDerKlasse: susDerKlasse, susDesKurses: susDesKurses, susName: susName, susKurz: susKurz,
   standardKlasseId: standardKlasseId_, standardKlasse: standardKlasse_,
   fachVorgabe: fachVorgabe, setFachVorgabe: setFachVorgabe, faecherListe: faecherListe,
-  kategorienVon: kategorienVon, kategorienBaum: kategorienBaum, schluesselVon: schluesselVon,
+  kategorienVon: kategorienVon, kategorienBaum: kategorienBaum, teilnahme: teilnahme, istVkl: istVkl, susMitNoten: susMitNoten, katZiel: katZiel, schluesselVon: schluesselVon,
   noteLinear: noteLinear, noteAusPunkten: noteAusPunkten, punkteFuerNote: punkteFuerNote,
   linearerSchluessel: linearerSchluessel, rundeNote: rundeNote, normNote: normNote,
   noteFuer: noteFuer, kategorieSchnitt: kategorieSchnitt, gesamtnote: gesamtnote,
@@ -6953,7 +6982,7 @@ function kachelGrid_(titel, inhalt) {
   return '<section class="kachel-sektion">' + (titel ? '<div class="kachel-sektion-titel">' + A.esc(titel) + '</div>' : '') + '<div class="nkachel-grid">' + inhalt + '</div></section>';
 }
 function kursNotenStat_(kurs) {
-  var sus = A.susDesKurses(kurs.id);
+  var sus = A.susMitNoten(kurs.id);
   var ls = A.list('Leistungen', function (l) { return l.kursId === kurs.id; });
   var offen = 0;
   ls.forEach(function (l) { sus.forEach(function (s) { if (A.noteFuer(l, s.id, kurs) === null) offen++; }); });
@@ -9421,7 +9450,7 @@ function freieFarbe() {
 }
 
 function kursSchnitt(kurs) {
-  var noten = A.susDesKurses(kurs.id).map(function (s) { return A.gesamtnote(kurs, s.id).note; })
+  var noten = A.susMitNoten(kurs.id).map(function (s) { return A.gesamtnote(kurs, s.id).note; })
     .filter(function (n) { return n !== null; });
   return noten.length ? noten.reduce(function (a, b) { return a + b; }, 0) / noten.length : null;
 }
@@ -10529,8 +10558,8 @@ function aufgabenAuswertungHTML_(l,sus){
 function konferenzDaten_(klasseId){
   var kurse=A.kurseDerKlasse(klasseId).filter(kursMitNoten_),sus=A.susDerKlasse(klasseId).filter(function(s){return String(s.aktiv)!=='0';});
   var aktiv={};kurse.forEach(function(k){aktiv[k.id]=A.list('Leistungen',function(l){return l.kursId===k.id;}).some(function(l){return sus.some(function(x){var n=A.noteFuer(l,x.id,k);return n!==null&&n!==undefined;});});});
-  var zeilen=sus.map(function(s){var zellen=kurse.map(function(k){var g=A.gesamtnote(k,s.id),anz=A.list('Leistungen',function(l){return l.kursId===k.id;}).filter(function(l){var n=A.noteFuer(l,s.id,k);return n!==null&&n!==undefined;}).length;return {kurs:k,note:g.note,zeugnis:A.rundeNote(g.note),anzahl:anz};});
-    var fuenfer=zellen.filter(function(z){return z.zeugnis!==null&&z.zeugnis>=5;}).length,ohne=zellen.filter(function(z){return z.anzahl===0&&aktiv[z.kurs.id];}).length;
+  var zeilen=sus.map(function(s){var zellen=kurse.map(function(k){var g=A.gesamtnote(k,s.id),anz=A.list('Leistungen',function(l){return l.kursId===k.id;}).filter(function(l){var n=A.noteFuer(l,s.id,k);return n!==null&&n!==undefined;}).length;return {kurs:k,note:g.note,zeugnis:A.rundeNote(g.note),anzahl:anz,befreit:A.teilnahme(k.id,s.id)!=='voll'};});
+    var fuenfer=zellen.filter(function(z){return z.zeugnis!==null&&z.zeugnis>=5;}).length,ohne=zellen.filter(function(z){return z.anzahl===0&&aktiv[z.kurs.id]&&!z.befreit;}).length;
     return {sus:s,zellen:zellen,fuenfer:fuenfer,ohne:ohne};});
   return {kurse:kurse,zeilen:zeilen};
 }
@@ -10584,7 +10613,7 @@ VIEWS.kurs = {
     var kurs = A.byId('Kurse', p.id);
     if (!kurs) return card('', empty('❓', 'Diesen Kurs gibt es nicht mehr.'));
 
-    var sus = A.susDesKurses(kurs.id);
+    var sus = A.susMitNoten(kurs.id);
     var gesamt = sus.map(function (s) { return A.gesamtnote(kurs, s.id).note; });
     var sp = A.notenspiegel(gesamt);
     var kats = A.kategorienVon(kurs);
@@ -10664,6 +10693,7 @@ VIEWS.kurs = {
           tds + '<td class="gesamt ' + noteKlasse(g.note) + '">' + A.fmtNote(g.note, 2) + '</td></tr>';
       }).join('');
 
+      h += notenWarnungenHTML_(kurs);
       h += card('Notenübersicht', '<div class="tbl-wrap"><table class="grades">' +
         '<thead>' + th + '</thead><tbody>' + tb + '</tbody></table></div>');
       h += '<button class="btn primary block" data-act="noten-pdf" data-kurs="' + kurs.id + '">Noten als PDF exportieren</button>';
@@ -10708,7 +10738,7 @@ VIEWS.sus = {
     var kurse = A.kurseDerKlasse(klasse.id);
     var card = kartenSammler_();
 
-    var h = '<div class="profile-head"><div class="profile-eyebrow">'+A.esc(klasse.name)+'</div><h1>'+A.esc(A.susName(s))+'</h1><div class="profile-head-actions"><button class="btn" data-act="eltern-nachricht" data-sus="'+s.id+'">Elternnachricht</button><button class="btn" data-act="gespraech-neu" data-sus="'+s.id+'">Gespräch protokollieren</button><button class="btn" data-act="mappe-open" data-sus="'+s.id+'">Gesprächsmappe</button><button class="btn" data-act="straf-neu" data-sus="'+s.id+'">Strafarbeit</button><button class="btn" data-act="prognose" data-sus="'+s.id+'">Was brauche ich für …?</button></div></div>';
+    var h = '<div class="profile-head"><div class="profile-eyebrow">'+A.esc(klasse.name)+'</div><h1>'+A.esc(A.susName(s))+'</h1><div class="profile-head-actions"><button class="btn" data-act="eltern-nachricht" data-sus="'+s.id+'">Elternnachricht</button><button class="btn" data-act="gespraech-neu" data-sus="'+s.id+'">Gespräch protokollieren</button><button class="btn" data-act="mappe-open" data-sus="'+s.id+'">Gesprächsmappe</button><button class="btn" data-act="straf-neu" data-sus="'+s.id+'">Strafarbeit</button><button class="btn" data-act="teilnahme" data-sus="'+s.id+'">'+(A.istVkl(s.id)?'VKL · ':'')+'Teilnahme</button><button class="btn" data-act="prognose" data-sus="'+s.id+'">Was brauche ich für …?</button></div></div>';
     var timelineFilter=(ui.timelineFilterBySus&&ui.timelineFilterBySus[s.id])||'all';
     h += card('Seit letztem Mal', susSeitLetztemHTML_(s.id));
     h += card('Verlauf', susTimelineHTML_(s.id,timelineFilter));
@@ -10845,6 +10875,21 @@ VIEWS.noten = {
 /*  Leistung – Punkte eintragen                                           */
 /* ====================================================================== */
 
+/* V110: Hinweise, wenn Leistungen nicht oder ungleich zählen. */
+function notenWarnungenHTML_(kurs) {
+  var ls = A.list('Leistungen', function (l) { return l.kursId === kurs.id; }), h = '';
+  var weg = ls.filter(function (l) { return A.katZiel(kurs, l.kategorie) === null; });
+  var umgeleitet = ls.filter(function (l) { var z = A.katZiel(kurs, l.kategorie); return z !== null && z !== l.kategorie; });
+  if (weg.length) h += '<div class="warn-box noten-warn"><b>' + weg.length + ' Leistung(en) zählen nicht mit</b>, weil ihre Art nicht in der Gewichtung steht: ' +
+    weg.map(function (l) { return '<button class="link-btn" data-act="leistung-bearbeiten" data-leistung="' + l.id + '">' + A.esc(l.titel || l.kategorie) + ' (Art „' + A.esc(l.kategorie) + '“)</button>'; }).join(', ') + '. Antippen und die Art ändern.</div>';
+  if (umgeleitet.length) h += '<div class="hint-box noten-warn">' + umgeleitet.map(function (l) { return '„' + A.esc(l.titel || l.kategorie) + '“ hat die Art „' + A.esc(l.kategorie) + '“, die inzwischen Unterarten hat – sie zählt als „' + A.esc(A.katZiel(kurs, l.kategorie)) + '“. <button class="link-btn" data-act="leistung-bearbeiten" data-leistung="' + l.id + '">Art ändern</button>'; }).join('<br>') + '</div>';
+  var titel = {}; ls.forEach(function (l) { var t = String(l.titel || '').split(':')[0].trim().toLowerCase(); if (!t) return; (titel[t] = titel[t] || []).push(l); });
+  Object.keys(titel).forEach(function (t) { if (titel[t].length > 1) h += '<div class="hint-box noten-warn">Es gibt ' + titel[t].length + ' Leistungen mit fast gleichem Namen: ' + titel[t].map(function (l) { return '„' + A.esc(l.titel) + '“ (' + A.esc(l.kategorie) + ')'; }).join(' und ') + '. Falls das dieselbe Arbeit ist, die Noten in eine eintragen und die andere löschen.</div>'; });
+  var nachZiel = {}; ls.forEach(function (l) { var z = A.katZiel(kurs, l.kategorie); if (z === null) return; (nachZiel[z] = nachZiel[z] || []).push(A.num(l.gewicht, 1) || 1); });
+  var ungleich = Object.keys(nachZiel).filter(function (z) { var a = nachZiel[z]; return a.length > 1 && (Math.max.apply(null, a) - Math.min.apply(null, a)) / Math.max.apply(null, a) > 0.02; });
+  if (ungleich.length) h += '<div class="hint-box noten-warn">In ' + ungleich.map(function (z) { return '„' + A.esc(z) + '“'; }).join(', ') + ' zählen die Leistungen unterschiedlich stark (Reste der alten Prozent-Eingabe). <button class="link-btn" data-act="gewichte-gleich" data-kurs="' + kurs.id + '">Alle gleich gewichten</button></div>';
+  return h;
+}
 /* V99: Beim Eintragen daneben eine andere Leistung (z. B. mündlich) und die Entwicklung zu früheren Arbeiten zeigen. */
 function leistungenDesKurses_(kursId) {
   return A.list('Leistungen', function (x) { return x.kursId === kursId && x.deleted !== '1'; })
@@ -10881,25 +10926,37 @@ function notenTrendHTML_(ref, jetzt) {
   return '<span class="ne-trend ' + c + '" data-trend data-ref="' + ref + '">' + t + '</span>';
 }
 /* V107: fertiger Kommentar-Satz zum Abschreiben auf die Arbeit. */
-function notenKommentarText_(ref, jetzt, dn, dTitel, dMuend) {
+function notenKommentarText_(vor, jetzt, dn, dTitel, dMuend) {
   var ok = function (v) { return !(v === null || v === undefined || v === '' || isNaN(v)); };
   if (!ok(jetzt)) return '';
-  var t = [];
-  if (ok(ref)) {
-    var d = Math.round((ref - jetzt) * 100) / 100, a = Math.abs(d), von = A.fmtNote(ref, 1), auf = A.fmtNote(jetzt, 1);
-    if (a < 0.25) t.push('Du hast deine Leistung aus der letzten Arbeit gehalten.');
-    else if (d > 0) t.push(a >= 0.75 ? 'Du hast dich im Vergleich zur letzten Arbeit deutlich verbessert (von ' + von + ' auf ' + auf + ') – weiter so!' : 'Du hast dich im Vergleich zur letzten Arbeit verbessert (von ' + von + ' auf ' + auf + ').');
-    else t.push('Diese Arbeit ist ' + (a >= 0.75 ? 'deutlich ' : 'etwas ') + 'schwächer als deine letzte (' + von + ').');
+  var f = function (x) { return A.fmtNote(x, 1); };
+  var alt = (Array.isArray(vor) ? vor : [vor]).filter(ok).map(Number), t = [];
+  if (!alt.length) t.push('Das ist deine erste Arbeit dieser Art – ab der nächsten sehen wir deine Entwicklung.');
+  else {
+    var letzte = alt[alt.length - 1], d = Math.round((letzte - jetzt) * 100) / 100, a = Math.abs(d);
+    var reihe = alt.concat([jetzt]), kette = reihe.map(f).join(' → ');
+    var rauf = reihe.length >= 3, runter = reihe.length >= 3, i;
+    for (i = 1; i < reihe.length; i++) { if (reihe[i] > reihe[i - 1] - 0.2) rauf = false; if (reihe[i] < reihe[i - 1] + 0.2) runter = false; }
+    var davor = alt.length >= 2 ? Math.round((alt[alt.length - 2] - letzte) * 100) / 100 : 0;   /* > 0: letzte Arbeit war schon besser als die davor */
+    var spanne = Math.max.apply(null, reihe) - Math.min.apply(null, reihe);
+    if (rauf) t.push('Es geht stetig bergauf: ' + kette + '.' + (a >= 1 ? ' Und diesmal war es ein großer Sprung!' : ' Bleib dran!'));
+    else if (runter) t.push('Es geht leider seit mehreren Arbeiten bergab: ' + kette + (a >= 1 ? ' – diesmal besonders deutlich' : '') + '. Lass uns besprechen, was dir helfen kann.');
+    else if (reihe.length >= 3 && spanne < 0.5) t.push('Du hältst dein Niveau sehr konstant (' + kette + ').');
+    else if (d >= 1) t.push((davor < -0.2 ? 'Nach dem Dämpfer in der letzten Arbeit ein großer Sprung nach oben' : 'Ein großer Sprung nach oben') + ': von ' + f(letzte) + ' auf ' + f(jetzt) + '. Stark!');
+    else if (d <= -1) t.push((davor > 0.2 ? 'Nach der guten letzten Arbeit ein deutlicher Rückschritt' : 'Ein deutlicher Einbruch') + ': von ' + f(letzte) + ' auf ' + f(jetzt) + '. Das kannst du besser.');
+    else if (a < 0.25) t.push('Du hast dein Ergebnis der letzten Arbeit gehalten (' + f(jetzt) + ').');
+    else if (d > 0) t.push((davor < -0.2 ? 'Es geht wieder bergauf' : 'Es geht bergauf') + ': von ' + f(letzte) + ' auf ' + f(jetzt) + '.');
+    else t.push((davor > 0.2 ? 'Diesmal ging es wieder etwas bergab' : 'Es ging etwas bergab') + ': von ' + f(letzte) + ' auf ' + f(jetzt) + '.');
   }
-  if (ok(dn)) t.push(dMuend ? 'Mündlich stehst du bei ' + A.fmtNote(dn, 1) + '.' : (dTitel || 'Weitere Leistung') + ': ' + A.fmtNote(dn, 1) + '.');
+  if (ok(dn)) t.push(dMuend ? 'Mündlich stehst du bei ' + f(dn) + '.' : (dTitel || 'Weitere Leistung') + ': ' + f(dn) + '.');
   return t.join(' ');
 }
-function notenKommentarHTML_(ref, jetzt, dn, dTitel, dMuend) {
+function notenKommentarHTML_(vor, jetzt, dn, dTitel, dMuend) {
   var z = function (v) { return (v === null || v === undefined || isNaN(v)) ? '' : v; };
-  return '<div class="ne-komm" data-komm data-ref="' + z(ref) + '" data-dn="' + z(dn) + '" data-dt="' + A.esc(dTitel || '') + '" data-dm="' + (dMuend ? 1 : 0) + '">' + A.esc(notenKommentarText_(ref, jetzt, dn, dTitel, dMuend)) + '</div>';
+  return '<div class="ne-komm" data-komm data-vor="' + (vor || []).map(z).join(';') + '" data-dn="' + z(dn) + '" data-dt="' + A.esc(dTitel || '') + '" data-dm="' + (dMuend ? 1 : 0) + '">' + A.esc(notenKommentarText_(vor, jetzt, dn, dTitel, dMuend)) + '</div>';
 }
 function notenKontextZeile_(nk, l, kurs, susId) {
-  var teile = [], nd = null, refK = null;
+  var teile = [], nd = null, vorK = [];
   if (nk.daneben) {
     nd = A.noteFuer(nk.daneben, susId, kurs);
     teile.push('<span class="ne-daneben" title="' + A.esc(leistungName_(nk.daneben)) + '">' + A.esc(nk.daneben.titel || nk.daneben.kategorie) + ' <b>' + (nd === null || nd === undefined || isNaN(nd) ? '–' : A.fmtNote(nd, 1)) + '</b></span>');
@@ -10909,12 +10966,13 @@ function notenKontextZeile_(nk, l, kurs, susId) {
     var mitNote = werte.filter(function (w) { return w.n !== null; });
     teile.push('<span class="ne-vorher">' + werte.map(function (w) { return A.esc(w.x.titel || w.x.kategorie) + ' ' + (w.n === null ? '–' : A.fmtNote(w.n, 1)); }).join(' · ') + '</span>');
     var ref = mitNote.length ? mitNote[mitNote.length - 1].n : null;
-    refK = ref;
+    vorK = werte.map(function (w) { return w.n; });
     teile.push(notenTrendHTML_(ref, A.noteFuer(l, susId, kurs)));
   }
-  var komm = nk.kommentar && (nk.daneben || (nk.entwicklung && nk.vorher.length))
-    ? notenKommentarHTML_(refK, A.noteFuer(l, susId, kurs), nd, nk.daneben ? (nk.daneben.titel || nk.daneben.kategorie) : '', nk.daneben ? /m(ü|ue)ndl/i.test((nk.daneben.kategorie || '') + ' ' + (nk.daneben.titel || '')) : false) : '';
-  return teile.length ? '<div class="ne-info">' + teile.join('') + '</div>' + komm : '';
+  if (!vorK.length && nk.vorher.length) vorK = nk.vorher.map(function (x) { var n = A.noteFuer(x, susId, kurs); return (n === null || n === undefined || isNaN(n)) ? null : n; });
+  var komm = nk.kommentar
+    ? notenKommentarHTML_(vorK, A.noteFuer(l, susId, kurs), nd, nk.daneben ? (nk.daneben.titel || nk.daneben.kategorie) : '', nk.daneben ? /m(ü|ue)ndl/i.test((nk.daneben.kategorie || '') + ' ' + (nk.daneben.titel || '')) : false) : '';
+  return (teile.length ? '<div class="ne-info">' + teile.join('') + '</div>' : '') + komm;
 }
 main.addEventListener('change', function (e) {
   var t = e.target;
@@ -10932,7 +10990,7 @@ VIEWS.leistung = {
     var kurs = A.byId('Kurse', l.kursId);
     if (!kurs) return card('', empty('❓', 'Kurs nicht gefunden.'));
 
-    var sus = A.susDesKurses(kurs.id);
+    var sus = A.susMitNoten(kurs.id), ohneNote_ = A.susDesKurses(kurs.id).filter(function (x) { return A.teilnahme(kurs.id, x.id) === 'ohne'; });
     var max = A.num(l.maxPunkte, 0);
     var mitPunkten = !!max;
     var sch = A.schluesselVon(kurs, l);
@@ -10999,6 +11057,7 @@ VIEWS.leistung = {
       '<div class="ns-tipp">' + (mitPunkten ? 'Enter oder „Weiter“ springt zum nächsten Kind. ↑ ↓ wechseln.' : 'Mit „Automatisch weiter“ springt die Eingabe nach einer fertigen Note (z. B. 2, 2,5, 2-, 2+) zum nächsten Kind. Für 1,5 o. Ä. einfach weitertippen – die App wartet kurz.') + '</div>';
     h += notenKontextLeiste_(nk);
     h += card(mitPunkten ? (aufg.length ? 'Punkte pro Aufgabe eintragen' : 'Punkte eintragen') : 'Noten eintragen', '<div class="noten-liste' + (aufg.length && mitPunkten ? ' breit' : '') + '">' + rows + '</div>');
+    if (ohneNote_.length) h += '<div class="ohne-note-hinweis">Ohne Note in diesem Fach: ' + ohneNote_.map(function (x) { return A.esc(A.susKurz(x)) + (A.istVkl(x.id) ? ' (VKL)' : ''); }).join(', ') + '</div>';
     setTimeout(notenFortschritt_, 0);
     h += aufgabenAuswertungHTML_(l, sus);
     h += '<button class="btn primary block" data-act="noten-fertig">Speichern</button>' +
@@ -11947,6 +12006,35 @@ function strafeNeuOeffnen_(kursId, susId, klasseId) {
   });
 }
 ACT['straf-neu'] = function (el) { strafeNeuOeffnen_(el && el.getAttribute('data-kurs'), el && el.getAttribute('data-sus'), el && el.getAttribute('data-klasse')); };
+
+ACT['teilnahme'] = function (el) {
+  var s = A.byId('SuS', el.getAttribute('data-sus')); if (!s) return;
+  var kurse = A.kurseDerKlasse(s.klasseId), alle = A.cfg('teilnahme') || {}, r = alle[s.id] || {}, k = r.k || {};
+  var opt = function (kid) { var v = k[kid] === 'nicht' || k[kid] === 'ohne' ? k[kid] : 'voll';
+    return [['voll', 'nimmt teil, mit Noten'], ['ohne', 'nimmt teil, ohne Noten'], ['nicht', 'nimmt nicht teil']].map(function (o) { return '<option value="' + o[0] + '"' + (o[0] === v ? ' selected' : '') + '>' + o[1] + '</option>'; }).join(''); };
+  Modal.open({
+    title: 'Teilnahme · ' + A.susName(s),
+    body: '<div class="field check"><input type="checkbox" id="tnVkl"' + (r.vkl ? ' checked' : '') + '><label for="tnVkl">Kommt aus der VKL (Vorbereitungsklasse)</label></div>' +
+      '<div class="btn-row" style="margin:0 0 10px"><button type="button" class="btn small" data-tn-alle="voll">Alle: mit Noten</button><button type="button" class="btn small" data-tn-alle="ohne">Alle: ohne Noten</button><button type="button" class="btn small" data-tn-alle="nicht">Alle: nimmt nicht teil</button></div>' +
+      kurse.map(function (ku) { return '<div class="field tn-zeile"><label>' + A.esc(ku.fach) + '</label><select data-tn-kurs="' + ku.id + '">' + opt(ku.id) + '</select></div>'; }).join('') +
+      '<p class="small muted" style="margin:6px 2px 0">„Nimmt nicht teil“: erscheint in diesem Fach nirgends (Stunde, Abhaken, Mitarbeit, Listen, Noten). „Ohne Noten“: ist in den Stunden dabei, fehlt aber bei Noteneingabe, Notenübersicht und Konferenz-Warnungen. Vorhandene Einträge bleiben gespeichert.</p>',
+    foot: '<button class="btn primary" id="tnSave">Speichern</button>',
+    after: function (bg, close) {
+      bg.addEventListener('click', function (e) { var b = e.target.closest('[data-tn-alle]'); if (!b) return; bg.querySelectorAll('[data-tn-kurs]').forEach(function (x) { x.value = b.getAttribute('data-tn-alle'); }); });
+      bg.querySelector('#tnSave').addEventListener('click', function () {
+        var m = A.clone(A.cfg('teilnahme') || {}), neu = { vkl: bg.querySelector('#tnVkl').checked, k: {} };
+        bg.querySelectorAll('[data-tn-kurs]').forEach(function (x) { if (x.value !== 'voll') neu.k[x.getAttribute('data-tn-kurs')] = x.value; });
+        if (!neu.vkl && !Object.keys(neu.k).length) delete m[s.id]; else m[s.id] = neu;
+        A.setCfg('teilnahme', m); close(); window.toast('Teilnahme gespeichert'); render();
+      });
+    }
+  });
+};
+ACT['gewichte-gleich'] = function (el) {
+  var kid = el.getAttribute('data-kurs'), n = 0;
+  A.list('Leistungen', function (l) { return l.kursId === kid; }).forEach(function (l) { if (String(l.gewicht) !== '1') { l.gewicht = '1'; A.put('Leistungen', l); n++; } });
+  window.toast(n + ' Leistung(en) angepasst – alle zählen jetzt gleich.'); render();
+};
 
 ACT['lstraf-zurueck'] = function (el) {
   var id = el.getAttribute('data-straf-id') || '', t = id.split('|'); if (t.length < 3) return;
@@ -12926,7 +13014,7 @@ function notenPdfFooter_(seite, gesamt) {
 
 function notenPdfOverviewCmd_(kurs) {
   var W = 841.89, H = 595.28, margin = 34;
-  var sus = A.susDesKurses(kurs.id);
+  var sus = A.susMitNoten(kurs.id);
   var kats = A.kategorienVon(kurs);
   var noten = sus.map(function (s) { return A.gesamtnote(kurs, s.id).note; }).filter(function (n) { return n !== null; });
   var schnitt = noten.length ? noten.reduce(function (a, b) { return a + b; }, 0) / noten.length : null;
@@ -13015,7 +13103,7 @@ function notenPdfMitarbeitCmd_(kurs) {
 
 function notenPdfLeistungCmds_(kurs, leistung) {
   var W = 841.89, H = 595.28, margin = 34;
-  var sus = A.susDesKurses(kurs.id);
+  var sus = A.susMitNoten(kurs.id);
   var noten = sus.map(function (s) { return A.noteFuer(leistung, s.id, kurs); }).filter(function (n) { return n !== null; });
   var schnitt = noten.length ? noten.reduce(function (a, b) { return a + b; }, 0) / noten.length : null;
   var maxP = A.num(leistung.maxPunkte, null);
@@ -14211,6 +14299,7 @@ ACT['fehlerprotokoll'] = function () {
 };
 
 var AENDERUNGEN_ = [
+  ['V110', ['Kommentar-Satz beschreibt jetzt die Entwicklung über die letzten Arbeiten: stetig bergauf/bergab, großer Sprung, Einbruch, wieder bergauf nach einem Dämpfer, konstant.', 'Behoben: Leistungen, deren Art inzwischen Unterarten hat (z. B. „Schriftlich“), fehlten in der Notenübersicht. Sie zählen jetzt zur ersten Unterart; die Notenübersicht warnt außerdem, wenn eine Leistung nicht mitzählt, doppelt angelegt ist oder Leistungen ungleich gewichtet sind.', 'Neu im Profil: „Teilnahme“ – Kind kommt aus der VKL, und je Fach: mit Noten, ohne Noten oder nimmt nicht teil.']],
   ['V109', ['Noteneingabe: Eine Kaffeetasse füllt sich mit jeder eingetragenen Note – mit Zähler, Prozent und kurzem Zuspruch. Ist alles eingetragen, dampft sie.']],
   ['V108', ['Aufgeräumt: Unter Mehr gibt es „Einrichtung“ (Server, Craft-Verbindung, iPhone-Kurzbefehl, Export/Import); „Meine Klasse“ steht jetzt unter Unterricht.', 'Alle Strafarbeit-Regeln in einem Fenster (Vergessen-Zähler, Listen-Frist, Abgabefrist) – erreichbar in jeder Klasse unter „Strafarbeiten“ und unter Mehr → Unterricht.', 'Suche jetzt auf jeder Seite (Lupe oben, am Computer Strg/⌘+K): findet auch Leistungen, Bereiche wie „Strafarbeiten 6f“, Aktionen und Einstellungen.', 'Neu im Profil: „Was brauche ich für …?“ – zeigt, welche Note in der nächsten Leistung für eine 1, 2, 3 … im Zeugnis nötig ist.', 'Abhakliste: nur noch ein Weg – „Stunde anpassen“. Die Vorgabe für neue Fächer steht unter Mehr → Unterricht → „Stunde je Klasse & Fach“.']],
   ['V107', ['Sitzplan: neue Regel „nicht in der Nähe“ (nicht daneben, nicht mit einer Person dazwischen, nicht direkt oder schräg davor/dahinter). „Möglichst weit weg“ sucht jetzt wirklich den größten Abstand. Die Vorschläge werden schrittweise verbessert und halten mehr Regeln ein.', 'Lob-Vorschläge an Eltern auch bei: vier Wochen nichts mehr vergessen (nach früherem Vergessen) und deutlich besserer Note (mind. eine ganze Note).', 'Noteneingabe: fertiger Kommentar-Satz unter jedem Namen (Entwicklung + mündliche Note), abschaltbar.']],
@@ -15227,7 +15316,7 @@ function speichereNote(input) {
   var tr = zeile.querySelector('[data-trend]');
   if (tr) tr.outerHTML = notenTrendHTML_(tr.getAttribute('data-ref') === '' ? null : Number(tr.getAttribute('data-ref')), note);
   var km = zeile.querySelector('[data-komm]');
-  if (km) { var kz = function (a) { var v = km.getAttribute(a); return v === '' || v === null ? null : Number(v); }; km.textContent = notenKommentarText_(kz('data-ref'), note, kz('data-dn'), km.getAttribute('data-dt'), km.getAttribute('data-dm') === '1'); }
+  if (km) { var kz = function (a) { var v = km.getAttribute(a); return v === '' || v === null ? null : Number(v); }; km.textContent = notenKommentarText_(String(km.getAttribute('data-vor') || '').split(';').map(function (v) { return v === '' ? null : Number(v); }), note, kz('data-dn'), km.getAttribute('data-dt'), km.getAttribute('data-dm') === '1'); }
 }
 
 
