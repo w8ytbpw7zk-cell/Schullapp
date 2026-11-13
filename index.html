@@ -3502,6 +3502,28 @@ input:focus,select:focus,textarea:focus{background:var(--surface)!important}
 #modalHost .ha-sicht{flex:none;display:flex;align-items:center;gap:5px;margin:0 0 0 2px;font-size:12px;color:var(--ink-2)}
 #modalHost .ha-sicht input{width:18px;height:18px;min-height:0;margin:0}
 @media(max-width:420px){#modalHost .ha-sicht span{display:none}}
+/* V112 */
+.gruppen-voll{position:fixed;inset:0;z-index:99999;background:var(--bg,#fff);color:var(--ink);display:flex;flex-direction:column;--gv:1;overflow:hidden}
+.gv-kopf{flex:none;display:flex;align-items:center;justify-content:space-between;gap:12px;padding:calc(12px + env(safe-area-inset-top)) 20px 10px}
+.gv-kopf b{font-size:clamp(18px,2.2vw,30px);letter-spacing:-.02em}
+.gv-knoepfe{display:flex;gap:8px}
+.gv-btn{border:0;border-radius:10px;min-height:40px;padding:0 14px;background:var(--flaeche);color:var(--ink);font:inherit;font-size:15px;font-weight:600;cursor:pointer}
+.gv-zu{background:var(--ink);color:var(--surface)}
+.gv-inhalt{flex:1;overflow:auto;padding:6px 20px calc(24px + env(safe-area-inset-bottom));font-size:calc(clamp(17px,2.4vw,38px)*var(--gv))}
+.gv-inhalt .tool-result{background:none;padding:0;margin:0;font-size:inherit}
+.gv-inhalt .tool-result>b{display:block;font-size:.8em;margin:.6em 0 .4em;color:var(--ink-2)}
+.gv-inhalt .gruppen-grid{display:grid!important;grid-template-columns:repeat(auto-fit,minmax(min(100%,9.5em),1fr));gap:.6em}
+.gv-inhalt .gruppe-box{padding:.7em .8em;border-radius:.6em;background:var(--flaeche);border:0;font-size:inherit;line-height:1.35}
+.gv-inhalt .gruppe-box b{display:block;font-size:.72em;font-weight:700;color:var(--ink-2);text-transform:none;margin-bottom:.35em}
+.gv-inhalt .gruppe-box div{font-size:1em;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+/* Strafarbeit-Knöpfe: saubere Abstände */
+.main .straf-offen-row{grid-template-columns:minmax(0,1fr) 36px!important;gap:6px!important}
+.main .straf-offen-row .btn{min-width:0;font-size:12.5px!important;padding:0 8px!important;min-height:34px!important}
+.main .straf-offen-row .btn.sv-mehr{padding:0!important;font-size:16px!important}
+.task-list.kacheln .today-task.t-straf .today-task-actions{display:grid!important;grid-template-columns:minmax(0,1fr);gap:6px!important;width:100%;margin:6px 0 0!important}
+.task-list.kacheln .today-task.t-straf .today-task-actions .btn{width:100%;min-height:34px!important;white-space:nowrap}
+.sv-row.faellig .sv-btns{width:100%;margin-left:0;justify-content:flex-end;gap:8px}
+.sv-row.faellig .sv-btns .btn.small{padding:0 12px}
 </style>
 </head>
 <body>
@@ -3644,7 +3666,7 @@ var TABLES = ['Klassen', 'Kurse', 'SuS', 'Stundenplan', 'Stunden', 'Mitarbeit',
               'Leistungen', 'Noten', 'Checks', 'Settings'];
 
 /* Eine einzige Stelle für die Versionsangabe (Anzeige unter „Mehr“). */
-var APP_VERSION = 'V111';
+var APP_VERSION = 'V112';
 
 /* V15: Diese Adresse ist die verbindliche Login-Adresse. */
 /* V58: Keine feste Server-Adresse mehr in der App. Sie wird über den Einladungslink/-code oder Mehr → Server gesetzt. */
@@ -7768,6 +7790,22 @@ function gruppenNormal(sus, modus, zahl) {
   return gruppen;
 }
 
+/* V112: Gruppen bildschirmfüllend zeigen – deckt die ganze App ab, damit am Beamer nichts anderes (z. B. Mitarbeit) zu sehen ist. */
+function gruppenVollbild_(html, titel) {
+  var alt = document.getElementById('gruppenVoll_'); if (alt) alt.remove();
+  var el = document.createElement('div'); el.id = 'gruppenVoll_'; el.className = 'gruppen-voll';
+  el.innerHTML = '<div class="gv-kopf"><b>' + A.esc(titel) + '</b><div class="gv-knoepfe"><button type="button" class="gv-btn" data-gv="kleiner" aria-label="Kleiner">A−</button><button type="button" class="gv-btn" data-gv="groesser" aria-label="Größer">A+</button><button type="button" class="gv-btn gv-zu" data-gv="zu">Schließen</button></div></div><div class="gv-inhalt">' + html + '</div>';
+  document.body.appendChild(el);
+  var stufe = Number(A.LS.get('gruppenZoom', 1)) || 1;
+  function zoom() { el.style.setProperty('--gv', String(stufe)); }
+  zoom();
+  try { var rf = el.requestFullscreen || el.webkitRequestFullscreen; if (rf) { var pr = rf.call(el); if (pr && pr.catch) pr.catch(function () {}); } } catch (e) {}
+  function zu() { try { if (document.fullscreenElement || document.webkitFullscreenElement) (document.exitFullscreen || document.webkitExitFullscreen).call(document); } catch (e) {} el.remove(); document.removeEventListener('keydown', taste); }
+  function taste(e) { if (e.key === 'Escape') zu(); }
+  document.addEventListener('keydown', taste);
+  el.addEventListener('click', function (e) { var b = e.target.closest('[data-gv]'); if (!b) return; var a = b.getAttribute('data-gv');
+    if (a === 'zu') zu(); else { stufe = Math.max(0.6, Math.min(2.2, stufe + (a === 'groesser' ? 0.15 : -0.15))); A.LS.set('gruppenZoom', stufe); zoom(); } });
+}
 function gruppenHTML(gruppen, titelPrefix) {
   return '<div class="gruppen-grid">' + gruppen.map(function (g, i) {
     return '<div class="gruppe-box"><b>' + A.esc((titelPrefix || 'Gruppe') + ' ' + (i + 1)) + '</b>' +
@@ -8768,7 +8806,7 @@ function inboxDaten_(datum){
     elternInbox_().forEach(function(h){var sus=A.byId('SuS',h.susId),k=A.byId('Kurse',h.kursId);if(k&&!inboxKursAmDatum_(k.id,datum))return;items.push({key:'eltern|'+elternVorgangKey_(h),typ:h.typ,h:h,sus:sus,kurs:k,titel:h.typ==='positiv'?'Positive Rückmeldung möglich':(sus?A.susName(sus):''),sub:h.typ==='positiv'?((h.signal==='mitarbeit_verbessert'?'Mitarbeit deutlich verbessert':'Mitarbeit zuletzt besonders stark')+(k&&k.fach?' · '+k.fach:'')):(h.punkt+' · '+h.anzahl+'×'+(k&&k.fach?' · '+k.fach:''))});});
   }
   aufgabenAlle().filter(function(a){if(!a||a.erledigt||a.typ==='todo')return false;if(a.typ==='liste')return aufgabeErinnerungAmDatum_(a,datum);return !!a.frist&&a.frist<=datum&&inboxKursAmDatum_(a.kursId,datum);}).slice(0,12).forEach(function(a){var k=a.typ==='liste'?aufgabeErinnerKursAmDatum_(a,datum):A.byId('Kurse',a.kursId),st=a.typ==='liste'?listenStand(a,k):null,off=st?Math.max(0,st.gesamt-st.erledigt):undefined,fristText='offen';if(a.frist){fristText=a.frist<datum?'seit '+A.fmtDateShort(a.frist)+' fällig':(a.frist===datum?'heute fällig':'bis '+A.fmtDateShort(a.frist));}items.push({key:'liste|'+a.id+'|'+(a.frist||''),typ:'liste',a:a,kurs:k,offen:off,titel:a.titel,sub:fristText+(k?' · '+A.kursLabel(k):'')});});
-  var strafGesehen_={};A.alleKurse().forEach(function(k){var heuteKurs=inboxKursAmDatum_(k.id,datum);A.offeneStrafarbeiten(k.id).filter(function(x){var f=x.aufgabe.frist;if(strafGesehen_[x.aufgabe.id])return false;var ok=heuteKurs||(f&&f<=datum);if(ok)strafGesehen_[x.aufgabe.id]=1;return ok;}).slice(0,6).forEach(function(x){var f=x.aufgabe.frist,ns=x.aufgabe.nachsitzen,faellig=!!(f&&f<=datum);var sub=ns?('Nachsitzen am '+A.fmtDateShort(ns.datum)+(ns.zeit?' · '+ns.zeit:'')):(faellig?(f===datum?'Strafarbeit heute fällig – abgegeben?':'Strafarbeit seit '+A.fmtDateShort(f)+' fällig – abgegeben?'):('offene Strafarbeit'+(f?' · abgeben bis '+A.fmtDateShort(f):'')));if(x.aufgabe.quelle==='manuell')sub=(faellig||ns?sub:'Strafarbeit'+(f?' · abgeben bis '+A.fmtDateShort(f):''))+(x.aufgabe.grund?' · '+x.aufgabe.grund:'');else if(x.aufgabe.quelle==='liste')sub=(faellig||ns?sub:'Strafarbeit'+(f?' · abgeben bis '+A.fmtDateShort(f):''))+' · „'+x.aufgabe.listeTitel+'“ fehlt noch';if(x.aufgabe.anzahl>1)sub=x.aufgabe.anzahl+'× · '+sub;items.push({key:'straf|'+(x.aufgabe&&x.aufgabe.id||k.id+'|'+x.sus.id),typ:'straf',sus:x.sus,kurs:k,x:x,faellig:faellig,titel:A.susName(x.sus),sub:sub+' · '+(k.fach||'')});});});
+  var strafGesehen_={};A.alleKurse().forEach(function(k){var heuteKurs=inboxKursAmDatum_(k.id,datum);A.offeneStrafarbeiten(k.id).filter(function(x){var f=x.aufgabe.frist;if(strafGesehen_[x.aufgabe.id])return false;var nsx=x.aufgabe.nachsitzen;var ok=nsx?(nsx.datum<=datum):(heuteKurs||(f&&f<=datum));if(ok)strafGesehen_[x.aufgabe.id]=1;return ok;}).slice(0,6).forEach(function(x){var f=x.aufgabe.frist,ns=x.aufgabe.nachsitzen,faellig=!!(f&&f<=datum);if(ns)faellig=true;var sub=ns?((ns.datum===datum?'Nachsitzen heute':'Nachsitzen war am '+A.fmtDateShort(ns.datum)+' – erledigt?')+(ns.zeit?' · '+ns.zeit:'')):(faellig?(f===datum?'Strafarbeit heute fällig – abgegeben?':'Strafarbeit seit '+A.fmtDateShort(f)+' fällig – abgegeben?'):('offene Strafarbeit'+(f?' · abgeben bis '+A.fmtDateShort(f):'')));if(x.aufgabe.quelle==='manuell')sub=(faellig||ns?sub:'Strafarbeit'+(f?' · abgeben bis '+A.fmtDateShort(f):''))+(x.aufgabe.grund?' · '+x.aufgabe.grund:'');else if(x.aufgabe.quelle==='liste')sub=(faellig||ns?sub:'Strafarbeit'+(f?' · abgeben bis '+A.fmtDateShort(f):''))+' · „'+x.aufgabe.listeTitel+'“ fehlt noch';if(x.aufgabe.anzahl>1)sub=x.aufgabe.anzahl+'× · '+sub;items.push({key:'straf|'+(x.aufgabe&&x.aufgabe.id||k.id+'|'+x.sus.id),typ:'straf',sus:x.sus,kurs:k,x:x,faellig:faellig,titel:A.susName(x.sus),sub:sub+' · '+(k.fach||'')});});});
   return items;
 }
 /* V77: je mehr Kacheln, desto kleiner */
@@ -8818,7 +8856,7 @@ function inboxHTML(datum,teile,mitKopf){
   function taskRow(it){
     if(it.typ==='liste')return '<div class="today-task"><button class="inbox-open" data-act="aufgabe-open" data-aufgabe="'+A.esc(it.a.id)+'"><div class="inbox-icon ic-liste">'+ICON_('liste')+'</div><div class="inbox-main"><b>'+A.esc(it.titel)+'</b><span>'+A.esc(it.sub)+(it.offen!==undefined?' · '+it.offen+' offen':'')+'</span></div><div class="chev">›</div></button><div class="today-task-actions">'+(it.offen>0?'<button class="btn small" data-act="eltern-erinnern" data-aufgabe="'+A.esc(it.a.id)+'">Eltern erinnern</button>':'')+'</div></div>';
     if(it.typ==='wiedervorlage')return '<div class="today-task" data-wisch="1"><button class="inbox-open" data-act="open-sus" data-sus="'+it.sus.id+'"><div class="inbox-icon ic-wv">'+ICON_('wv')+'</div><div class="inbox-main"><b>'+A.esc(it.titel)+klasseChip_(it.sus)+'</b>'+'<span>'+A.esc(it.sub)+'</span></div><div class="chev">›</div></button><div class="today-task-actions"><button class="btn small" data-act="wv-erledigt" data-id="'+A.esc(it.wv.id)+'">Erledigt</button></div></div>';
-    if(it.typ==='straf')return '<div class="today-task t-straf'+(it.faellig?' faellig':'')+'"'+(it.faellig?' data-wisch="1"':'')+'><button class="inbox-open" data-act="open-sus" data-sus="'+it.sus.id+'"><div class="inbox-icon ic-straf'+(it.faellig?' faellig':'')+'">'+ICON_('straf')+'</div><div class="inbox-main"><b>'+A.esc(it.titel)+klasseChip_(it.sus)+'</b>'+'<span>'+A.esc(it.sub)+'</span></div><div class="chev">›</div></button><div class="today-task-actions">'+(it.faellig?'<button class="btn small" data-act="straf-erledigt" data-straf-id="'+A.esc(it.x.aufgabe.id)+'">Abgegeben ✓</button>'+(it.x.aufgabe.nachsitzen?'':'<button class="btn small" data-act="straf-nachsitzen" data-straf-id="'+A.esc(it.x.aufgabe.id)+'">Nicht abgegeben</button>'):'')+'</div></div>';
+    if(it.typ==='straf')return '<div class="today-task t-straf'+(it.faellig?' faellig':'')+'"'+(it.faellig?' data-wisch="1"':'')+'><button class="inbox-open" data-act="open-sus" data-sus="'+it.sus.id+'"><div class="inbox-icon ic-straf'+(it.faellig?' faellig':'')+'">'+ICON_('straf')+'</div><div class="inbox-main"><b>'+A.esc(it.titel)+klasseChip_(it.sus)+'</b>'+'<span>'+A.esc(it.sub)+'</span></div><div class="chev">›</div></button><div class="today-task-actions">'+(it.faellig?'<button class="btn small primary" data-act="straf-erledigt" data-straf-id="'+A.esc(it.x.aufgabe.id)+'">'+(it.x.aufgabe.nachsitzen?'Nachsitzen erledigt ✓':'Abgegeben ✓')+'</button>'+(it.x.aufgabe.nachsitzen?'':'<button class="btn small" data-act="straf-nachsitzen" data-straf-id="'+A.esc(it.x.aufgabe.id)+'">Nicht abgegeben</button>'):'')+'</div></div>';
     return '<div class="today-task t-hinweis"><button class="inbox-open" data-act="open-sus" data-sus="'+it.sus.id+'"><div class="inbox-icon ic-hinweis">'+ICON_('hinweis')+'</div><div class="inbox-main"><b>'+A.esc(it.titel)+klasseChip_(it.sus)+'</b>'+'<span>'+A.esc(it.sub)+'</span></div><div class="chev">›</div></button></div>';
   }
   var elternKopf='<div class="today-section-head"><div class="today-section-title"><h3>Elternkommunikation</h3><span class="today-count">'+eltern.length+'</span></div><button class="btn small" style="white-space:nowrap;flex-shrink:0" data-act="eltern-generator">＋ Nachricht</button></div>';
@@ -9868,7 +9906,7 @@ VIEWS.stunde = {
     setTimeout(function () { craftPlanAuffrischen_(p.datum, false, [vorigeStundeDatum_(kurs, p.datum)]); }, 0);
     if (ansicht.reihe) h += card('Unterrichtsreihe', unterrichtsreiheHTML_(kurs.id,true,p.datum));
 
-    var offeneStrafen = ansicht.strafen ? A.offeneStrafarbeiten(kurs.id) : [];
+    var offeneStrafen = ansicht.strafen ? A.offeneStrafarbeiten(kurs.id).filter(function (x) { var ns = x.aufgabe.nachsitzen; return !ns || ns.datum <= p.datum; }) : [];
     if (offeneStrafen.length) {
       h += card('Offene Strafarbeiten', offeneStrafen.map(function (x) {
         var grund = x.stand.teile.map(function (p) { return p.anzahl + '× ' + A.esc(p.name); }).join(' · ');
@@ -9879,9 +9917,8 @@ VIEWS.stunde = {
             : 'seit dem ' + x.aufgabe.schwelle + '. Vergessen fällig' + (grund ? ' · ' + grund : '')) +
           (x.aufgabe.frist ? ' · abgeben bis ' + A.fmtDateShort(x.aufgabe.frist) : '') +
           (x.aufgabe.nachsitzen ? ' · Nachsitzen ' + A.fmtDateShort(x.aufgabe.nachsitzen.datum) : '') + '</div></div>' +
-          '<button class="btn small" data-act="straf-frist" data-straf-id="' + A.esc(x.aufgabe.id) + '">Frist · Umfang</button>' +
-          '<button class="btn small" data-act="straf-erledigt" data-straf-id="' + A.esc(x.aufgabe.id) + '">Abgegeben ✓</button>' +
-          (x.aufgabe.quelle === 'liste' || x.aufgabe.quelle === 'manuell' ? '<button class="btn small straf-zurueck" data-act="lstraf-zurueck" data-straf-id="' + A.esc(x.aufgabe.id) + '">Zurücknehmen</button>' : '') +
+          '<button class="btn small primary" data-act="straf-erledigt" data-straf-id="' + A.esc(x.aufgabe.id) + '">' + (x.aufgabe.nachsitzen ? 'Nachsitzen erledigt ✓' : 'Abgegeben ✓') + '</button>' +
+          '<button class="btn small sv-mehr" data-act="straf-mehr" data-straf-id="' + A.esc(x.aufgabe.id) + '" data-q="' + (x.aufgabe.quelle || 'auto') + '" aria-label="Weitere Aktionen">⋯</button>' +
           '</div>';
       }).join(''), 'straf-offen');
     }
@@ -11611,8 +11648,9 @@ function gruppenDialog(puzzle) {
   Modal.open({
     title: puzzle ? 'Gruppenpuzzle' : 'Gruppen bilden',
     body: body,
-    foot: '<button class="btn primary" id="gruppenNeu">Neu mischen</button>',
+    foot: '<button class="btn" id="gruppenVoll">Für die Klasse zeigen</button><button class="btn primary" id="gruppenNeu">Neu mischen</button>',
     after: function (bg) {
+      bg.querySelector('#gruppenVoll').addEventListener('click', function () { gruppenVollbild_(bg.querySelector('#gruppenErgebnis').innerHTML, puzzle ? 'Gruppenpuzzle' : 'Gruppen'); });
       var zahl = bg.querySelector('#gruppenZahl');
       var modus = bg.querySelector('#gruppenModus');
       var ergebnis = bg.querySelector('#gruppenErgebnis');
@@ -12138,6 +12176,16 @@ ACT['straf-frist'] = function (el) {
       { key: 'frist', label: 'Abgeben bis', type: 'date', value: akt, hint: 'An diesem Tag fragt die App unter „Heute“, ob abgegeben wurde.' }],
     onSave: function (v) { A.strafFristSetzen(id, v.frist); A.strafAnzahlSetzen(id, v.anzahl); window.toast('Gespeichert'); }, focus: false });
 };
+/* V112: Nachsitzen als lila To-do in die Craft-Tagesnotiz des Termins – ohne Namen (Datenschutz). */
+function nachsitzenNachCraft_(x, datum, zeit) {
+  if (VORSCHAU_AKTIV || !craftTodoVerbunden_()) return;
+  var kl = A.klasseVonKurs(x.kurs) || {};
+  var text = craftNamenEntfernen_('Nachsitzen' + (zeit ? ' ' + zeit : '') + ' · ' + (kl.name || '') + ' ' + (x.kurs.fach || '') + ' · 1 Kind (Name in der Schulapp)');
+  craftTodoLila_([text], datum)
+    .catch(function () { return craftPostTasksEinfach_([{ typ: 'nachsitzen', titel: text }], datum); })
+    .then(function () { window.toast('Nachsitzen steht in Craft am ' + A.fmtDateShort(datum)); })
+    .catch(function (e) { window.toast('Craft: Nachsitzen konnte nicht eingetragen werden (' + (e && e.message ? e.message : 'Fehler') + ')', true); });
+}
 ACT['straf-nachsitzen'] = function (el) {
   var id = el.getAttribute('data-straf-id'), x = strafAusId_(id); if (!x.sus) return;
   var a = A.strafAufgaben(x.kurs.id, x.sus.id).concat(A.listenStrafAufgaben(x.kurs.id, x.sus.id)).filter(function (y) { return y.id === id; })[0] || {};
@@ -12152,6 +12200,7 @@ ACT['straf-nachsitzen'] = function (el) {
     validate: function (v) { return v.datum ? null : 'Bitte ein Datum wählen.'; },
     onSave: function (v) {
       A.strafNachsitzenSetzen(id, v.datum, v.zeit);
+      nachsitzenNachCraft_(x, v.datum, String(v.zeit || '').trim());
       var preset = { typ: 'preset', key: 'nachsitzen', susId: x.sus.id, kursId: x.kurs.id, frist: a.frist || '', datum: v.datum, zeit: String(v.zeit || '').trim() };
       setTimeout(function () { elternNachrichtOeffnen(x.sus.id, preset); }, 0);
     },
@@ -14377,6 +14426,7 @@ ACT['fehlerprotokoll'] = function () {
 };
 
 var AENDERUNGEN_ = [
+  ['V112', ['Gruppen: „Für die Klasse zeigen“ – bildschirmfüllend und groß, deckt die ganze App ab; Schriftgröße mit A−/A+ einstellbar.', 'Nachsitzen wird automatisch als lila To-do in die Craft-Tagesnotiz des Termins geschrieben (ohne Namen).', 'Strafarbeit mit Nachsitzen verschwindet aus „Heute“ und den Stunden und erscheint erst am Tag des Nachsitzens wieder als Hinweis.', 'Abstände der Knöpfe „Abgegeben“/„Nicht abgegeben“ korrigiert; in der Stunde jetzt „Abgegeben ✓“ und ⋯ für alles Weitere.']],
   ['V111', ['Startseite anpassen: Die Blöcke unter „Heute“ (Stunden, Lernnachweise, Elternkommunikation, Aufgaben & Rückläufe, Craft) lassen sich verschieben – per Ziehen oder Pfeil – und ausblenden. Knopf ganz unten auf der Heute-Seite und unter Mehr → App.']],
   ['V110', ['Kommentar-Satz beschreibt jetzt die Entwicklung über die letzten Arbeiten: stetig bergauf/bergab, großer Sprung, Einbruch, wieder bergauf nach einem Dämpfer, konstant.', 'Behoben: Leistungen, deren Art inzwischen Unterarten hat (z. B. „Schriftlich“), fehlten in der Notenübersicht. Sie zählen jetzt zur ersten Unterart; die Notenübersicht warnt außerdem, wenn eine Leistung nicht mitzählt, doppelt angelegt ist oder Leistungen ungleich gewichtet sind.', 'Neu im Profil: „Teilnahme“ – Kind kommt aus der VKL, und je Fach: mit Noten, ohne Noten oder nimmt nicht teil.']],
   ['V109', ['Noteneingabe: Eine Kaffeetasse füllt sich mit jeder eingetragenen Note – mit Zähler, Prozent und kurzem Zuspruch. Ist alles eingetragen, dampft sie.']],
