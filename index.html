@@ -3446,6 +3446,41 @@ input:focus,select:focus,textarea:focus{background:var(--surface)!important}
 .sv-erledigt .sv-row+.sv-row{margin-top:6px}
 @media(prefers-color-scheme:dark){.sv-anz{background:#3c2223;color:#f08b83}.sv-fach{color:color-mix(in srgb,var(--kc,#888) 50%,#fff)}}
 @media(max-width:420px){.sv-stat{padding:10px 8px}.sv-stat b{font-size:19px}.sv-stat span{font-size:11px}}
+/* V107 */
+.ne-komm{margin-top:3px;font-size:12.5px;line-height:1.4;color:var(--ink);font-style:italic}
+.ne-komm:empty{display:none}
+/* V108 */
+.sv-regeln{margin:4px 0 14px;border-radius:14px;background:var(--flaeche)}
+#modalHost .sa-fein{border:0;background:none;padding:6px 2px 0;font:inherit;font-size:13px;color:var(--ink-2);cursor:pointer;text-align:left}
+/* V108 Prognose */
+.pg-stand{margin:2px 0 10px;font-size:14px;color:var(--ink-2)}
+.pg-stand b{color:var(--ink);font-size:16px}
+.pg-zeile{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:11px 12px;border-radius:12px;background:var(--flaeche);margin-bottom:6px;font-size:14.5px}
+.pg-ziel{font-weight:650}
+.pg-txt{color:var(--ink-2);text-align:right}
+.pg-txt b{color:var(--ink);font-size:16px}
+.pg-zeile.ok .pg-txt{color:var(--good,#1f8a53)}
+.pg-zeile.nein{opacity:.6}
+/* V109 Kaffeetasse in der Noteneingabe */
+.ns-fortschritt{display:flex;align-items:center;gap:10px;position:relative;min-width:0;flex:1}
+.ns-tasse{flex:none;width:40px;height:40px;overflow:visible}
+.ns-tasse .ns-rand{fill:none;stroke:var(--ink);stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.ns-tasse .ns-kaffee{fill:#8a5a34;transition:transform .5s cubic-bezier(.22,1,.36,1)}
+.ns-tasse .ns-dampf path{fill:none;stroke:var(--ink-3);stroke-width:1.8;stroke-linecap:round;opacity:0;transition:opacity .4s}
+.ns-fortschritt.fertig .ns-dampf path{opacity:1;animation:nsDampf 2.4s ease-in-out infinite}
+.ns-fortschritt.fertig .ns-dampf path:nth-child(2){animation-delay:.4s}
+.ns-fortschritt.fertig .ns-dampf path:nth-child(3){animation-delay:.8s}
+.ns-fortschritt.feier .ns-tasse{animation:nsHuepf .7s cubic-bezier(.34,1.56,.64,1)}
+.ns-ftext{min-width:0;line-height:1.25}
+.ns-zahl{font-size:13.5px;color:var(--ink-2)}
+.ns-zahl b{font-size:15px;color:var(--ink)}
+.ns-spruch{font-size:12px;color:var(--ink-2)}
+.ns-fortschritt.fertig .ns-spruch{color:var(--good,#1f8a53);font-weight:600}
+.ns-fortschritt>i.ns-balken{position:absolute;left:0;bottom:0;height:3px;border-radius:2px;background:var(--good,#1f8a53);transition:width .4s cubic-bezier(.22,1,.36,1)}
+@keyframes nsDampf{0%,100%{transform:translateY(0);opacity:.35}50%{transform:translateY(-3px);opacity:1}}
+@keyframes nsHuepf{0%{transform:scale(1)}40%{transform:scale(1.25) rotate(-6deg)}100%{transform:scale(1)}}
+@media(prefers-color-scheme:dark){.ns-tasse .ns-kaffee{fill:#b07a4a}}
+@media(prefers-reduced-motion:reduce){.ns-tasse .ns-kaffee{transition:none}.ns-fortschritt.fertig .ns-dampf path,.ns-fortschritt.feier .ns-tasse{animation:none}}
 </style>
 </head>
 <body>
@@ -3522,6 +3557,7 @@ input:focus,select:focus,textarea:focus{background:var(--surface)!important}
   <button class="icon-btn" id="btnBack" aria-label="Zurück" hidden>‹</button>
   <div class="topbar-title" id="topTitle">Heute</div>
   <div class="topbar-actions" id="topActions"></div>
+  <button class="icon-btn search-btn" id="btnSuche" title="Suchen (Strg/⌘+K)" aria-label="Suchen"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.8" cy="10.8" r="6.3"></circle><path d="m15.5 15.5 4.2 4.2"></path></svg></button>
   <button class="icon-btn sync" id="btnSync" aria-label="Synchronisieren"><span class="dot" id="syncDot"></span>⟳</button>
 </header>
 
@@ -3587,7 +3623,7 @@ var TABLES = ['Klassen', 'Kurse', 'SuS', 'Stundenplan', 'Stunden', 'Mitarbeit',
               'Leistungen', 'Noten', 'Checks', 'Settings'];
 
 /* Eine einzige Stelle für die Versionsangabe (Anzeige unter „Mehr“). */
-var APP_VERSION = 'V106';
+var APP_VERSION = 'V109';
 
 /* V15: Diese Adresse ist die verbindliche Login-Adresse. */
 /* V58: Keine feste Server-Adresse mehr in der App. Sie wird über den Einladungslink/-code oder Mehr → Server gesetzt. */
@@ -6006,7 +6042,7 @@ function setMitarbeitBewertung(kursId, susId, wert) {
   setCfg('mitarbeitNoten', alle);
 }
 
-function kategorieSchnitt(kurs, susId, katName) {
+function kategorieSchnitt(kurs, susId, katName, extra) {
   var sumG = 0, sumGN = 0, anzahl = 0;
   list('Leistungen', function (l) {
     return l.kursId === kurs.id && l.kategorie === katName && inZeitraum(l.datum);
@@ -6017,6 +6053,8 @@ function kategorieSchnitt(kurs, susId, katName) {
     if (g === null || g <= 0) g = 1;
     sumG += g; sumGN += g * n; anzahl++;
   });
+  /* V108 Prognose: eine gedachte weitere Leistung dieser Art, gleich gewichtet wie die bisherigen. */
+  if (extra && extra.kat === katName) { var ge = anzahl ? sumG / anzahl : 1; sumG += ge; sumGN += ge * extra.note; anzahl++; }
 
   if (cfg('mitarbeitAktiv') && cfg('mitarbeitKategorie') === katName) {
     var ma = mitarbeitBewertung(kurs.id, susId);
@@ -6029,7 +6067,7 @@ function kategorieSchnitt(kurs, susId, katName) {
   return sumG ? { note: sumGN / sumG, anzahl: anzahl } : null;
 }
 
-function gesamtnote(kurs, susId) {
+function gesamtnote(kurs, susId, extra) {
   var sumG = 0, sumGN = 0, detail = [];
   /* V102: erst je Art mit Unterarten mitteln, dann die Arten. Fehlt eine Unterart noch, zählt die andere für die ganze Art. */
   kategorienBaum(kurs).forEach(function (t) {
@@ -6037,7 +6075,7 @@ function gesamtnote(kurs, susId) {
     if (t.unter.length) {
       var sg = 0, sgn = 0;
       t.unter.forEach(function (u) {
-        var r = kategorieSchnitt(kurs, susId, u.name);
+        var r = kategorieSchnitt(kurs, susId, u.name, extra);
         detail.push({ name: u.name, gruppe: t.name, gewicht: Math.round(tg * u.prozent / 100 * 1000) / 1000, note: r ? r.note : null, anzahl: r ? r.anzahl : 0 });
         if (!r || u.prozent === 0) return;
         sg += u.prozent; sgn += u.prozent * r.note;
@@ -6045,7 +6083,7 @@ function gesamtnote(kurs, susId) {
       if (!sg || tg === 0) return;
       sumG += tg; sumGN += tg * (sgn / sg);
     } else {
-      var r = kategorieSchnitt(kurs, susId, t.name);
+      var r = kategorieSchnitt(kurs, susId, t.name, extra);
       detail.push({ name: t.name, gewicht: Math.round(tg * 1000) / 1000, note: r ? r.note : null, anzahl: r ? r.anzahl : 0 });
       if (!r || tg === 0) return;
       sumG += tg; sumGN += tg * r.note;
@@ -6890,6 +6928,7 @@ var ICON_PFADE_ = {
   sync: '<path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16"/><path d="M16 16h5v5"/>',
   speicher: '<ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M3 5v14a9 3 0 0 0 18 0V5"/><path d="M3 12a9 3 0 0 0 18 0"/>',
   app: '<rect width="14" height="20" x="5" y="2" rx="2"/><path d="M12 18h.01"/>',
+  werkzeug: '<path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/>',
   notiz: '<path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/><path d="M16 13H8"/><path d="M16 17H8"/>'
 };
 /* V75: Karten einer Ansicht einsammeln statt untereinander stapeln (für Kachel-Übersichten) */
@@ -7735,7 +7774,7 @@ function listenStrafenAbgleichen_() {
       if (st.checks[s.id]) return;
       var key = a.id + '|' + s.id; if (alt[key] || (m && m[key])) return;
       if (!m) m = A.clone(alt);
-      m[key] = { aufgabeId: a.id, susId: s.id, titel: a.titel || 'Liste', listeFrist: a.frist, kursIds: ids, vergeben: heute, frist: A.addDays(heute, 7) };
+      m[key] = { aufgabeId: a.id, susId: s.id, titel: a.titel || 'Liste', listeFrist: a.frist, kursIds: ids, vergeben: heute, frist: A.addDays(heute, strafFristTage_()) };
       neu++;
     });
   });
@@ -8098,7 +8137,7 @@ function elternGrundLabel_(grund) {
   }
   if (grund.typ === 'positiv') {
     var kp=A.byId('Kurse',grund.kursId);
-    return (grund.signal==='mitarbeit_verbessert'?'Positive Entwicklung':'Positive Mitarbeit') + (kp&&kp.fach?' · '+kp.fach:'');
+    return (grund.signal==='mitarbeit_verbessert'?'Positive Entwicklung':grund.signal==='nichts_vergessen'?'Zuverlässig geworden':grund.signal==='note_verbessert'?'Deutlich bessere Note':'Positive Mitarbeit') + (kp&&kp.fach?' · '+kp.fach:'');
   }
   if (grund.typ === 'liste') {
     var a=aufgabeById(grund.aufgabeId);
@@ -8178,6 +8217,8 @@ function elternNachrichtText_(sus, grund, ton, anzahlNennen, zusatz) {
   } else if(grund&&grund.typ==='positiv'){
     positiv=true; var k=A.byId('Kurse',grund.kursId),f=k&&k.fach?' im Fach '+k.fach:'';
     if(grund.signal==='mitarbeit_verbessert') mitte='ich möchte Ihnen gern eine positive Rückmeldung geben: Mir ist aufgefallen, dass sich '+name+f+' in letzter Zeit deutlich aktiver und engagierter am Unterricht beteiligt. Diese Entwicklung finde ich sehr erfreulich.';
+    else if(grund.signal==='nichts_vergessen') mitte='ich möchte Ihnen gern eine positive Rückmeldung geben: '+name+' hat'+f+' seit mehreren Wochen Hausaufgaben und Material zuverlässig dabei. Das war vorher nicht immer so – diese Entwicklung freut mich sehr.';
+    else if(grund.signal==='note_verbessert') mitte='ich möchte Ihnen gern eine positive Rückmeldung geben: '+name+' hat sich'+f+' in der letzten Leistung deutlich verbessert. Die Anstrengung hat sich gelohnt – das freut mich sehr.';
     else mitte='ich möchte Ihnen gern eine positive Rückmeldung geben: '+name+' beteiligt sich'+f+' in letzter Zeit sehr zuverlässig und engagiert am Unterricht. Das ist mir positiv aufgefallen.';
   } else if(grund&&grund.typ==='liste'){
     var a=aufgabeById(grund.aufgabeId)||{titel:grund.titel||'Abgabe',abgabeArt:grund.abgabeArt||'auto'};
@@ -8585,7 +8626,43 @@ function positiveMitarbeitHinweis_(kursId,susId){
   if(rec&&rec.status==='spaeter'&&String(rec.bis||'')>A.todayISO())return null;
   return h;
 }
-function positiveHinweiseFuerSus_(susId){var s=A.byId('SuS',susId),out=[];if(!s)return out;A.kurseDerKlasse(s.klasseId).forEach(function(k){var h=positiveMitarbeitHinweis_(k.id,susId);if(h)out.push(h);});return out;}
+/* V107: weitere Anlässe für Lob – lange nichts vergessen (nach früherem Vergessen) und deutlich bessere Arbeit. */
+function positivOffen_(h){
+  var recent=elternVerlauf_().some(function(x){if(x.susId!==h.susId||x.kursId!==h.kursId||x.typ!=='positiv')return false;var d=String(x.zeit||'').slice(0,10);return d&&d>=A.addDays(A.todayISO(),-21);});
+  if(recent)return null;
+  var rec=elternVorgaenge_()[elternVorgangKey_(h)];
+  if(rec&&(rec.status==='verschickt'||rec.status==='besprochen'||rec.status==='verworfen'))return null;
+  if(rec&&rec.status==='spaeter'&&String(rec.bis||'')>A.todayISO())return null;
+  return h;
+}
+function positiveZuverlaessigHinweis_(kursId,susId){
+  var seit=A.addDays(A.todayISO(),-28), alle=A.list('Checks',function(c){return c.kursId===kursId&&c.wert;});
+  var tage={}; alle.forEach(function(c){if(c.datum>=seit)tage[c.datum]=1;});
+  if(Object.keys(tage).length<4)return null;               /* in 4 Wochen an mind. 4 Tagen abgehakt */
+  var eigene=alle.filter(function(c){return c.susId===susId&&c.wert!=='e';});
+  if(eigene.length<3)return null;                            /* vorher wirklich öfter vergessen */
+  var letzte=eigene.map(function(c){return c.datum;}).sort().pop();
+  if(letzte>=seit)return null;
+  return positivOffen_({typ:'positiv',susId:susId,kursId:kursId,punkt:'Zuverlässigkeit',signal:'nichts_vergessen',signature:'nichts_vergessen|'+letzte,anzahl:0});
+}
+function positiveNoteHinweis_(kursId,susId){
+  var kurs=A.byId('Kurse',kursId); if(!kurs)return null;
+  var ls=leistungenDesKurses_(kursId).filter(function(l){return l.datum;}), nachKat={};
+  ls.forEach(function(l){var n=A.noteFuer(l,susId,kurs);if(n===null||n===undefined||isNaN(n))return;(nachKat[l.kategorie]=nachKat[l.kategorie]||[]).push({l:l,n:n});});
+  var bester=null;
+  Object.keys(nachKat).forEach(function(k){var a=nachKat[k];if(a.length<2)return;var neu=a[a.length-1],alt=a[a.length-2];
+    if(neu.l.datum<A.addDays(A.todayISO(),-21))return;
+    var d=alt.n-neu.n; if(d>=1&&(!bester||d>bester.d))bester={d:d,neu:neu,alt:alt};});
+  if(!bester)return null;
+  return positivOffen_({typ:'positiv',susId:susId,kursId:kursId,punkt:'Leistung',signal:'note_verbessert',signature:'note_verbessert|'+bester.neu.l.id,anzahl:0,titel:bester.neu.l.titel||bester.neu.l.kategorie});
+}
+function positivText_(h){
+  return h.signal==='mitarbeit_verbessert'?'Mitarbeit in letzter Zeit deutlich verbessert'
+    :h.signal==='nichts_vergessen'?'Seit vier Wochen nichts mehr vergessen'
+    :h.signal==='note_verbessert'?'Deutlich bessere Note'+(h.titel?' in „'+h.titel+'“':'')
+    :'Mitarbeit zuletzt besonders zuverlässig und engagiert';
+}
+function positiveHinweiseFuerSus_(susId){var s=A.byId('SuS',susId),out=[];if(!s)return out;A.kurseDerKlasse(s.klasseId).forEach(function(k){var h=positiveMitarbeitHinweis_(k.id,susId)||positiveNoteHinweis_(k.id,susId)||positiveZuverlaessigHinweis_(k.id,susId);if(h)out.push(h);});return out;}
 
 function elternVorgangKey_(h) {
   if(h&&h.typ==='vergessen')return [h.kursId||'',h.susId||'',h.punkt||'',h.anzahl||0].join('|');
@@ -8674,7 +8751,7 @@ function inboxHTML(datum){
   var aufgaben=items.filter(function(x){return x.typ!=='vergessen'&&x.typ!=='positiv';});
   function elternZeile(it,name,sus){
     var h=it.h,k=it.kurs,fach=k&&k.fach?k.fach:'',last=elternKontaktText_(h),positiv=it.typ==='positiv';
-    var reason=positiv?'Positive Rückmeldung':(h.punkt||'Material')+' fehlt '+h.anzahl+'×';
+    var reason=positiv?'Lob: '+positivText_(h):(h.punkt||'Material')+' fehlt '+h.anzahl+'×';
     var attrs=' data-sus="'+h.susId+'" data-kurs="'+h.kursId+'"'+(positiv?'':' data-punkt="'+A.esc(h.punkt)+'" data-anzahl="'+h.anzahl+'"');
     var pre=positiv?'positiv':'eltern';
     return '<div class="today-task'+(positiv?' ist-positiv':'')+'" data-wisch="1"><button class="inbox-open" data-act="open-sus" data-sus="'+A.esc(h.susId)+'"><div class="inbox-icon '+(positiv?'ic-positiv':'ic-eltern')+'">'+ICON_('eltern')+'</div><div class="inbox-main"><b>'+A.esc(name)+klasseChip_(sus)+'</b><span>'+A.esc((fach?fach+' · ':'')+reason+(last?' · '+last:''))+'</span></div></button>'+
@@ -8684,7 +8761,7 @@ function inboxHTML(datum){
   }
   function elternRow(it){
     var h=it.h,k=it.kurs,fach=k&&k.fach?k.fach:'',last=elternKontaktText_(h),reason='',positiv=it.typ==='positiv';
-    if(positiv)reason=h.signal==='mitarbeit_verbessert'?'Mitarbeit in letzter Zeit deutlich verbessert':'Mitarbeit zuletzt besonders zuverlässig und engagiert';
+    if(positiv)reason=positivText_(h);
     else reason=(h.punkt||'Material')+' fehlt · '+h.anzahl+'×';
     var status=last||(positiv?'Positive Rückmeldung vorgeschlagen':'');
     var attrs=' data-sus="'+h.susId+'" data-kurs="'+h.kursId+'"'+(positiv?'':' data-punkt="'+A.esc(h.punkt)+'" data-anzahl="'+h.anzahl+'"');
@@ -8732,7 +8809,9 @@ function setSitzRegelnFuer(klasseId, regeln) {
 }
 function sitzPositionen(plan) {
   var out=[];
-  (plan.items||[]).forEach(function(it,ti){ if(!it||it.type!=='table') return; (it.seats||[]).forEach(function(id,si){ out.push({key:sitzKey(ti,si),tisch:ti,platz:si,id:id||'',row:Math.floor(ti/Math.max(1,plan.tischeProReihe)),col:ti%Math.max(1,plan.tischeProReihe)}); }); });
+  /* V107: x = Platznummer in der Reihe von links (über Tischgrenzen hinweg), für „in der Nähe“ und „weit weg“. */
+  var tpr=Math.max(1,plan.tischeProReihe), rowX=0;
+  (plan.items||[]).forEach(function(it,ti){ if(ti%tpr===0) rowX=0; if(!it||it.type!=='table'){ rowX+=2; return; } (it.seats||[]).forEach(function(id,si){ out.push({key:sitzKey(ti,si),tisch:ti,platz:si,id:id||'',row:Math.floor(ti/tpr),col:ti%tpr,x:rowX+si}); }); rowX+=(it.seats||[]).length; });
   return out;
 }
 function sitzPlanAusBelegung(plan, belegung) {
@@ -8742,7 +8821,7 @@ function sitzPlanAusBelegung(plan, belegung) {
 var SITZ_PRIO = { muss: 'Muss', wichtig: 'Wichtig', wunsch: 'Wunsch' };
 var SITZ_PRIO_RANG = { muss: 3, wichtig: 2, wunsch: 1 };
 function sitzPrioStd_(art, typ) {
-  return (art === 'fix' || (art === 'paar' && (typ === 'nicht-neben' || typ === 'nicht-tisch'))) ? 'muss' : 'wunsch';
+  return (art === 'fix' || (art === 'paar' && (typ === 'nicht-neben' || typ === 'nicht-tisch' || typ === 'nicht-nah'))) ? 'muss' : 'wunsch';
 }
 function sitzPrio_(r, art, key, typ, paar) {
   var v = art === 'paar' ? (paar && paar.prio) : (r.prio || {})[(art === 'zone' ? 'z:' : 'f:') + key];
@@ -8754,14 +8833,23 @@ function sitzNah_(a, b) {
   if (a.col === b.col && Math.abs(a.row - b.row) === 1 && a.platz === b.platz) return 'hintereinander';
   return '';
 }
+/* V107: „in der Nähe“ = direkt daneben, nur eine Person dazwischen, oder direkt/schräg davor bzw. dahinter. */
+function sitzNaehe_(a, b) {
+  var dx = Math.abs(a.x - b.x), dr = Math.abs(a.row - b.row);
+  if (dr === 0) return dx === 1 ? 'sitzen direkt nebeneinander' : dx === 2 ? 'nur eine Person dazwischen' : '';
+  if (dr === 1) return dx === 0 ? 'sitzen direkt hintereinander' : dx === 1 ? 'sitzen schräg hintereinander' : '';
+  return '';
+}
+function sitzAbstand_(a, b) { return Math.abs(a.row - b.row) * 2 + Math.abs(a.x - b.x) / 2; }
 function sitzSusN_(id) { var x = A.byId('SuS', id); return x ? A.susName(x) : '?'; }
 function sitzRegelText_(r) {
-  var lab = { 'nicht-neben': 'nicht neben / vor / hinter', 'nicht-tisch': 'nicht am selben Tisch wie', 'gern-neben': 'bevorzugt neben', 'weit': 'möglichst weit weg von' }[r.typ] || r.typ;
+  var lab = { 'nicht-neben': 'nicht neben / vor / hinter', 'nicht-tisch': 'nicht am selben Tisch wie', 'nicht-nah': 'nicht in der Nähe von', 'gern-neben': 'bevorzugt neben', 'weit': 'möglichst weit weg von' }[r.typ] || r.typ;
   return sitzSusN_(r.a) + ' · ' + lab + ' · ' + sitzSusN_(r.b);
 }
 function sitzAuswertung(klasseId, plan) {
   var r = sitzRegelnFuer(klasseId), pos = sitzPositionen(plan), byId = {}; pos.forEach(function (p) { if (p.id) byId[p.id] = p; });
-  var liste = [], betroffen = {};
+  var liste = [], betroffen = {}, fern = 0, maxAbst = 1;
+  pos.forEach(function (p) { var d = p.row * 2 + p.x / 2; if (d > maxAbst) maxAbst = d; });
   function add(e) {
     liste.push(e);
     if (e.status === 'verletzt') (e.sus || []).forEach(function (id) { if (!betroffen[id] || SITZ_PRIO_RANG[e.prio] > SITZ_PRIO_RANG[betroffen[id]]) betroffen[id] = e.prio; });
@@ -8772,8 +8860,9 @@ function sitzAuswertung(klasseId, plan) {
     var sameT = a.tisch === b.tisch, ok = true, grund = "";
     if (x.typ === 'nicht-neben') { var nah = sitzNah_(a, b); ok = !nah; grund = nah === 'hintereinander' ? 'sitzen direkt hintereinander' : 'sitzen direkt nebeneinander'; }
     else if (x.typ === 'nicht-tisch') { ok = !sameT; grund = 'sitzen am selben Tisch'; }
+    else if (x.typ === 'nicht-nah') { var nh = sitzNaehe_(a, b); ok = !nh; grund = nh; }
     else if (x.typ === 'gern-neben') { ok = sameT; grund = 'sitzen an verschiedenen Tischen'; }
-    else if (x.typ === 'weit') { ok = !sameT && Math.abs(a.row - b.row) + Math.abs(a.col - b.col) >= 2; grund = 'sitzen zu nah beieinander'; }
+    else if (x.typ === 'weit') { ok = !sameT && Math.abs(a.row - b.row) + Math.abs(a.col - b.col) >= 2; grund = 'sitzen zu nah beieinander'; fern += 1 - Math.min(1, sitzAbstand_(a, b) / maxAbst); }
     e.status = ok ? 'ok' : 'verletzt'; e.grund = ok ? '' : grund; add(e);
   });
   Object.keys(r.zonen).forEach(function (id) {
@@ -8797,9 +8886,10 @@ function sitzAuswertung(klasseId, plan) {
   });
   var st = { verletzt: 0, 'nicht-pruefbar': 1, ok: 2 };
   liste.sort(function (a, b) { return (st[a.status] - st[b.status]) || (SITZ_PRIO_RANG[b.prio] - SITZ_PRIO_RANG[a.prio]); });
-  return { hart: hart, wichtig: wichtig, wunsch: wunsch, wunschGes: wunschGes, details: details, liste: liste, betroffen: betroffen };
+  return { hart: hart, wichtig: wichtig, wunsch: wunsch, wunschGes: wunschGes, details: details, liste: liste, betroffen: betroffen, fern: fern };
 }
-function sitzScore(klasseId, plan) { var a = sitzAuswertung(klasseId, plan); return a.hart * 10000 + (a.wunschGes - a.wunsch) * 25 + a.wichtig * 375; }
+/* fern: „möglichst weit weg“ zählt stufenlos – je größer der Abstand, desto besser (bleibt kleiner als ein ganzer Wunsch). */
+function sitzScore(klasseId, plan) { var a = sitzAuswertung(klasseId, plan); return a.hart * 10000 + (a.wunschGes - a.wunsch) * 25 + a.wichtig * 375 + a.fern * 20; }
 function sitzKonfliktHTML_(aus) {
   var L = aus.liste || [];
   if (!L.length) return '<div class="small muted">Noch keine Regeln angelegt. Über „Regeln“ kannst du welche festlegen.</div>';
@@ -8824,16 +8914,36 @@ function sitzChipsHTML_(regeln, aus) {
 function sitzVorschlaege(klasseId, anzahl) {
   var plan=sitzPlanFlex(klasseId), reg=sitzRegelnFuer(klasseId), pos=sitzPositionen(plan), ids=A.susDerKlasse(klasseId).map(function(x){return x.id;});
   if(pos.length<ids.length) return [];
-  var best=[], gesehen={};
-  for(var iter=0;iter<900;iter++){
+  var n=anzahl||3, best=[], gesehen={}, fixKeys={};
+  function sig(beleg){return pos.map(function(p){return beleg[p.key]||'';}).join('|');}
+  function bewerten(beleg){var neu=sitzPlanAusBelegung(plan,beleg);return {plan:neu,beleg:beleg,score:sitzScore(klasseId,neu)};}
+  /* 1. Zufällige Startpläne */
+  for(var iter=0;iter<250;iter++){
     var beleg={}, used={};
-    Object.keys(reg.fixiert).forEach(function(id){ var key=reg.fixiert[id]; if(ids.indexOf(id)>=0&&pos.some(function(p){return p.key===key;})){beleg[key]=id;used[id]=true;} });
+    Object.keys(reg.fixiert).forEach(function(id){ var key=reg.fixiert[id]; if(ids.indexOf(id)>=0&&pos.some(function(p){return p.key===key;})){beleg[key]=id;used[id]=true;fixKeys[key]=1;} });
     var frei=pos.filter(function(p){return !beleg[p.key];}).map(function(p){return p.key;}); frei=mischen(frei);
     var rest=mischen(ids.filter(function(id){return !used[id];})); rest.forEach(function(id,i){if(frei[i])beleg[frei[i]]=id;});
-    var neu=sitzPlanAusBelegung(plan,beleg), sig=pos.map(function(p){return beleg[p.key]||'';}).join('|'); if(gesehen[sig])continue; gesehen[sig]=true;
-    var aus=sitzAuswertung(klasseId,neu), score=sitzScore(klasseId,neu); best.push({plan:neu,aus:aus,score:score}); best.sort(function(a,b){return a.score-b.score;}); if(best.length>Math.max(3,anzahl||3))best.pop();
+    var sg=sig(beleg); if(gesehen[sg])continue; gesehen[sg]=true;
+    best.push(bewerten(beleg)); best.sort(function(a,b){return a.score-b.score;}); if(best.length>6)best.pop();
   }
-  return best.slice(0,anzahl||3);
+  /* 2. V107: jeden guten Start schrittweise verbessern – zwei Plätze tauschen, behalten, wenn es besser wird. */
+  var tauschbar=pos.map(function(p){return p.key;}).filter(function(k){return !fixKeys[k];});
+  var fertig=[], fs={};
+  best.forEach(function(st){
+    var cur=st, ohne=0;
+    for(var t=0;t<500&&cur.score>0&&ohne<160&&tauschbar.length>1;t++){
+      var k1=tauschbar[Math.floor(Math.random()*tauschbar.length)],k2=tauschbar[Math.floor(Math.random()*tauschbar.length)];
+      if(k1===k2||(!cur.beleg[k1]&&!cur.beleg[k2])){ohne++;continue;}
+      var nb={};Object.keys(cur.beleg).forEach(function(k){nb[k]=cur.beleg[k];});
+      var tmp=nb[k1];if(nb[k2])nb[k1]=nb[k2];else delete nb[k1];if(tmp)nb[k2]=tmp;else delete nb[k2];
+      var kand=bewerten(nb);
+      if(kand.score<cur.score){cur=kand;ohne=0;}else ohne++;
+    }
+    var sg=sig(cur.beleg); if(fs[sg])return; fs[sg]=1;
+    cur.aus=sitzAuswertung(klasseId,cur.plan); fertig.push(cur);
+  });
+  fertig.sort(function(a,b){return a.score-b.score;});
+  return fertig.slice(0,n);
 }
 function sitzVorschlagTischeHTML(v){ return (v.plan.items||[]).filter(function(it){return it&&it.type==='table';}).map(function(it,i){var n=(it.seats||[]).map(function(id){var s=A.byId('SuS',id);return s?A.susKurz(s):'frei';}).join(' · ');return '<div class="vorschlag-tisch"><b>Tisch '+(i+1)+'</b><br>'+A.esc(n)+'</div>';}).join(''); }
 function gruppenMitRegeln(sus, modus, zahl) {
@@ -9643,8 +9753,7 @@ function wochenAnsichtHTML(datum) {
 VIEWS.heute = {
   title: function () { return 'Heute'; },
   actions: function () {
-    return '<button class="icon-btn search-btn" data-act="suche" title="Suchen" aria-label="Suchen"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.8" cy="10.8" r="6.3"></circle><path d="m15.6 15.6 4.2 4.2"></path></svg></button>' +
-           '<button class="icon-btn" data-act="datum-waehlen" title="Datum wählen" aria-label="Datum wählen"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="5.5" width="16" height="14" rx="2"></rect><path d="M4 10h16M8.5 3.5v4M15.5 3.5v4"></path></svg></button>' +
+    return '<button class="icon-btn" data-act="datum-waehlen" title="Datum wählen" aria-label="Datum wählen"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="5.5" width="16" height="14" rx="2"></rect><path d="M4 10h16M8.5 3.5v4M15.5 3.5v4"></path></svg></button>' +
            '<button class="icon-btn" data-act="extra-stunde" title="Extra-Stunde" aria-label="Extra-Stunde"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14"></path></svg></button>';
   },
   body: function () {
@@ -9747,8 +9856,7 @@ VIEWS.stunde = {
         '<div class="chk-fuss" id="chkFuss">' + checkFussText(p.datum, p.stunde, kurs.id, punkte) + '</div>');
       h += '<div class="btn-row">' +
         '<button class="btn small" data-act="check-reset">Alle auf „dabei“</button>' +
-        '<button class="btn small" data-act="check-punkte" data-kurs="' + kurs.id + '" ' +
-        'data-tag="' + A.tagVon(p.datum) + '" data-stunde="' + p.stunde + '">Punkte anpassen</button></div>';
+        '<button class="btn small" data-act="stunde-ansicht" data-kurs="' + kurs.id + '">Stunde anpassen</button></div>';
     }
 
     /* --- Mitarbeit, ebenfalls als Kachelraster --- */
@@ -10600,7 +10708,7 @@ VIEWS.sus = {
     var kurse = A.kurseDerKlasse(klasse.id);
     var card = kartenSammler_();
 
-    var h = '<div class="profile-head"><div class="profile-eyebrow">'+A.esc(klasse.name)+'</div><h1>'+A.esc(A.susName(s))+'</h1><div class="profile-head-actions"><button class="btn" data-act="eltern-nachricht" data-sus="'+s.id+'">Elternnachricht</button><button class="btn" data-act="gespraech-neu" data-sus="'+s.id+'">Gespräch protokollieren</button><button class="btn" data-act="mappe-open" data-sus="'+s.id+'">Gesprächsmappe</button><button class="btn" data-act="straf-neu" data-sus="'+s.id+'">Strafarbeit</button></div></div>';
+    var h = '<div class="profile-head"><div class="profile-eyebrow">'+A.esc(klasse.name)+'</div><h1>'+A.esc(A.susName(s))+'</h1><div class="profile-head-actions"><button class="btn" data-act="eltern-nachricht" data-sus="'+s.id+'">Elternnachricht</button><button class="btn" data-act="gespraech-neu" data-sus="'+s.id+'">Gespräch protokollieren</button><button class="btn" data-act="mappe-open" data-sus="'+s.id+'">Gesprächsmappe</button><button class="btn" data-act="straf-neu" data-sus="'+s.id+'">Strafarbeit</button><button class="btn" data-act="prognose" data-sus="'+s.id+'">Was brauche ich für …?</button></div></div>';
     var timelineFilter=(ui.timelineFilterBySus&&ui.timelineFilterBySus[s.id])||'all';
     h += card('Seit letztem Mal', susSeitLetztemHTML_(s.id));
     h += card('Verlauf', susTimelineHTML_(s.id,timelineFilter));
@@ -10752,7 +10860,7 @@ function notenKontext_(l, kurs) {
     if (l.datum && x.datum) return x.datum < l.datum;
     return !!x.datum && !l.datum;
   }).slice(-3);
-  return { alle: alle, daneben: daneben, vorher: vorher, entwicklung: A.LS.get('notenEntwicklung', true) !== false, kursId: kurs.id };
+  return { alle: alle, daneben: daneben, vorher: vorher, entwicklung: A.LS.get('notenEntwicklung', true) !== false, kommentar: A.LS.get('notenKommentar', true) !== false, kursId: kurs.id };
 }
 function notenKontextLeiste_(nk) {
   if (!nk.alle.length) return '';
@@ -10761,7 +10869,8 @@ function notenKontextLeiste_(nk) {
     return ma - mb || String(b.datum || '').localeCompare(String(a.datum || ''));
   }).map(function (x) { return '<option value="' + x.id + '"' + (nk.daneben && nk.daneben.id === x.id ? ' selected' : '') + '>' + A.esc(leistungName_(x)) + '</option>'; }).join('');
   return '<div class="noten-kontext"><label class="nkx-feld"><span>Daneben zeigen</span><select data-noten-daneben data-kurs="' + nk.kursId + '">' + opts + '</select></label>' +
-    (nk.vorher.length ? '<label class="ns-toggle"><input type="checkbox" data-noten-entw' + (nk.entwicklung ? ' checked' : '') + '> Entwicklung zu ' + (nk.vorher.length === 1 ? 'der letzten Arbeit' : 'den letzten ' + nk.vorher.length + ' Arbeiten') + '</label>' : '') + '</div>';
+    (nk.vorher.length ? '<label class="ns-toggle"><input type="checkbox" data-noten-entw' + (nk.entwicklung ? ' checked' : '') + '> Entwicklung zu ' + (nk.vorher.length === 1 ? 'der letzten Arbeit' : 'den letzten ' + nk.vorher.length + ' Arbeiten') + '</label>' : '') +
+    '<label class="ns-toggle"><input type="checkbox" data-noten-komm' + (nk.kommentar ? ' checked' : '') + '> Kommentar-Satz</label></div>';
 }
 function notenTrendHTML_(ref, jetzt) {
   if (ref === null || ref === undefined || isNaN(ref) || jetzt === null || jetzt === undefined || isNaN(jetzt)) return '<span class="ne-trend" data-trend data-ref="' + (ref === null || ref === undefined || isNaN(ref) ? '' : ref) + '"></span>';
@@ -10771,10 +10880,28 @@ function notenTrendHTML_(ref, jetzt) {
   else { t = (a >= 0.75 ? '↓ deutlich verschlechtert' : '↓ verschlechtert') + ' (' + A.fmtNote(a, 1) + ')'; c = 'schlechter'; }
   return '<span class="ne-trend ' + c + '" data-trend data-ref="' + ref + '">' + t + '</span>';
 }
+/* V107: fertiger Kommentar-Satz zum Abschreiben auf die Arbeit. */
+function notenKommentarText_(ref, jetzt, dn, dTitel, dMuend) {
+  var ok = function (v) { return !(v === null || v === undefined || v === '' || isNaN(v)); };
+  if (!ok(jetzt)) return '';
+  var t = [];
+  if (ok(ref)) {
+    var d = Math.round((ref - jetzt) * 100) / 100, a = Math.abs(d), von = A.fmtNote(ref, 1), auf = A.fmtNote(jetzt, 1);
+    if (a < 0.25) t.push('Du hast deine Leistung aus der letzten Arbeit gehalten.');
+    else if (d > 0) t.push(a >= 0.75 ? 'Du hast dich im Vergleich zur letzten Arbeit deutlich verbessert (von ' + von + ' auf ' + auf + ') – weiter so!' : 'Du hast dich im Vergleich zur letzten Arbeit verbessert (von ' + von + ' auf ' + auf + ').');
+    else t.push('Diese Arbeit ist ' + (a >= 0.75 ? 'deutlich ' : 'etwas ') + 'schwächer als deine letzte (' + von + ').');
+  }
+  if (ok(dn)) t.push(dMuend ? 'Mündlich stehst du bei ' + A.fmtNote(dn, 1) + '.' : (dTitel || 'Weitere Leistung') + ': ' + A.fmtNote(dn, 1) + '.');
+  return t.join(' ');
+}
+function notenKommentarHTML_(ref, jetzt, dn, dTitel, dMuend) {
+  var z = function (v) { return (v === null || v === undefined || isNaN(v)) ? '' : v; };
+  return '<div class="ne-komm" data-komm data-ref="' + z(ref) + '" data-dn="' + z(dn) + '" data-dt="' + A.esc(dTitel || '') + '" data-dm="' + (dMuend ? 1 : 0) + '">' + A.esc(notenKommentarText_(ref, jetzt, dn, dTitel, dMuend)) + '</div>';
+}
 function notenKontextZeile_(nk, l, kurs, susId) {
-  var teile = [];
+  var teile = [], nd = null, refK = null;
   if (nk.daneben) {
-    var nd = A.noteFuer(nk.daneben, susId, kurs);
+    nd = A.noteFuer(nk.daneben, susId, kurs);
     teile.push('<span class="ne-daneben" title="' + A.esc(leistungName_(nk.daneben)) + '">' + A.esc(nk.daneben.titel || nk.daneben.kategorie) + ' <b>' + (nd === null || nd === undefined || isNaN(nd) ? '–' : A.fmtNote(nd, 1)) + '</b></span>');
   }
   if (nk.entwicklung && nk.vorher.length) {
@@ -10782,14 +10909,18 @@ function notenKontextZeile_(nk, l, kurs, susId) {
     var mitNote = werte.filter(function (w) { return w.n !== null; });
     teile.push('<span class="ne-vorher">' + werte.map(function (w) { return A.esc(w.x.titel || w.x.kategorie) + ' ' + (w.n === null ? '–' : A.fmtNote(w.n, 1)); }).join(' · ') + '</span>');
     var ref = mitNote.length ? mitNote[mitNote.length - 1].n : null;
+    refK = ref;
     teile.push(notenTrendHTML_(ref, A.noteFuer(l, susId, kurs)));
   }
-  return teile.length ? '<div class="ne-info">' + teile.join('') + '</div>' : '';
+  var komm = nk.kommentar && (nk.daneben || (nk.entwicklung && nk.vorher.length))
+    ? notenKommentarHTML_(refK, A.noteFuer(l, susId, kurs), nd, nk.daneben ? (nk.daneben.titel || nk.daneben.kategorie) : '', nk.daneben ? /m(ü|ue)ndl/i.test((nk.daneben.kategorie || '') + ' ' + (nk.daneben.titel || '')) : false) : '';
+  return teile.length ? '<div class="ne-info">' + teile.join('') + '</div>' + komm : '';
 }
 main.addEventListener('change', function (e) {
   var t = e.target;
   if (t.matches && t.matches('[data-noten-daneben]')) { var m = A.LS.get('notenDaneben', {}) || {}; m[t.getAttribute('data-kurs')] = t.value; A.LS.set('notenDaneben', m); render(); }
   else if (t.matches && t.matches('[data-noten-entw]')) { A.LS.set('notenEntwicklung', !!t.checked); render(); }
+  else if (t.matches && t.matches('[data-noten-komm]')) { A.LS.set('notenKommentar', !!t.checked); render(); }
 });
 
 VIEWS.leistung = {
@@ -10917,8 +11048,8 @@ VIEWS.leistung = {
 /* ====================================================================== */
 
 var MEHR_KACHELN_ = [
-  ['Konto', 'user'], ['Datensynchronisation', 'sync'], ['Speicher & Sicherung', 'speicher'], ['Arbeitskontext', 'ziel'],
-  ['Unterricht', 'buch'], ['Bewertung', 'regler'], ['Kommunikation', 'eltern'], ['Craft', 'notiz'], ['App', 'app'], ['Bestand', 'chart']
+  ['Konto', 'user'], ['Datensynchronisation', 'sync'], ['Speicher & Sicherung', 'speicher'],
+  ['Unterricht', 'buch'], ['Bewertung', 'regler'], ['Kommunikation', 'eltern'], ['Craft', 'notiz'], ['App', 'app'], ['Einrichtung', 'werkzeug'], ['Bestand', 'chart']
 ];
 VIEWS.mehr = {
   title: function (p) { return (p && p.b) || 'Einstellungen'; },
@@ -10964,10 +11095,8 @@ VIEWS.mehr = {
       '<button class="row" data-act="was-neu"><div class="row-main"><div class="row-title">Was ist neu</div><div class="row-sub">Änderungen in dieser Version</div></div><div class="chev">›</div></button>');
 
     var stdKl=A.standardKlasse();
-    h += card('Arbeitskontext',
-      '<button class="row" data-act="klassenleitung"><div class="row-main"><div class="row-title">Meine Klasse / Klassenleitung</div><div class="row-sub">'+(stdKl?A.esc(stdKl.name)+' · wird bei Beobachtungen und Auswahlen vorausgewählt':'keine Standardklasse')+'</div></div><div class="chev">›</div></button>');
-
     h += card('Unterricht',
+      '<button class="row" data-act="klassenleitung"><div class="row-main"><div class="row-title">Meine Klasse / Klassenleitung</div><div class="row-sub">'+(stdKl?A.esc(stdKl.name)+' · wird bei Beobachtungen und Auswahlen vorausgewählt':'keine Standardklasse')+'</div></div><div class="chev">›</div></button>' +
       '<button class="row" data-act="freie-tage"><div class="row-main"><div class="row-title">Ferien &amp; freie Tage</div><div class="row-sub">Ferien BW und Feiertage eingebaut · ' + A.eigeneFreieTage().length + ' eigene</div></div><div class="chev">›</div></button>' +
       '<button class="row" data-act="plan-stunden"><div class="row-main"><div class="row-title">Stundenzeiten</div>' +
         '<div class="row-sub">' + A.cfg('stunden').length + ' Stunden pro Tag</div></div><div class="chev">›</div></button>' +
@@ -10976,13 +11105,8 @@ VIEWS.mehr = {
         '</div></div><div class="chev">›</div></button>' +
       '<button class="row" data-act="stunde-ansicht-liste"><div class="row-main"><div class="row-title">Stunde je Klasse &amp; Fach</div>' +
         '<div class="row-sub">Was in den Stunden zu sehen ist: Abhaken (HA, Material …), Mitarbeit, Unterrichtsreihe …</div></div><div class="chev">›</div></button>' +
-      '<button class="row" data-act="check-punkte"><div class="row-main"><div class="row-title">Abhakliste (Vorgabe)</div>' +
-        '<div class="row-sub">' + ((A.cfg('checkpunkte') || []).map(function (x) { return A.esc(x.name); }).join(', ') || 'keine') +
-        '</div></div><div class="chev">›</div></button>' +
-      '<button class="row" data-act="strafarbeit"><div class="row-main"><div class="row-title">Strafarbeit</div>' +
-        '<div class="row-sub">' + (A.strafGrenze()
-          ? 'Hinweis ab ' + A.strafGrenze() + '× vergessen (je Fach)'
-          : 'kein Hinweis') + '</div></div><div class="chev">›</div></button>' +
+      '<button class="row" data-act="strafarbeit"><div class="row-main"><div class="row-title">Strafarbeit-Regeln</div>' +
+        '<div class="row-sub">' + A.esc(strafRegelnText_()) + '</div></div><div class="chev">›</div></button>' +
       '<button class="row" data-act="smileys-bearbeiten"><div class="row-main"><div class="row-title">Mitarbeit-Stufen</div>' +
         '<div class="row-sub mit-legende">' + A.cfg('smileys').map(function (x) { return '<span style="color:' + mitFarbe_(x) + '">' + mitSymbol_(x, 14) + '</span>'; }).join(' ') + '</div></div><div class="chev">›</div></button>' +
       '<button class="row" data-act="mitarbeit-einstellungen"><div class="row-main"><div class="row-title">Mitarbeit in der Note</div>' +
@@ -11029,7 +11153,6 @@ VIEWS.mehr = {
       '<button class="row" data-act="sus-sortierung"><div class="row-main"><div class="row-title">Sortierung der Schüler:innen</div>' +
         '<div class="row-sub">' + ({ nachname: 'Nachname (A–Z)', vorname: 'Vorname (A–Z)', eingabe: 'Reihenfolge der Eingabe' }[A.cfg('susSortierung') || 'nachname'] || '') +
         '</div></div><div class="chev">›</div></button>' +
-      '<button class="row" data-act="suche"><div class="row-main"><div class="row-title">Suche</div><div class="row-sub">Klassen, Schüler:innen, Fächer und Listen</div></div><div class="chev">›</div></button>' +
       '<button class="row" data-act="startseite"><div class="row-main"><div class="row-title">Startseite</div><div class="row-sub">' + ({heute:'Heute',plan:'Stundenplan',klassen:'Klassen',noten:'Noten'}[A.cfg('startseite')||'heute']) + '</div></div><div class="chev">›</div></button>' +
       '<button class="row" data-act="auto-lock"><div class="row-main"><div class="row-title">Automatisch sperren</div><div class="row-sub">' + (A.cfg('autoLockMin') ? 'nach ' + A.cfg('autoLockMin') + ' Minute(n) im Hintergrund' : 'aus') + '</div></div><div class="chev">›</div></button>' +
       '<button class="row" data-act="daily-login"><div class="row-main"><div class="row-title">Anmeldung</div><div class="row-sub">' + (taeglicheAnmeldungAktiv_() ? 'einmal pro Tag bestätigen' : 'gespeicherte Sitzung direkt öffnen') + '</div></div><div class="chev">›</div></button>' +
@@ -11039,6 +11162,8 @@ VIEWS.mehr = {
         '</span></div></div><div class="chev">›</div></button>' +
       '<button class="row" data-act="pin-setzen"><div class="row-main"><div class="row-title">PIN-Sperre</div>' +
         '<div class="row-sub">' + (A.cfg('pin') ? 'aktiv' : 'aus') + '</div></div><div class="chev">›</div></button>' +
+      '');
+    h += card('Einrichtung',
       '<button class="row" data-act="craft-api"><div class="row-main"><div class="row-title">Craft-Verbindung</div>' +
         '<div class="row-sub">' + (craftTodoVerbunden_() ? 'verbunden · To-dos gehen in die Tagesnotiz' : 'nötig für To-dos (landen in der Craft-Tagesnotiz)') + '</div></div><div class="chev">›</div></button>' +
       '<button class="row" data-act="kurzbefehl-todo"><div class="row-main"><div class="row-title">iPhone-Kurzbefehl für To-dos</div><div class="row-sub">To-do nach Craft per Siri oder Rückseite-Tippen – ohne die App zu öffnen</div></div><div class="chev">›</div></button>' +
@@ -11067,12 +11192,12 @@ VIEWS.mehr = {
       'Konto': user ? A.esc(user.name || user.email || '') : '',
       'Datensynchronisation': statusText + (s.pendingCount() ? ' · ' + s.pendingCount() + ' offen' : ''),
       'Speicher & Sicherung': 'Sicherung, Papierkorb, Fehlerprotokoll',
-      'Arbeitskontext': stdKl ? 'Meine Klasse: ' + A.esc(stdKl.name) : 'keine Standardklasse',
-      'Unterricht': 'Ferien, Stundenzeiten, Strafarbeit, Mitarbeit',
+      'Unterricht': (stdKl ? 'Meine Klasse ' + A.esc(stdKl.name) + ' · ' : '') + 'Ferien, Stunde je Fach, Strafarbeit',
       'Bewertung': 'Fächer, Gewichtung, Notenschlüssel',
       'Kommunikation': 'Elternnachrichten und Hinweise',
       'Craft': 'Verbindung',
-      'App': 'Farbdesign, Sperre, Export',
+      'App': 'Farbdesign, Namen, Sperre',
+      'Einrichtung': 'Server, Craft, Kurzbefehl, Export/Import',
       'Bestand': z.s + ' Schüler:innen · ' + z.n + ' Noten'
     };
     return kachelGrid_('', MEHR_KACHELN_.filter(function (m) { return card.finde(m[0]); }).map(function (m) {
@@ -11642,6 +11767,43 @@ function chkPunktZeileHTML(pt) {
 
 /* --- Strafarbeit ------------------------------------------------------- */
 
+/* V108: Notenprognose – welche Note braucht das Kind in der nächsten Leistung für eine bestimmte Zeugnisnote? */
+function prognoseZeilen_(kurs, susId, kat) {
+  var g1 = A.gesamtnote(kurs, susId, { kat: kat, note: 1 }).note, g6 = A.gesamtnote(kurs, susId, { kat: kat, note: 6 }).note;
+  if (g1 === null || g6 === null || g6 - g1 < 0.0001) return null;
+  var zug = A.cfg('rundung') === 'zugunsten', out = [];
+  for (var z = 1; z <= 5; z++) {
+    var grenze = z + 0.5 - (zug ? 0 : 0.005);
+    var x = 1 + (grenze - g1) * 5 / (g6 - g1);
+    var txt, cls = '';
+    if (x >= 6) { txt = 'sicher – selbst mit einer 6'; cls = 'ok'; }
+    else if (x < 1) { txt = 'mit einer Leistung nicht mehr zu schaffen'; cls = 'nein'; }
+    else { var n = Math.floor(x * 10 + 0.0001) / 10; txt = 'mindestens eine <b>' + A.fmtNote(n, 1) + '</b>'; }
+    out.push({ ziel: z, txt: txt, cls: cls, x: x });
+  }
+  return { zeilen: out, spanne: [g1, g6] };
+}
+ACT['prognose'] = function (el) {
+  var sus = A.byId('SuS', el.getAttribute('data-sus')); if (!sus) return;
+  var kurse = A.kurseDerKlasse(sus.klasseId).filter(kursMitNoten_);
+  if (!kurse.length) { window.toast('Für diese Klasse gibt es noch kein Fach mit Noten.', true); return; }
+  var body = '<div class="field"><label>Fach</label><select id="pgKurs">' + kurse.map(function (k) { return '<option value="' + k.id + '">' + A.esc(k.fach) + '</option>'; }).join('') + '</select></div>' +
+    '<div class="field"><label>Nächste Leistung ist …</label><select id="pgKat"></select></div><div id="pgOut"></div>';
+  Modal.open({ title: 'Was brauche ich für …? · ' + A.susName(sus), body: body, after: function (bg) {
+    var selK = bg.querySelector('#pgKurs'), selA = bg.querySelector('#pgKat'), out = bg.querySelector('#pgOut');
+    function arten() { var k = A.byId('Kurse', selK.value); selA.innerHTML = katOptionen_(k).map(function (o) { return '<option value="' + A.esc(o.value) + '">' + A.esc(o.label) + '</option>'; }).join(''); }
+    function zeichnen() {
+      var k = A.byId('Kurse', selK.value), jetzt = A.gesamtnote(k, sus.id).note, p = prognoseZeilen_(k, sus.id, selA.value);
+      var kopf = '<div class="pg-stand">Aktueller Stand: <b>' + (jetzt === null ? '–' : A.fmtNote(jetzt, 2)) + '</b>' + (jetzt === null ? '' : ' → Zeugnisnote ' + A.rundeNote(jetzt)) + '</div>';
+      if (!p) { out.innerHTML = kopf + '<div class="small muted">Diese Art zählt in diesem Fach nicht (0 %) – die Note würde nichts ändern.</div>'; return; }
+      out.innerHTML = kopf + p.zeilen.map(function (z) { return '<div class="pg-zeile ' + z.cls + '"><span class="pg-ziel">Für eine ' + z.ziel + '</span><span class="pg-txt">' + z.txt + '</span></div>'; }).join('') +
+        '<p class="small muted" style="margin:10px 2px 0">Gerechnet mit genau einer weiteren Leistung dieser Art, gleich gewichtet wie die bisherigen. Mit einer 1 wäre der Stand ' + A.fmtNote(p.spanne[0], 2) + ', mit einer 6 ' + A.fmtNote(p.spanne[1], 2) + '. Rundung: ' + (A.cfg('rundung') === 'zugunsten' ? 'x,5 wird zur besseren Note' : 'x,5 wird zur schlechteren Note') + '.</p>';
+    }
+    selK.addEventListener('change', function () { arten(); zeichnen(); }); selA.addEventListener('change', zeichnen);
+    arten(); zeichnen();
+  } });
+};
+
 /* V106: Strafarbeiten einer Klasse verwalten (alle Fächer, alle Arten). */
 function klasseStrafen_(klasseId) {
   var heute = A.todayISO(), alle = [], kurz = [];
@@ -11693,7 +11855,7 @@ function klasseStrafenHTML_(klasseId) {
     '<div class="sv-stat"><b>' + d.nachsitzen.length + '</b><span>Nachsitzen</span></div>' +
     '<div class="sv-stat"><b>' + d.kurz.length + '</b><span>kurz davor</span></div></div>';
   h += '<button class="btn primary block sv-neu" data-act="straf-neu" data-klasse="' + klasseId + '">＋ Strafarbeit eintragen</button>';
-  if (!d.alle.length && !d.kurz.length) return h + card('', empty('', 'Keine Strafarbeiten in dieser Klasse.'));
+  if (!d.alle.length && !d.kurz.length) return h + card('', empty('', 'Keine Strafarbeiten in dieser Klasse.')) + '<button class="row sv-regeln" data-act="strafarbeit"><div class="row-main"><div class="row-title">Strafarbeit-Regeln</div><div class="row-sub">' + A.esc(strafRegelnText_()) + '</div></div><div class="chev">›</div></button>';
   h += '<div class="sort-bar"><span>Ordnen</span><button class="sort-chip' + (modus === 'frist' ? ' on' : '') + '" data-act="straf-ansicht" data-m="frist">nach Fälligkeit</button><button class="sort-chip' + (modus === 'kind' ? ' on' : '') + '" data-act="straf-ansicht" data-m="kind">nach Kind</button><button class="sort-chip' + (modus === 'fach' ? ' on' : '') + '" data-act="straf-ansicht" data-m="fach">nach Fach</button></div>';
   var nachFrist = function (a, b) { return String(a.frist || '9999').localeCompare(String(b.frist || '9999')) || A.susName(a.sus).localeCompare(A.susName(b.sus)); };
   if (modus === 'kind' || modus === 'fach') {
@@ -11719,6 +11881,7 @@ function klasseStrafenHTML_(klasseId) {
     return '<div class="sv-row"><div class="sv-main"><div class="sv-kopf"><b>' + A.esc(A.susName(k.sus)) + '</b><span class="sv-fach" style="--kc:' + A.kursFarbe(k.kurs) + '">' + A.esc(k.kurs.fach || '') + '</span></div>' +
       '<div class="sv-sub">' + k.st.gesamt + '× vergessen · beim nächsten Mal Strafarbeit</div></div></div>';
   }).join(''), 'sv-card');
+  h += '<button class="row sv-regeln" data-act="strafarbeit"><div class="row-main"><div class="row-title">Strafarbeit-Regeln</div><div class="row-sub">' + A.esc(strafRegelnText_()) + '</div></div><div class="chev">›</div></button>';
   if (d.erledigt.length) h += '<details class="sv-erledigt"><summary>Abgegeben in den letzten 30 Tagen (' + d.erledigt.length + ')</summary>' +
     d.erledigt.map(function (x) { return strafZeileHTML_(x, true); }).join('') + '</details>';
   return h;
@@ -11751,7 +11914,7 @@ function strafeNeuOeffnen_(kursId, susId, klasseId) {
     '<div class="field"><label>Grund</label><div class="chiplist" id="snGruende">' + STRAF_GRUENDE_.map(function (g) { return '<button type="button" class="chip" data-sn-grund="' + A.esc(g) + '">' + A.esc(g) + '</button>'; }).join('') + '</div>' +
     '<input id="snGrund" placeholder="oder eigener Grund / Aufgabe, z. B. Text abschreiben S. 34" style="margin-top:8px"></div>' +
     '<div class="field"><label>Umfang</label><div class="chiplist" id="snAnzahl">' + [1, 2, 3, 4, 5].map(function (n) { return '<button type="button" class="chip' + (n === 1 ? ' on' : '') + '" data-sn-anzahl="' + n + '">' + (n === 1 ? 'einfach' : n === 2 ? 'doppelt' : n === 3 ? 'dreifach' : n + '×') + '</button>'; }).join('') + '</div></div>' +
-    '<div class="field"><label>Abgeben bis</label><input type="date" id="snFrist" value="' + A.addDays(A.todayISO(), 7) + '"></div>';
+    '<div class="field"><label>Abgeben bis</label><input type="date" id="snFrist" value="' + A.addDays(A.todayISO(), strafFristTage_()) + '"></div>';
   Modal.open({
     title: 'Strafarbeit eintragen', body: body,
     foot: '<button class="btn primary" id="snSave">Eintragen</button>',
@@ -11773,7 +11936,7 @@ function strafeNeuOeffnen_(kursId, susId, klasseId) {
         if (!sus.length) { window.toast('Bitte mindestens eine Schüler:in antippen.', true); return; }
         var chip = bg.querySelector('[data-sn-grund].on'), frei = bg.querySelector('#snGrund').value.trim();
         var grund = [chip ? chip.getAttribute('data-sn-grund') : '', frei].filter(Boolean).join(' – ');
-        var frist = bg.querySelector('#snFrist').value || A.addDays(A.todayISO(), 7);
+        var frist = bg.querySelector('#snFrist').value || A.addDays(A.todayISO(), strafFristTage_());
         var anzB = bg.querySelector('[data-sn-anzahl].on'), anz = anzB ? Number(anzB.getAttribute('data-sn-anzahl')) : 1;
         var mm = A.clone(A.cfg('manuelleStrafen') || {});
         sus.forEach(function (s) { var key = 'm' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6); mm[key] = { kursId: kid, susId: s.id, grund: grund, vergeben: A.todayISO(), frist: frist, anzahl: anz }; });
@@ -11830,9 +11993,14 @@ ACT['straf-nachsitzen'] = function (el) {
   });
 };
 
+function strafRegelnText_() {
+  var g = A.strafGrenze();
+  return (g ? 'ab ' + g + '× vergessen' : 'kein Vergessen-Zähler') + ' · Listen: Frist ' + listenFristTage_() + ' Tage' + (A.cfg('listenStrafeStandard') !== false ? ', danach Strafarbeit' : ', ohne Strafarbeit') + ' · Abgabe nach ' + strafFristTage_() + ' Tagen';
+}
+function strafFristTage_() { var n = A.num(A.cfg('strafFristTage'), 7); return n > 0 ? Math.round(n) : 7; }
 ACT['strafarbeit'] = function () {
   Modal.form({
-    title: 'Strafarbeit',
+    title: 'Strafarbeit-Regeln',
     hinweis: 'Gezählt werden alle Punkte der Abhakliste zusammen – drei vergessene ' +
       'Hausaufgaben und zweimal fehlendes Material ergeben also fünf. Entschuldigtes ' +
       'Fehlen zählt nicht mit. Gezählt wird je Fach und nur im eingestellten Zeitraum.',
@@ -11840,6 +12008,10 @@ ACT['strafarbeit'] = function () {
       { key: 'ab', label: 'Hinweis ab wie vielen Vergessen?', type: 'text', inputmode: 'numeric',
         value: String(A.cfg('strafarbeitAb') === undefined ? 5 : A.cfg('strafarbeitAb')),
         hint: '0 schaltet den Hinweis ab. Der nächste Hinweis kommt jeweils nach derselben Zahl wieder.' },
+      { key: 'listenTage', label: 'Einsammel-Listen: Frist in Tagen (Voreinstellung)', type: 'text', inputmode: 'numeric', value: String(listenFristTage_()) },
+      { key: 'listenStrafe', label: 'Einsammel-Listen: Strafarbeit für alle, die bis zur Frist nicht abgeben (Voreinstellung)', type: 'checkbox', value: A.cfg('listenStrafeStandard') !== false },
+      { key: 'fristTage', label: 'Strafarbeit abgeben nach wie vielen Tagen? (Voreinstellung)', type: 'text', inputmode: 'numeric', value: String(strafFristTage_()),
+        hint: 'Gilt für neu eingetragene Strafarbeiten und für die aus Listen. Umfang (doppelt, dreifach …) wählst du je Strafarbeit.' },
       { key: 'zuruecksetzen', label: 'Gemeldete Hinweise zurücksetzen', type: 'checkbox', value: false,
         hint: 'Danach meldet die App bereits erreichte Stände noch einmal.' },
       { key: 'erledigtReset', label: 'Abgehakte Strafarbeiten zurücksetzen', type: 'checkbox', value: false,
@@ -11851,6 +12023,8 @@ ACT['strafarbeit'] = function () {
     },
     onSave: function (v) {
       A.setCfg('strafarbeitAb', Math.round(A.num(String(v.ab).replace(',', '.'), 0)));
+      var lt = Math.round(A.num(v.listenTage, 7) || 7), ft = Math.round(A.num(v.fristTage, 7) || 7);
+      A.setCfg('listenFristTage', lt > 0 ? lt : 7); A.setCfg('strafFristTage', ft > 0 ? ft : 7); A.setCfg('listenStrafeStandard', !!v.listenStrafe);
       if (v.zuruecksetzen) A.setCfg('strafHinweise', {});
       if (v.erledigtReset) A.setCfg('strafErledigt', {});
     }
@@ -12032,7 +12206,8 @@ ACT['stunde-ansicht'] = function (el) {
       return '<button type="button" class="chip' + (aktNamen[String(p.name).toLowerCase()] ? ' on' : '') + '" data-sa-punkt="' + i + '">' + A.esc(p.name) + '</button>'; }).join('') + '</div>' +
       '<div class="sa-neu"><input id="saNeuName" placeholder="Eigener Punkt, z. B. Entschuldigungen" autocomplete="off"><input id="saNeuKurz" placeholder="Kürzel" maxlength="6" autocomplete="off">' +
       '<select id="saNeuE" class="sa-neu-e"><option value="2">dabei / fehlt</option><option value="3">+ entschuldigt</option></select><button type="button" class="btn small" id="saNeuAdd">Hinzufügen</button></div>' +
-      '<p class="small muted" style="margin:6px 2px 0">Antippen = an/aus. Keiner aktiv = kein Abhaken. „entschuldigt“ ergibt drei Stufen: dabei / fehlt / entschuldigt.</p></div>' +
+      '<p class="small muted" style="margin:6px 2px 0">Antippen = an/aus. Keiner aktiv = kein Abhaken. „entschuldigt“ ergibt drei Stufen: dabei / fehlt / entschuldigt.</p>' +
+      '<button type="button" class="sa-fein" data-act="check-punkte" data-kurs="' + kurs.id + '">Namen, Kürzel und Stufen der Punkte bearbeiten ›</button></div>' +
     '<div class="field"><label>Bereiche</label><div class="sa-teile">' + STUNDE_TEILE_.map(function (t) {
       return '<div class="field check sa-teil"><input type="checkbox" id="saT_' + t[0] + '" data-sa-teil="' + t[0] + '"' + (an[t[0]] ? ' checked' : '') + '><label for="saT_' + t[0] + '"><b>' + A.esc(t[1]) + '</b><small>' + A.esc(t[2]) + '</small></label></div>'; }).join('') + '</div></div>' +
     (geschw.length ? '<div class="field check"><input type="checkbox" id="saAlle"><label for="saAlle">Auch für die anderen Fächer der ' + A.esc(kl.name || 'Klasse') + ' (' + geschw.map(function (k) { return A.esc(k.fach); }).join(', ') + ')</label></div>' : '');
@@ -12074,7 +12249,10 @@ ACT['stunde-ansicht-liste'] = function () {
         '<div class="row-sub">Abhaken: ' + (pt.length ? A.esc(pt.join(', ')) : 'nichts') + (aus.length ? ' · aus: ' + A.esc(aus.join(', ')) : '') + '</div></div><div class="chev">›</div></button>';
     }).join('') + '</div>';
   }).join('');
-  Modal.open({ title: 'Stunde je Klasse & Fach', body: body || '<div class="card-body small muted">Noch keine Klassen mit Fächern.</div>' });
+  body = (body || '<div class="card-body small muted">Noch keine Klassen mit Fächern.</div>') +
+    '<div class="sa-gruppe"><div class="sa-gruppe-k">Neue Fächer</div><button class="row" data-act="check-punkte"><div class="row-main"><div class="row-title">Abhaken – Vorgabe für neue Fächer</div><div class="row-sub">' +
+    ((A.cfg('checkpunkte') || []).map(function (x) { return A.esc(x.name); }).join(', ') || 'keine') + '</div></div><div class="chev">›</div></button></div>';
+  Modal.open({ title: 'Stunde je Klasse & Fach', body: body });
 };
 
 ACT['stunde-menu'] = function () {
@@ -12179,13 +12357,7 @@ ACT['plan-zelle'] = function (el) {
       { key: 'kursId', label: 'Kurs', type: 'select',
         options: [{ value: '', label: '– frei –' }].concat(kurse.map(function (k) { return { value: k.id, label: A.kursLabel(k) }; })),
         value: vorhanden ? vorhanden.kursId : '' },
-      { key: 'raum', label: 'Raum', value: vorhanden ? vorhanden.raum : '' },
-      { key: 'vorlage', label: 'Abhakliste', type: 'select',
-        options: [{ value: '', label: (vorhanden && vorhanden.checkpunkte) ? 'unverändert lassen' : 'Vorgabe aus den Einstellungen' }]
-          .concat(A.CHECK_VORLAGEN.map(function (v, i) { return { value: String(i), label: v.titel }; })),
-        hint: (vorhanden && vorhanden.checkpunkte)
-          ? 'Eingestellt: ' + A.esc((A.parseJSON(vorhanden.checkpunkte, []) || []).map(function (x) { return x.name; }).join(', ') || 'keine')
-          : 'Feinere Einstellungen gibt es in der Stunde selbst unter „Punkte anpassen“.' }
+      { key: 'raum', label: 'Raum', value: vorhanden ? vorhanden.raum : '' }
     ],
     onSave: function (v) {
       if (!v.kursId) { if (vorhanden) A.del('Stundenplan', vorhanden.id); return; }
@@ -12196,10 +12368,6 @@ ACT['plan-zelle'] = function (el) {
       rec.fach = kurs ? kurs.fach : '';
       rec.raum = v.raum;
       rec.deleted = '';
-      if (v.vorlage !== '') {
-        var vl = A.CHECK_VORLAGEN[A.num(v.vorlage, 0)];
-        if (vl) rec.checkpunkte = JSON.stringify(vl.punkte);
-      }
       A.put('Stundenplan', rec);
     },
     onDelete: vorhanden ? function () { A.del('Stundenplan', vorhanden.id); } : null,
@@ -14043,6 +14211,9 @@ ACT['fehlerprotokoll'] = function () {
 };
 
 var AENDERUNGEN_ = [
+  ['V109', ['Noteneingabe: Eine Kaffeetasse füllt sich mit jeder eingetragenen Note – mit Zähler, Prozent und kurzem Zuspruch. Ist alles eingetragen, dampft sie.']],
+  ['V108', ['Aufgeräumt: Unter Mehr gibt es „Einrichtung“ (Server, Craft-Verbindung, iPhone-Kurzbefehl, Export/Import); „Meine Klasse“ steht jetzt unter Unterricht.', 'Alle Strafarbeit-Regeln in einem Fenster (Vergessen-Zähler, Listen-Frist, Abgabefrist) – erreichbar in jeder Klasse unter „Strafarbeiten“ und unter Mehr → Unterricht.', 'Suche jetzt auf jeder Seite (Lupe oben, am Computer Strg/⌘+K): findet auch Leistungen, Bereiche wie „Strafarbeiten 6f“, Aktionen und Einstellungen.', 'Neu im Profil: „Was brauche ich für …?“ – zeigt, welche Note in der nächsten Leistung für eine 1, 2, 3 … im Zeugnis nötig ist.', 'Abhakliste: nur noch ein Weg – „Stunde anpassen“. Die Vorgabe für neue Fächer steht unter Mehr → Unterricht → „Stunde je Klasse & Fach“.']],
+  ['V107', ['Sitzplan: neue Regel „nicht in der Nähe“ (nicht daneben, nicht mit einer Person dazwischen, nicht direkt oder schräg davor/dahinter). „Möglichst weit weg“ sucht jetzt wirklich den größten Abstand. Die Vorschläge werden schrittweise verbessert und halten mehr Regeln ein.', 'Lob-Vorschläge an Eltern auch bei: vier Wochen nichts mehr vergessen (nach früherem Vergessen) und deutlich besserer Note (mind. eine ganze Note).', 'Noteneingabe: fertiger Kommentar-Satz unter jedem Namen (Entwicklung + mündliche Note), abschaltbar.']],
   ['V106', ['Neuer Bereich „Strafarbeiten“ in jeder Klasse: alle offenen Strafarbeiten aller Fächer an einem Ort – oben die Zahlen (offen, fällig, Nachsitzen, kurz davor), geordnet nach Fälligkeit, Kind oder Fach. Direkt abhaken, „Nicht abgegeben“ → Nachsitzen, Frist/Umfang ändern, zurücknehmen; abgegebene der letzten 30 Tage mit „Rückgängig“.']],
   ['V105', ['Strafarbeiten mit Umfang: einfach, doppelt, dreifach … – beim Eintragen wählbar und bei jeder offenen Strafarbeit über „Frist · Umfang“ änderbar (auch für automatisch vergebene).']],
   ['V104', ['Strafarbeit direkt eintragen – jederzeit, unabhängig vom Vergessen-Zähler: in jeder Stunde „＋ Strafarbeit eintragen“, über ＋ → Strafarbeit und im Profil der Schüler:in. Mehrere Kinder auf einmal, mit Grund und Abgabedatum (voreingestellt 1 Woche).']],
@@ -14324,7 +14495,7 @@ ACT['sitzregeln'] = function(el){
       '<div class="regel-abschnitt">Platzwünsche</div><div class="regel-liste" data-zone-list>'+zoneListe()+'</div>'+
       '<div class="regel-abschnitt">Fixierte Plätze</div><div class="regel-liste" data-fix-list>'+fixListe()+'</div>'+
       '<hr style="border:0;border-top:1px solid var(--line-soft);margin:18px 0 12px">'+
-      '<details class="regel-neu"><summary>Neue Regel für zwei Personen</summary><div class="field"><label>Person A</label><select id="regelA">'+optionen()+'</select></div><div class="field"><label>Regel</label><select id="regelTyp"><option value="nicht-neben">nicht neben / vor / hinter</option><option value="nicht-tisch">nicht am selben Tisch</option><option value="gern-neben">bevorzugt neben</option><option value="weit">möglichst weit weg</option></select></div><div class="field"><label>Person B</label><select id="regelB">'+optionen()+'</select></div><div class="field"><label>Priorität</label><select id="prioPair">'+prioOptionen()+'</select></div><button class="btn block" data-add-pair>Regel hinzufügen</button></details>'+
+      '<details class="regel-neu"><summary>Neue Regel für zwei Personen</summary><div class="field"><label>Person A</label><select id="regelA">'+optionen()+'</select></div><div class="field"><label>Regel</label><select id="regelTyp"><option value="nicht-neben">nicht neben / vor / hinter</option><option value="nicht-tisch">nicht am selben Tisch</option><option value="nicht-nah">nicht in der Nähe (auch nicht mit einer Person dazwischen)</option><option value="gern-neben">bevorzugt neben</option><option value="weit">möglichst weit weg</option></select></div><div class="field"><label>Person B</label><select id="regelB">'+optionen()+'</select></div><div class="field"><label>Priorität</label><select id="prioPair">'+prioOptionen()+'</select></div><button class="btn block" data-add-pair>Regel hinzufügen</button></details>'+
       '<details class="regel-neu"><summary>Neuer Platzwunsch</summary><div class="field"><label>Person</label><select id="zonePerson">'+optionen()+'</select><select id="zoneTyp" style="margin-top:7px"><option value="vorne">vorne</option><option value="hinten">hinten</option><option value="rand">am Rand</option></select></div><div class="field"><label>Priorität</label><select id="prioZone">'+prioOptionen()+'</select></div><button class="btn block" data-add-zone>Platzwunsch hinzufügen</button></details>'+
       '<details class="regel-neu"><summary>Aktuellen Platz fixieren</summary><div class="field"><label>Person</label><select id="fixPerson">'+optionen()+'</select></div><div class="field"><label>Priorität</label><select id="prioFix">'+prioOptionen()+'</select></div><button class="btn block" data-add-fix>Aktuellen Platz fixieren</button></details>';
   }
@@ -14365,9 +14536,60 @@ ACT['sitzregeln'] = function(el){
 };
 ACT['sitzplan-vorschlaege'] = function(el){var klasseId=el.getAttribute('data-klasse')||currentView().p.id,vs=sitzVorschlaege(klasseId,3);if(!vs.length){window.toast('Es gibt nicht genug Sitzplätze für alle Schüler:innen.',true);return;}Modal.open({title:'Sitzplan-Vorschläge',body:'<div class="hint-box">Die Vorschläge berücksichtigen deine Regeln nach Priorität: zuerst „Muss“, dann „Wichtig“, dann „Wunsch“. Unter „Regeln im Detail“ siehst du, was klappt und was nicht.</div>'+vs.map(function(v,i){return '<div class="vorschlag-box '+(i===0?'best':'')+'"><b>Vorschlag '+(i+1)+'</b><div class="small muted" style="margin-top:3px">'+v.aus.hart+' Muss-Regel(n) verletzt'+(v.aus.wichtig?' · '+v.aus.wichtig+' wichtige offen':'')+' · '+v.aus.wunsch+'/'+v.aus.wunschGes+' Wichtig/Wunsch erfüllt</div><div class="vorschlag-tische">'+sitzVorschlagTischeHTML(v)+'</div><details class="konf-details"'+((v.aus.hart||v.aus.wichtig)?' open':'')+'><summary>Regeln im Detail</summary><div class="konf-liste">'+sitzKonfliktHTML_(v.aus)+'</div></details><button class="btn '+(i===0?'primary':'')+' block" data-use-v="'+i+'">Übernehmen</button></div>';}).join(''),after:function(bg,close){bg.addEventListener('click',function(e){var b=e.target.closest('[data-use-v]');if(!b)return;var v=vs[Number(b.getAttribute('data-use-v'))];setSitzPlanFlex(klasseId,v.plan);ui.sitzAuswahl=null;close();render();window.toast('Sitzplan übernommen');});}});};
 
-ACT['suche'] = function(){
-  Modal.open({title:'Suche',body:'<div class="field"><label>Suchen</label><input id="appSearch" type="search" placeholder="Name, Klasse, Fach oder Liste …" autocomplete="off"></div><div class="search-results" id="searchResults"><div class="small muted">Suchbegriff eingeben.</div></div>',after:function(bg,close){var inp=bg.querySelector('#appSearch'),out=bg.querySelector('#searchResults');function draw(){var q=String(inp.value||'').trim().toLowerCase();if(q.length<2){out.innerHTML='<div class="small muted">Mindestens zwei Zeichen eingeben.</div>';return;}var hits=[];A.klassen(true).forEach(function(k){if(String(k.name).toLowerCase().includes(q))hits.push({typ:'Klasse',titel:k.name,sub:'Klasse',view:'klasse',id:k.id});});A.list('SuS').forEach(function(x){var n=A.susName(x),kl=A.byId('Klassen',x.klasseId);if(n.toLowerCase().includes(q))hits.push({typ:'Kind',titel:n,sub:kl?kl.name:'',view:'sus',id:x.id});});A.alleKurse(true).forEach(function(k){var l=A.kursLabel(k);if(l.toLowerCase().includes(q))hits.push({typ:'Kurs',titel:l,sub:'Fach',view:'kurs',id:k.id});});aufgabenAlle().forEach(function(a){if(String(a.titel||'').toLowerCase().includes(q)){var k=A.byId('Kurse',a.kursId);hits.push({typ:a.typ==='liste'?'Liste':'To-do',titel:a.titel,sub:k?A.kursLabel(k):'',aufgabe:a.id});}});out.innerHTML=hits.length?hits.slice(0,30).map(function(h,i){return '<button class="search-hit" data-hit="'+i+'"><span class="search-type">'+A.esc(h.typ)+'</span><span><b>'+A.esc(h.titel)+'</b><small>'+A.esc(h.sub||'')+'</small></span></button>';}).join(''):'<div class="small muted">Nichts gefunden.</div>';out._hits=hits;}inp.addEventListener('input',draw);out.addEventListener('click',function(e){var b=e.target.closest('[data-hit]');if(!b)return;var h=out._hits&&out._hits[Number(b.getAttribute('data-hit'))];if(!h)return;close();setTimeout(function(){if(h.aufgabe){var f=document.createElement('button');f.setAttribute('data-aufgabe',h.aufgabe);ACT['aufgabe-open'](f);}else push(h.view,{id:h.id});},0);});setTimeout(function(){inp.focus();},30);}});
+/* V108: Suche überall erreichbar (Lupe oben, Strg/⌘+K) – findet auch Leistungen, Bereiche, Aktionen und Einstellungen. */
+var SUCH_ZIELE_ = [
+  ['Strafarbeit eintragen', 'strafe neu', 'straf-neu'], ['Neue Leistung anlegen', 'klassenarbeit test note neu', 'leistung-neu'],
+  ['Strafarbeit-Regeln', 'vergessen grenze frist', 'strafarbeit'], ['Stunde je Klasse & Fach', 'abhaken abhakliste material hausaufgaben punkte mitarbeit ausblenden', 'stunde-ansicht-liste'],
+  ['Fächer & Gewichtung', 'prozent kategorien arten', 'faecher'], ['Gewichtung (allgemeine Vorgabe)', 'prozent unterarten', 'kats-bearbeiten'], ['Notenschlüssel', 'punkte note', 'schluessel-bearbeiten'],
+  ['Rundung auf ganze Noten', 'zeugnis', 'rundung'], ['Zeitraum / Halbjahr', 'schuljahr', 'zeitraum'], ['Mitarbeit-Stufen', 'smileys icons', 'smileys-bearbeiten'], ['Mitarbeit in der Note', 'mündlich vorschlag', 'mitarbeit-einstellungen'],
+  ['Ferien & freie Tage', 'feiertage', 'freie-tage'], ['Stundenzeiten', 'uhrzeit', 'plan-stunden'], ['Doppelstunden', '', 'doppelstunden'], ['Meine Klasse / Klassenleitung', 'standardklasse', 'klassenleitung'],
+  ['Elternnachricht erstellen', 'brief mail', 'eltern-generator'], ['Automatische Elternhinweise', 'schwelle', 'eltern-einstellungen'],
+  ['Farbdesign', 'farbe dunkel hell design', 'farbdesign'], ['Namensanzeige', 'vorname nachname', 'namensformat'], ['Sortierung der Schüler:innen', '', 'sus-sortierung'], ['Startseite', '', 'startseite'],
+  ['PIN-Sperre', 'sperren', 'pin-setzen'], ['Face ID / Touch ID', 'biometrie', 'biometrie'], ['Automatisch sperren', '', 'auto-lock'],
+  ['Craft-Verbindung', 'api todo', 'craft-api'], ['iPhone-Kurzbefehl für To-dos', 'siri shortcut', 'kurzbefehl-todo'], ['Server-Adresse', 'tailscale verbindung', 'verbindung'],
+  ['Daten exportieren', 'sicherung backup', 'export'], ['Daten importieren', 'sicherung', 'import'], ['Papierkorb', 'gelöscht wiederherstellen', 'papierkorb'], ['Was ist neu', 'version änderungen', 'was-neu'], ['Fehlerprotokoll', '', 'fehlerprotokoll']
+];
+ACT['suche'] = function () {
+  Modal.open({ title: 'Suche', body: '<div class="field"><input id="appSearch" type="search" placeholder="Name, Klasse, Fach, Leistung, Einstellung …" autocomplete="off"></div><div class="search-results" id="searchResults"><div class="small muted">Suchbegriff eingeben – z. B. einen Namen, „Strafarbeit“ oder „Gewichtung“.</div></div>',
+    after: function (bg, close) {
+      var inp = bg.querySelector('#appSearch'), out = bg.querySelector('#searchResults');
+      function draw() {
+        var q = String(inp.value || '').trim().toLowerCase();
+        if (q.length < 2) { out.innerHTML = '<div class="small muted">Mindestens zwei Zeichen eingeben.</div>'; return; }
+        var hits = [], hat = function (t) { return String(t || '').toLowerCase().indexOf(q) >= 0; };
+        A.list('SuS').forEach(function (x) { var n = A.susName(x), kl = A.byId('Klassen', x.klasseId); if (hat(n) || hat((x.vorname || '') + ' ' + (x.nachname || ''))) hits.push({ typ: 'Kind', titel: n, sub: kl ? kl.name : '', view: 'sus', p: { id: x.id } }); });
+        A.klassen(true).forEach(function (k) {
+          if (hat(k.name)) hits.push({ typ: 'Klasse', titel: k.name, sub: 'Klasse', view: 'klasse', p: { id: k.id } });
+          [['strafen', 'Strafarbeiten'], ['listen', 'Listen & Abgaben'], ['eltern', 'Eltern'], ['konferenz', 'Notenkonferenz'], ['sus', 'Schüler:innen']].forEach(function (b) {
+            if (hat(b[1] + ' ' + k.name) || hat(k.name + ' ' + b[1])) hits.push({ typ: 'Bereich', titel: b[1], sub: k.name, view: 'klasse', p: { id: k.id, b: b[0] } }); });
+          if (hat('Sitzplan ' + k.name) || hat(k.name + ' Sitzplan')) hits.push({ typ: 'Bereich', titel: 'Sitzplan', sub: k.name, view: 'sitzplan', p: { id: k.id } });
+        });
+        A.alleKurse(true).forEach(function (k) { var l = A.kursLabel(k); if (hat(l) || hat(k.fach)) hits.push({ typ: 'Fach', titel: l, sub: 'Noten, Listen, Bewertung', view: 'kurs', p: { id: k.id } }); });
+        A.list('Leistungen').forEach(function (l) { var k = A.byId('Kurse', l.kursId); if (!k) return; if (hat(l.titel) || hat(l.kategorie)) hits.push({ typ: 'Leistung', titel: l.titel || l.kategorie, sub: A.kursLabel(k) + (l.datum ? ' · ' + A.fmtDateShort(l.datum) : ''), view: 'leistung', p: { id: l.id } }); });
+        aufgabenAlle().forEach(function (a) { if (a.typ === 'liste' && hat(a.titel)) { var k = A.byId('Kurse', a.kursId); hits.push({ typ: 'Liste', titel: a.titel, sub: (k ? A.kursLabel(k) : '') + (a.erledigt ? ' · abgeschlossen' : ''), aufgabe: a.id }); } });
+        SUCH_ZIELE_.forEach(function (z) { if (hat(z[0]) || hat(z[1])) hits.push({ typ: /eintragen|anlegen|erstellen/.test(z[0]) ? 'Aktion' : 'Einstellung', titel: z[0], sub: '', act: z[2] }); });
+        out.innerHTML = hits.length ? hits.slice(0, 40).map(function (h, i) { return '<button class="search-hit" data-hit="' + i + '"><span class="search-type">' + A.esc(h.typ) + '</span><span><b>' + A.esc(h.titel) + '</b><small>' + A.esc(h.sub || '') + '</small></span></button>'; }).join('') : '<div class="small muted">Nichts gefunden.</div>';
+        out._hits = hits;
+      }
+      function oeffnen(h) {
+        close();
+        setTimeout(function () {
+          var f = document.createElement('button');
+          if (h.aufgabe) { f.setAttribute('data-aufgabe', h.aufgabe); ACT['aufgabe-open'](f); }
+          else if (h.act) { if (ACT[h.act]) ACT[h.act](f); }
+          else push(h.view, h.p);
+        }, 0);
+      }
+      inp.addEventListener('input', draw);
+      inp.addEventListener('keydown', function (e) { if (e.key === 'Enter' && out._hits && out._hits[0]) { e.preventDefault(); oeffnen(out._hits[0]); } });
+      out.addEventListener('click', function (e) { var b = e.target.closest('[data-hit]'); if (!b) return; var h = out._hits && out._hits[Number(b.getAttribute('data-hit'))]; if (h) oeffnen(h); });
+      setTimeout(function () { inp.focus(); }, 30);
+    } });
 };
+document.addEventListener('keydown', function (e) {
+  if ((e.metaKey || e.ctrlKey) && String(e.key).toLowerCase() === 'k') { if (!A.Auth.isLoggedIn || !A.Auth.isLoggedIn()) return; e.preventDefault(); if (!document.getElementById('appSearch')) ACT['suche'](); }
+});
+(function () { var b = document.getElementById('btnSuche'); if (b) b.addEventListener('click', function () { ACT['suche'](); }); })();
 ACT['klassenleitung'] = function(){var ks=A.klassen(true);if(!ks.length){window.toast('Noch keine Klasse angelegt.',true);return;}var def=A.standardKlasseId();Modal.form({title:'Meine Klasse / Klassenleitung',hinweis:'Diese Klasse wird bei Beobachtungen und anderen Schüler:innen-Auswahlen automatisch vorausgewählt. Du kannst den Filter dort jederzeit ändern.',fields:[{key:'klasseId',label:'Standardklasse',type:'select',value:def,options:ks.map(function(k){return{value:k.id,label:k.name};})}],onSave:function(v){A.setCfg('klassenleitungId',v.klasseId||'');render();window.toast('Standardklasse gespeichert');},focus:false});};
 ACT['startseite'] = function(){Modal.form({title:'Startseite',fields:[{key:'s',label:'Beim Öffnen anzeigen',type:'select',value:A.cfg('startseite')||'heute',options:[{value:'heute',label:'Heute'},{value:'plan',label:'Stundenplan'},{value:'klassen',label:'Klassen'},{value:'noten',label:'Noten'}]}],onSave:function(v){A.setCfg('startseite',v.s);},focus:false});};
 ACT['auto-lock'] = function(){Modal.form({title:'Automatisch sperren',hinweis:'Funktioniert zusammen mit der vierstelligen PIN. Wenn die App länger im Hintergrund war, wird beim Zurückkehren erneut gesperrt.',fields:[{key:'m',label:'Nach',type:'select',value:String(A.cfg('autoLockMin')||0),options:[{value:'0',label:'aus'},{value:'1',label:'1 Minute'},{value:'2',label:'2 Minuten'},{value:'5',label:'5 Minuten'},{value:'10',label:'10 Minuten'}]}],onSave:function(v){A.setCfg('autoLockMin',Number(v.m)||0);},focus:false});};
@@ -14910,7 +15132,24 @@ main.addEventListener('keydown', function (e) {
 function notenFortschritt_() {
   var alle = main.querySelectorAll('[data-note-input]'), n = 0;
   Array.prototype.forEach.call(alle, function (x) { if (String(x.value).trim()) n++; });
-  var el = document.getElementById('nsFortschritt'); if (el) el.innerHTML = '<b>' + n + '</b> von ' + alle.length + ' eingetragen<i style="width:' + (alle.length ? Math.round(n / alle.length * 100) : 0) + '%"></i>';
+  var el = document.getElementById('nsFortschritt'); if (!el) return;
+  /* V109: Kaffeetasse, die sich füllt – der Füllstand wird nur verschoben, damit er weich steigt. */
+  var ges = alle.length, ant = ges ? n / ges : 0, rest = ges - n, fertig = ges > 0 && n === ges;
+  var text = !ges ? '' : fertig ? 'Geschafft – Kaffee verdient!' : n === 0 ? 'Los geht’s!' : rest === 1 ? 'Nur noch eine!' : rest <= 3 ? 'Endspurt – nur noch ' + rest + '.' : ant >= 0.75 ? 'Drei Viertel sind drin.' : ant >= 0.5 ? 'Über die Hälfte geschafft.' : ant >= 0.25 ? 'Ein Viertel ist drin.' : 'Guter Anfang.';
+  if (!el.querySelector('.ns-tasse')) el.innerHTML =
+    '<svg class="ns-tasse" viewBox="0 0 48 48" aria-hidden="true"><defs><clipPath id="nsTasseClip"><path d="M9 17h24v15a8 8 0 0 1-8 8h-8a8 8 0 0 1-8-8z"/></clipPath></defs>' +
+    '<g clip-path="url(#nsTasseClip)"><rect class="ns-kaffee" x="9" y="17" width="24" height="23"/></g>' +
+    '<path class="ns-rand" d="M9 17h24v15a8 8 0 0 1-8 8h-8a8 8 0 0 1-8-8z"/><path class="ns-rand" d="M33 21h3a5 5 0 0 1 0 10h-3"/>' +
+    '<g class="ns-dampf"><path d="M15 12c-2-2 2-4 0-6"/><path d="M21 12c-2-2 2-4 0-6"/><path d="M27 12c-2-2 2-4 0-6"/></g></svg>' +
+    '<div class="ns-ftext"><div class="ns-zahl"></div><div class="ns-spruch"></div></div><i class="ns-balken"></i>';
+  var war = el.classList.contains('fertig');
+  el.classList.toggle('fertig', fertig);
+  el.querySelector('.ns-kaffee').style.transform = 'translateY(' + ((1 - ant) * 23).toFixed(1) + 'px)';
+  el.querySelector('.ns-zahl').innerHTML = '<b>' + n + '</b> von ' + ges + ' · ' + Math.round(ant * 100) + ' %';
+  el.querySelector('.ns-spruch').textContent = text;
+  el.querySelector('.ns-balken').style.width = Math.round(ant * 100) + '%';
+  if (fertig && !war && el.dataset.bereit === '1') { el.classList.remove('feier'); void el.offsetWidth; el.classList.add('feier'); }
+  el.dataset.bereit = '1';
 }
 function notenNaechstes_(ni, richtung) {
   var alle = Array.prototype.slice.call(main.querySelectorAll('[data-note-input]')), i = alle.indexOf(ni) + (richtung || 1);
@@ -14987,6 +15226,8 @@ function speichereNote(input) {
   out.className = 'nums ' + noteKlasse(note);
   var tr = zeile.querySelector('[data-trend]');
   if (tr) tr.outerHTML = notenTrendHTML_(tr.getAttribute('data-ref') === '' ? null : Number(tr.getAttribute('data-ref')), note);
+  var km = zeile.querySelector('[data-komm]');
+  if (km) { var kz = function (a) { var v = km.getAttribute(a); return v === '' || v === null ? null : Number(v); }; km.textContent = notenKommentarText_(kz('data-ref'), note, kz('data-dn'), km.getAttribute('data-dt'), km.getAttribute('data-dm') === '1'); }
 }
 
 
